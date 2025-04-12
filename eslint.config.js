@@ -35,7 +35,7 @@ export default ts.config(
 	},
 	{
 		rules: {
-			'@typescript-eslint/explicit-function-return-type': 'warn'
+			'@typescript-eslint/explicit-function-return-type': 'error'
 		}
 	}
 );

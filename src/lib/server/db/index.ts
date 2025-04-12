@@ -1,6 +1,7 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/node-postgres';
+
 import { env } from '$env/dynamic/private';
-if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
-const client = postgres(env.DATABASE_URL);
-export const db = drizzle(client);
+
+export const db = drizzle(
+	`postgres://${env.POSTGRES_USER}:${env.POSTGRES_PASSWORD}@${env.POSTGRES_HOST}:${env.POSTGRES_PORT}/${env.POSTGRES_DB}`
+);
