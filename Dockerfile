@@ -21,14 +21,14 @@ COPY . .
 RUN pnpm run build
 
 
-FROM base AS prod
+FROM gcr.io/distroless/nodejs22-debian12:nonroot AS prod
+
+WORKDIR /app
 
 COPY --chown=node:node package.json .
 COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/build ./build
 
-USER node
-
 ENV NODE_ENV=production
 EXPOSE 5173
-CMD ["node", "build/index.js"]
+CMD ["build/index.js"]
