@@ -25,9 +25,10 @@ FROM gcr.io/distroless/nodejs22-debian12:nonroot AS prod
 
 WORKDIR /app
 
-COPY --chown=node:node package.json .
-COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
-COPY --from=build --chown=node:node /app/build ./build
+COPY --chown=nonroot:nonroot health-check.mjs .
+COPY --chown=nonroot:nonroot package.json .
+COPY --from=prod-deps --chown=nonroot:nonroot /app/node_modules ./node_modules
+COPY --from=build --chown=nonroot:nonroot /app/build ./build
 
 ENV NODE_ENV=production
 EXPOSE 5173

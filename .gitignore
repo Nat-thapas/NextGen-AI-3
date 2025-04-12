@@ -2,7 +2,6 @@ test-results
 node_modules
 
 # Output
-.output
 /.svelte-kit
 /build
 
