@@ -1,0 +1,13 @@
+# Git
+/.git
+
+# Static
+/static
+
+# Packages
+/pnpm-lock.yaml
+/node_modules
+
+# Build
+/build
+/.svelte-kit

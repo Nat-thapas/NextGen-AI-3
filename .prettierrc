@@ -1,0 +1,33 @@
+{
+	"useTabs": true,
+	"singleQuote": true,
+	"trailingComma": "none",
+	"printWidth": 100,
+	"plugins": [
+		"prettier-plugin-svelte",
+		"prettier-plugin-tailwindcss",
+		"@ianvs/prettier-plugin-sort-imports"
+	],
+	"overrides": [
+		{
+			"files": "*.svelte",
+			"options": {
+				"parser": "svelte"
+			}
+		}
+	],
+	"bracketSameLine": true,
+	"importOrder": [
+		"<BUILTIN_MODULES>",
+		"",
+		"<THIRD_PARTY_MODULES>",
+		"",
+		"^\\$(?!lib)",
+		"",
+		"^\\$lib",
+		"",
+		"^\\."
+	],
+	"importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"],
+	"importOrderTypeScriptVersion": "5.8.3"
+}

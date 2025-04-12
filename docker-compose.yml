@@ -1,0 +1,33 @@
+name: 'ce-nextgen-ai-2'
+
+services:
+  sveltekit:
+    build: .
+    container_name: ce-nextgen-ai-2-sveltekit
+    ports:
+      - 5173:5173
+    healthcheck:
+      test: 'curl -I http://localhost:5173 || exit 1'
+      start_period: 10s
+      start_interval: 1s
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: ce-nextgen-ai-2-postgres
+    volumes:
+      - ./databases/postgres/data:/var/lib/postgresql/data
+      - ./databases/postgres/config.conf:/etc/postgresql/postgresql.conf
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    expose:
+      - 5432
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-ce-nextgen-ai-2}
+    shm_size: 4GB
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', '${POSTGRES_USER:-postgres}']
+      start_period: 10s
+      start_interval: 1s
+    restart: unless-stopped
