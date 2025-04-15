@@ -6,12 +6,6 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
 
-FROM base AS prod-deps
-
-COPY package.json pnpm-lock.yaml ./
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod
-
-
 FROM base AS build
 
 COPY package.json pnpm-lock.yaml ./
@@ -27,7 +21,6 @@ WORKDIR /app
 
 COPY --chown=nonroot:nonroot health-check.mjs .
 COPY --chown=nonroot:nonroot package.json .
-COPY --from=prod-deps --chown=nonroot:nonroot /app/node_modules ./node_modules
 COPY --from=build --chown=nonroot:nonroot /app/build ./build
 
 ENV NODE_ENV=production

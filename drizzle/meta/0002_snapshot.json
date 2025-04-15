@@ -1,6 +1,6 @@
 {
-  "id": "54e11009-46cc-4ba0-aef8-ed2bbb7b2c11",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "e1de2242-728c-4bec-9c5b-873efa2fc3f4",
+  "prevId": "5e4c2672-56e2-4634-9f23-bf53662290b8",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -286,6 +286,23 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
+        },
+        "verified": {
+          "name": "verified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "generated": {
+            "as": "hashed_password IS NOT NULL",
+            "type": "stored"
+          }
+        },
+        "lastEmailSentAt": {
+          "name": "lastEmailSentAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'1969-12-31 17:00:00.000'"
         },
         "prefix": {
           "name": "prefix",

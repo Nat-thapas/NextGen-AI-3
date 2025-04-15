@@ -1,0 +1,41 @@
+diff --git a/dist/Icon.svelte b/dist/Icon.svelte
+index 2d6d2fad495a1e1e8d2624b6cecf56f44a4f4bd6..d14fe136d14f07c9fc8108b4a4e7b9614b1d8fb4 100644
+--- a/dist/Icon.svelte
++++ b/dist/Icon.svelte
+@@ -1,3 +1,5 @@
++<svelte:options runes={false} />
++
+ <script>export let type = 'success';
+ </script>
+ 
+diff --git a/dist/Loader.svelte b/dist/Loader.svelte
+index d7d7929a0f4368c0c876d7a082ecd4896db774b8..73fd3e9501ee4135ae7b6146091050b52e013908 100644
+--- a/dist/Loader.svelte
++++ b/dist/Loader.svelte
+@@ -1,3 +1,5 @@
++<svelte:options runes={false} />
++
+ <script>export let visible;
+ const bars = Array(12).fill(0);
+ </script>
+diff --git a/dist/Toast.svelte b/dist/Toast.svelte
+index eaa232b4fe57399822b7566a9da58ca484e5830e..e0e9ba58caf942847eabd3c7120b55980044bb68 100644
+--- a/dist/Toast.svelte
++++ b/dist/Toast.svelte
+@@ -1,5 +1,5 @@
+ <!-- Set immutable: true to avoid unnecessary re-runs of reactive statements. -->
+-<svelte:options immutable={true} />
++<svelte:options immutable={true} runes={false} />
+ 
+ <script>import { onMount, tick } from 'svelte';
+ import { toastState, useEffect } from './state';
+diff --git a/dist/Toaster.svelte b/dist/Toaster.svelte
+index 5d6bd3e1113924241d3e71afc4831cd7a724325a..93f9b2b296a03988c9fda24017d0ec3a98f0ec2f 100644
+--- a/dist/Toaster.svelte
++++ b/dist/Toaster.svelte
+@@ -1,3 +1,5 @@
++<svelte:options runes={false} />
++
+ <script>import { onDestroy, onMount } from 'svelte';
+ import { toastState } from './state.js';
+ import Toast from './Toast.svelte';

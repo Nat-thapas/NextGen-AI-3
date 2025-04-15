@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
 	boolean,
 	char,
@@ -10,8 +10,8 @@ import {
 	varchar
 } from 'drizzle-orm/pg-core';
 
-import { configConstants } from '$lib/config-constants';
-import { generateTuid } from '$lib/tuid';
+import { configConstants } from '../../config-constants';
+import { generateTuid } from '../../utils';
 
 export const roles = pgEnum('role', ['student', 'staff', 'teacher', 'admin', 'superadmin']);
 
@@ -35,10 +35,16 @@ export const questionTypes = pgEnum('question_types', ['choices', 'checkboxes', 
 export const scoringTypes = pgEnum('scoring_types', ['exact', 'regex', 'and', 'or', 'scale']);
 
 export const users = pgTable('users', {
-	id: char({ length: 16 }).default(generateTuid()).primaryKey(),
+	id: char({ length: 16 }).$default(generateTuid).primaryKey(),
 	email: varchar({ length: configConstants.users.maxEmailLength }).unique().notNull(),
 	hashed_password: varchar({ length: 1023 }),
 	role: roles().notNull(),
+	verified: boolean()
+		.generatedAlwaysAs(sql`hashed_password IS NOT NULL`)
+		.notNull(),
+	lastEmailSentAt: timestamp()
+		.default(new Date(1970, 0, 1))
+		.notNull(),
 	prefix: varchar({
 		length: configConstants.users.maxPrefixLength,
 		enum: ['เด็กชาย', 'เด็กหญิง', 'นาย', 'นางสาว']
@@ -61,7 +67,7 @@ export const users = pgTable('users', {
 });
 
 export const exams = pgTable('exams', {
-	id: char({ length: 16 }).default(generateTuid()).primaryKey(),
+	id: char({ length: 16 }).$default(generateTuid).primaryKey(),
 	title: varchar({ length: configConstants.exams.maxTitleLength }).notNull(),
 	description: varchar({ length: configConstants.exams.maxDescriptionLength }).notNull(),
 	openAt: timestamp().notNull(),
@@ -81,7 +87,7 @@ export const examsRelation = relations(exams, ({ many }) => ({
 }));
 
 export const questions = pgTable('questions', {
-	id: char({ length: 16 }).default(generateTuid()).primaryKey(),
+	id: char({ length: 16 }).$default(generateTuid).primaryKey(),
 	examId: char({ length: 16 })
 		.references(() => exams.id, {
 			onUpdate: 'cascade',
@@ -113,7 +119,7 @@ export const questionsRelation = relations(questions, ({ one, many }) => ({
 }));
 
 export const choices = pgTable('choices', {
-	id: char({ length: 16 }).default(generateTuid()).primaryKey(),
+	id: char({ length: 16 }).$default(generateTuid).primaryKey(),
 	questionId: char({ length: 16 })
 		.references(() => questions.id, {
 			onUpdate: 'cascade',

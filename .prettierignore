@@ -14,3 +14,6 @@
 
 # shadcn-svelte
 /src/lib/components/ui
+
+# Databases
+/databases

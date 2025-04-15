@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { ChevronRight, Facebook, Instagram, Pin } from '@lucide/svelte';
 
+	import { base } from '$app/paths';
+
 	import { formatDate, formatDateTime } from '$lib/utils';
 
 	import robots from '$lib/images/3-robots.avif';
@@ -51,7 +53,7 @@
 </script>
 
 <div class="mb-32 mt-16 flex items-center">
-	<div class="ml-16 w-0 flex-grow 2xl:flex-grow-[2]">
+	<div class="ml-16 w-0 flex-grow-[4] xl:flex-grow-[5] 2xl:flex-grow-[6]">
 		<h1 class="mb-4 text-5xl font-semibold !leading-tight">
 			Welcome to
 			<br />
@@ -67,13 +69,16 @@
 			เพื่อค้นหาศักยภาพ ในตัวคุณ ไม่ว่าคุณจะเริ่มต้นเส้นทางสาย AI หรืออยาก พัฒนาทักษะให้เฉียบคมขึ้น
 			นี่คือจุดเริ่มต้นสำหรับคุณ
 		</p>
+		<!--
+			TODO: Redirect the button elsewhere if the user is logged in
+		-->
 		<a
-			href="/register"
+			href="{base}/auth/register"
 			class="button-gradient rounded-full px-6 py-2 text-xl font-semibold text-white drop-shadow-md transition-colors motion-reduce:transition-none">
 			Join Us
 		</a>
 	</div>
-	<img src={robots} alt="Robots" class="-z-10 -mb-80 -ml-16 -mt-40 h-fit w-0 flex-grow" />
+	<img src={robots} alt="Robots" class="-z-10 -mb-80 -ml-16 -mt-40 h-fit w-0 flex-grow-[4]" />
 </div>
 
 <div class="mb-32">

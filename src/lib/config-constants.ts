@@ -10,7 +10,8 @@ export const configConstants = {
 		maxAddressDistrictLength: 255,
 		maxAddressSubDistrictLength: 255,
 		postcodeLength: 5,
-		maxAddressDetailLength: 1023
+		maxAddressDetailLength: 1023,
+		emailCooldown: 900 // seconds
 	},
 	exams: {
 		maxTitleLength: 255,
