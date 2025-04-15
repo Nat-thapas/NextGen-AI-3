@@ -6,7 +6,7 @@
 	let { children } = $props();
 </script>
 
-<nav class="mb-8 flex h-24 items-center justify-between">
+<nav class="mx-16 mt-4 flex h-16 items-center justify-between">
 	<img src={banner} alt="Banner" class="h-fit w-48" />
 	<div>
 		<a

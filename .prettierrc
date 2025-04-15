@@ -3,6 +3,7 @@
 	"singleQuote": true,
 	"trailingComma": "none",
 	"printWidth": 100,
+	"htmlWhitespaceSensitivity": "ignore",
 	"plugins": [
 		"prettier-plugin-svelte",
 		"prettier-plugin-tailwindcss",
@@ -24,9 +25,11 @@
 		"",
 		"^\\$(?!lib)",
 		"",
-		"^\\$lib",
+		"^\\$lib(?!/images)",
 		"",
-		"^\\."
+		"^\\.",
+		"",
+		"^\\$lib/images"
 	],
 	"importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"],
 	"importOrderTypeScriptVersion": "5.8.3"

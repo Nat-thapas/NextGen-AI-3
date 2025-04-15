@@ -6,6 +6,8 @@ services:
     container_name: ce-nextgen-ai-2-sveltekit
     ports:
       - 5173:5173
+    env_file:
+      - .env
     healthcheck:
       test: ['CMD', '/nodejs/bin/node', '/app/health-check.mjs']
       start_period: 10s
