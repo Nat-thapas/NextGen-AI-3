@@ -1,7 +1,7 @@
 export const configConstants = {
 	entropy: {
 		id: 96,
-		token: 256
+		token: 384
 	},
 	users: {
 		maxEmailLength: 255,

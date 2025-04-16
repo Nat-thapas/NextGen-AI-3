@@ -1,4 +1,5 @@
 export const roles = {
+	registrant: 'registrant',
 	student: 'student',
 	staff: 'staff',
 	teacher: 'teacher',

@@ -82,7 +82,7 @@ export const actions: Actions = {
 		if (user === undefined) {
 			await db.insert(users).values({
 				email: form.data.email,
-				role: roles.student,
+				role: roles.registrant,
 				verificationToken: token,
 				verificationTokenGeneratedAt: utcNow(),
 				lastEmailSentAt: utcNow()

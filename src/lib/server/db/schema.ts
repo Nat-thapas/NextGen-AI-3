@@ -11,9 +11,16 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { configConstants } from '../../config-constants';
-import { generateGuid, utcNow } from '../../utils';
+import { generateGuid, generateToken, utcNow } from '../../utils';
 
-export const roles = pgEnum('role', ['student', 'staff', 'teacher', 'admin', 'superadmin']);
+export const roles = pgEnum('role', [
+	'registrant',
+	'student',
+	'staff',
+	'teacher',
+	'admin',
+	'superadmin'
+]);
 
 // choices: multiple choices, pick one
 // checkboxes: multiple choices, pick multiple
@@ -35,7 +42,9 @@ export const questionTypes = pgEnum('question_types', ['choices', 'checkboxes', 
 export const scoringTypes = pgEnum('scoring_types', ['exact', 'regex', 'and', 'or', 'scale']);
 
 export const users = pgTable('users', {
-	id: char({ length: 16 }).$default(generateGuid).primaryKey(),
+	id: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+		.$default(generateGuid)
+		.primaryKey(),
 	email: varchar({ length: configConstants.users.maxEmailLength }).unique().notNull(),
 	hashedPassword: varchar({ length: 1023 }),
 	role: roles().notNull(),
@@ -43,9 +52,9 @@ export const users = pgTable('users', {
 		.generatedAlwaysAs(sql`hashed_password IS NOT NULL`)
 		.notNull(),
 	verificationToken: varchar({ length: 255 }),
-	verificationTokenGeneratedAt: timestamp().default(new Date(0)),
+	verificationTokenGeneratedAt: timestamp().default(new Date(0)).notNull(),
 	passwordResetToken: varchar({ length: 255 }),
-	passwordResetTokenGeneratedAt: timestamp().default(new Date(0)),
+	passwordResetTokenGeneratedAt: timestamp().default(new Date(0)).notNull(),
 	lastEmailSentAt: timestamp().default(new Date(0)).notNull(),
 	prefix: varchar({
 		length: configConstants.users.maxPrefixLength,
@@ -65,8 +74,35 @@ export const users = pgTable('users', {
 	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
 });
 
+export const sessions = pgTable('sessions', {
+	token: char({ length: Math.ceil(configConstants.entropy.token / 6) })
+		.$default(generateToken)
+		.primaryKey(),
+	userId: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+		.references(() => users.id, {
+			onUpdate: 'cascade',
+			onDelete: 'cascade'
+		})
+		.notNull(),
+	firstLoginIP: varchar({ length: 39 }).notNull(),
+	firstLoginUserAgent: varchar({ length: 1023 }).notNull(),
+	lastUseIP: varchar({ length: 39 }).notNull(),
+	lastUseUserAgent: varchar({ length: 1023 }).notNull(),
+	createdAt: timestamp().$default(utcNow).notNull(),
+	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
+});
+
+export const sessionsRelation = relations(sessions, ({ one }) => ({
+	user: one(users, {
+		fields: [sessions.userId],
+		references: [users.id]
+	})
+}));
+
 export const exams = pgTable('exams', {
-	id: char({ length: 16 }).$default(generateGuid).primaryKey(),
+	id: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+		.$default(generateGuid)
+		.primaryKey(),
 	title: varchar({ length: configConstants.exams.maxTitleLength }).notNull(),
 	description: varchar({ length: configConstants.exams.maxDescriptionLength }).notNull(),
 	openAt: timestamp().notNull(),
@@ -83,8 +119,10 @@ export const examsRelation = relations(exams, ({ many }) => ({
 }));
 
 export const questions = pgTable('questions', {
-	id: char({ length: 16 }).$default(generateGuid).primaryKey(),
-	examId: char({ length: 16 })
+	id: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+		.$default(generateGuid)
+		.primaryKey(),
+	examId: char({ length: Math.ceil(configConstants.entropy.id / 6) })
 		.references(() => exams.id, {
 			onUpdate: 'cascade',
 			onDelete: 'cascade'
@@ -112,8 +150,10 @@ export const questionsRelation = relations(questions, ({ one, many }) => ({
 }));
 
 export const choices = pgTable('choices', {
-	id: char({ length: 16 }).$default(generateGuid).primaryKey(),
-	questionId: char({ length: 16 })
+	id: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+		.$default(generateGuid)
+		.primaryKey(),
+	questionId: char({ length: Math.ceil(configConstants.entropy.id / 6) })
 		.references(() => questions.id, {
 			onUpdate: 'cascade',
 			onDelete: 'cascade'
