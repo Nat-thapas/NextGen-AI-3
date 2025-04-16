@@ -5,6 +5,7 @@ import { configConstants } from '$lib/config-constants';
 export const formSchema = z
 	.object({
 		token: z.string(),
+		email: z.string(),
 		password: z
 			.string()
 			.min(

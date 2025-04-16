@@ -43,6 +43,17 @@ export const load: PageServerLoad = async ({ url }) => {
 			)
 		);
 	}
+	if (user.verified) {
+		redirect(
+			303,
+			setToastParams(
+				`${base}/auth/login`,
+				'You have already registered',
+				'Your account have already been registered, please login instead.',
+				'info'
+			)
+		);
+	}
 	if (
 		(Date.now() - user.verificationTokenGeneratedAt!.getTime()) / 1000 >
 		configConstants.users.verificationTimeout
@@ -60,8 +71,9 @@ export const load: PageServerLoad = async ({ url }) => {
 
 	const form = await superValidate(zod(formSchema));
 	form.data.token = token;
+	form.data.email = user.email;
 
-	return { form, email: user.email };
+	return { form };
 };
 
 export const actions: Actions = {
@@ -76,7 +88,7 @@ export const actions: Actions = {
 				setToastParams(
 					`${base}/auth/register`,
 					'Missing token',
-					'Your response does not contain a token, please restart the registration process.',
+					'Your response does not contain a token, please click the link in your email again or restart the registration process.',
 					'error'
 				)
 			);
@@ -96,9 +108,21 @@ export const actions: Actions = {
 				)
 			);
 		}
+		if (user.verified) {
+			redirect(
+				303,
+				setToastParams(
+					`${base}/auth/login`,
+					'You have already registered',
+					'Your account have already been registered, please login instead.',
+					'info'
+				)
+			);
+		}
 		if (
 			(Date.now() - user.verificationTokenGeneratedAt!.getTime()) / 1000 >
-			configConstants.users.verificationStage1Timeout
+			configConstants.users.verificationTimeout +
+				configConstants.users.verificationTimeoutGracePeriod
 		) {
 			redirect(
 				303,
@@ -115,6 +139,14 @@ export const actions: Actions = {
 
 		await db.update(users).set({ hashedPassword }).where(eq(users.id, user.id));
 
-		return redirect(303, `${base}/auth/register/info?token=${form.data.token}`);
+		return redirect(
+			303,
+			setToastParams(
+				`${base}/profile/me`,
+				'Registration successful',
+				'Registration completed, please fill out your details completely by using the edit function.',
+				'success'
+			)
+		);
 	}
 };

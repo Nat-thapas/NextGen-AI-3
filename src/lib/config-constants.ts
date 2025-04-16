@@ -20,8 +20,7 @@ export const configConstants = {
 		maxAddressDetailLength: 1023,
 		emailCooldown: 900, // seconds
 		verificationTimeout: 900, // seconds: from email sent to clicking button
-		verificationStage1Timeout: 1200, // seconds: from email sent to submit password
-		verificationStage2Timeout: 1800 // seconds: from email sent to registration complete
+		verificationTimeoutGracePeriod: 300 // seconds: from email sent to password submit
 	},
 	exams: {
 		maxTitleLength: 255,

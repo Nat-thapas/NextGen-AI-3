@@ -75,6 +75,20 @@
 				</Form.Control>
 				<Form.FieldErrors />
 			</Form.Field>
+			<Form.Field {form} name="email" class="mb-4 w-full">
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label class="text-lg text-primary-foreground">Email</Form.Label>
+						<Input
+							{...props}
+							type="email"
+							bind:value={$formData.email}
+							disabled
+							class="rounded-xl border-2 border-secondary-foreground bg-primary text-xl text-primary-foreground placeholder:text-secondary-foreground" />
+					{/snippet}
+				</Form.Control>
+				<Form.FieldErrors />
+			</Form.Field>
 			<Form.Field {form} name="password" class="mb-4 w-full">
 				<Form.Control>
 					{#snippet children({ props })}
@@ -109,7 +123,7 @@
 				{#if formWaiting}
 					<LoaderCircle class="animate-spin" /> Loading...
 				{:else}
-					Next
+					Register
 				{/if}
 			</Form.Button>
 		</div>

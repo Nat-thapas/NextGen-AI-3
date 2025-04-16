@@ -53,6 +53,6 @@
 	});
 </script>
 
-<Toaster theme="light" richColors closeButton />
+<Toaster theme="light" duration={5000} richColors closeButton />
 
 {@render children()}
