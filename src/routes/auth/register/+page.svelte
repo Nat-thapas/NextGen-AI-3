@@ -8,14 +8,14 @@
 
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
-	import { getErrorMessage } from '$lib/utils';
+	import { getErrorMessage } from '$lib/error';
 
-	import { formSchema, type FormSchema } from './schema';
+	import { formSchema } from './schema';
 
 	import banner from '$lib/images/banner/banner-512.avif';
 	import robots_phone from '$lib/images/robots-phone.avif';
 
-	let { data }: { data: { form: SuperValidated<Infer<FormSchema>> } } = $props();
+	let { data } = $props();
 
 	let formWaiting: boolean = $state(false);
 

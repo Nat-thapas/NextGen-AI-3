@@ -11,7 +11,8 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { configConstants } from '../../config-constants';
-import { generateGuid, generateToken, utcNow } from '../../utils';
+import { utcNow } from '../../datetime';
+import { generateGuid, generateToken } from '../../token';
 
 export const roles = pgEnum('role', [
 	'registrant',

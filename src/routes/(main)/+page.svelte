@@ -3,7 +3,7 @@
 
 	import { base } from '$app/paths';
 
-	import { formatDate, formatDateTime } from '$lib/utils';
+	import { formatDate, formatDateTime } from '$lib/datetime';
 
 	import robots from '$lib/images/3-robots.avif';
 	import badge_10 from '$lib/images/badge-10.avif';

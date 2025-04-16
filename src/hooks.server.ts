@@ -10,7 +10,7 @@ import { db } from '$lib/server/db';
 import { sessions } from '$lib/server/db/schema';
 import type { Session } from '$lib/server/interfaces/session';
 import type { User } from '$lib/server/interfaces/user';
-import { setToastParams } from '$lib/utils';
+import { setToastParams } from '$lib/toast';
 
 export const init: ServerInit = async () => {
 	console.log(env.PUBLIC_ORIGIN);

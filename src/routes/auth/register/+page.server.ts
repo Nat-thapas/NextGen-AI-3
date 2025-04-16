@@ -7,11 +7,12 @@ import { base } from '$app/paths';
 import { env } from '$env/dynamic/public';
 
 import { configConstants } from '$lib/config-constants';
+import { formatDuration, utcNow } from '$lib/datetime';
 import { roles } from '$lib/enums';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
 import { sendVerifyEmail } from '$lib/server/email';
-import { formatDuration, generateToken, utcNow } from '$lib/utils';
+import { generateToken } from '$lib/token';
 
 import type { Actions, PageServerLoad } from './$types';
 import { formSchema } from './schema';

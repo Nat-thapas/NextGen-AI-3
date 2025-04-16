@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { LoaderCircle } from '@lucide/svelte';
+	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
+
+	import { base } from '$app/paths';
 
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
@@ -11,7 +14,7 @@
 	import { formSchema } from './schema';
 
 	import banner from '$lib/images/banner/banner-512.avif';
-	import robots_phone from '$lib/images/robots-phone.avif';
+	import robots_phones from '$lib/images/robots-phones.avif';
 
 	let { data } = $props();
 
@@ -58,19 +61,15 @@
 </script>
 
 <div class="mt-8 flex items-center">
-	<div class="-mr-8 flex w-64 max-w-3xl flex-shrink flex-grow-[999] flex-col items-center">
-		<img src={banner} alt="Banner" class="-ml-[20%] mb-[5%] h-fit w-1/3" />
-		<img src={robots_phone} alt="Robots using a phone decoration" class="-mt-[25%] h-fit w-full" />
-	</div>
-	<form method="POST" use:enhance class="mx-16 mr-16 flex w-fit flex-grow flex-col items-center">
-		<h1 class="mb-8 text-5xl font-semibold text-black">Create Account</h1>
-		<h2 class="mb-8 text-5xl text-black">to get started now!</h2>
+	<form method="POST" use:enhance class="mx-16 ml-16 flex w-fit flex-grow flex-col items-center">
+		<h1 class="mb-8 text-5xl font-semibold text-black">Welcome Back</h1>
+		<h2 class="mb-8 text-5xl text-black">Glad to see you again!</h2>
 		<div class="mb-8 w-96">
-			<Form.Field {form} name="token">
+			<Form.Field {form} name="next">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label class="hidden">Token</Form.Label>
-						<Input {...props} bind:value={$formData.token} readonly class="hidden" />
+						<Form.Label class="hidden">Next</Form.Label>
+						<Input {...props} bind:value={$formData.next} readonly class="hidden" />
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
@@ -82,13 +81,13 @@
 						<Input
 							{...props}
 							bind:value={$formData.email}
-							disabled
-							class="rounded-xl border-2 border-secondary-foreground bg-primary text-xl text-primary-foreground placeholder:text-secondary-foreground" />
+							placeholder="username@email.com"
+							class="rounded-xl border-2 border-secondary-foreground text-xl placeholder:text-secondary-foreground" />
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
 			</Form.Field>
-			<Form.Field {form} name="password" class="mb-4 w-full">
+			<Form.Field {form} name="password" class="w-full">
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label class="text-lg text-primary-foreground">Password</Form.Label>
@@ -102,29 +101,29 @@
 				</Form.Control>
 				<Form.FieldErrors />
 			</Form.Field>
-			<Form.Field {form} name="confirmPassword" class="mb-4 w-full">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label class="text-lg text-primary-foreground">Confirm Password</Form.Label>
-						<Input
-							{...props}
-							type="password"
-							bind:value={$formData.confirmPassword}
-							placeholder="P@5sw0rd"
-							class="rounded-xl border-2 border-secondary-foreground text-xl placeholder:text-secondary-foreground" />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
+			<a href="/auth/forgot-password" class="mb-4 block w-full text-primary-foreground">
+				Forgot your password?
+			</a>
 			<Form.Button
 				disabled={formWaiting}
 				class="button-gradient flex w-full items-center gap-2 rounded-xl text-white drop-shadow-lg">
 				{#if formWaiting}
 					<LoaderCircle class="animate-spin" /> Loading...
 				{:else}
-					Register
+					Next
 				{/if}
 			</Form.Button>
 		</div>
+		<span class="font-medium text-secondary-foreground">
+			Don't have an account? <a
+				href="{base}/auth/register"
+				class="text-primary-foreground underline">
+				Sign Up
+			</a>
+		</span>
 	</form>
+	<div class="-ml-8 flex w-64 max-w-3xl flex-shrink flex-grow-[999] flex-col items-center">
+		<img src={banner} alt="Banner" class="-mr-[20%] mb-[5%] h-fit w-1/3" />
+		<img src={robots_phones} alt="Robots using a phone decoration" class="-mt-[25%] h-fit w-full" />
+	</div>
 </div>

@@ -9,7 +9,7 @@ import { base } from '$app/paths';
 import { configConstants } from '$lib/config-constants';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
-import { setToastParams } from '$lib/utils';
+import { setToastParams } from '$lib/toast';
 
 import type { Actions } from '../$types';
 import type { PageServerLoad } from './$types';
