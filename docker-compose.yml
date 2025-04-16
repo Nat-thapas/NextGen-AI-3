@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
 
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17
     container_name: ce-nextgen-ai-2-postgres
     volumes:
       - ./databases/postgres/data:/var/lib/postgresql/data
@@ -33,7 +33,15 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-ce-nextgen-ai-2}
     shm_size: 4GB
     healthcheck:
-      test: ['CMD', 'pg_isready', '-U', '${POSTGRES_USER:-postgres}']
+      test:
+        [
+          'CMD',
+          'pg_isready',
+          '-U',
+          '${POSTGRES_USER:-postgres}',
+          '-d',
+          '${POSTGRES_DB:-ce-nextgen-ai-2}'
+        ]
       start_period: 10s
       start_interval: 1s
     restart: unless-stopped
