@@ -1,16 +1,17 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
-import { message, superValidate } from 'sveltekit-superforms';
+import { fail, message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
 import { base } from '$app/paths';
 import { env } from '$env/dynamic/public';
 
 import { configConstants } from '$lib/config-constants';
+import { roles } from '$lib/enums';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
 import { sendVerifyEmail } from '$lib/server/email';
-import { generateToken } from '$lib/utils';
+import { formatDuration, generateToken, utcNow } from '$lib/utils';
 
 import type { Actions, PageServerLoad } from './$types';
 import { formSchema } from './schema';
@@ -37,22 +38,32 @@ export const actions: Actions = {
 				return fail(400, { form });
 			}
 			if (
-				(new Date().getTime() - user.lastEmailSentAt.getTime()) / 1000 <
+				(Date.now() - user.lastEmailSentAt.getTime()) / 1000 <
 				configConstants.users.emailCooldown
 			) {
-				form.errors.email = [
-					`You can only request an email every ${configConstants.users.emailCooldown} seconds`
-				];
-				return fail(400, { form });
+				form.errors.email = ['Email request quota exceeded'];
+				const cooldownRemaining =
+					configConstants.users.emailCooldown -
+					Math.floor((Date.now() - user.lastEmailSentAt.getTime()) / 1000);
+				return message(
+					form,
+					{
+						type: 'error',
+						text: `You can request another email in ${formatDuration(cooldownRemaining)}`
+					},
+					{
+						status: 400
+					}
+				);
 			}
 		}
 
-		const token = generateToken(256);
+		const token = generateToken();
 
 		try {
-			sendVerifyEmail(
+			await sendVerifyEmail(
 				form.data.email,
-				`${env.PUBLIC_ORIGIN}${base}/auth/register/verify?token=${token}`
+				`${env.PUBLIC_ORIGIN}${base}/auth/register/continue?token=${token}`
 			);
 		} catch (err) {
 			console.error(`Failed to sent email to ${form.data.email}, Error: ${err}`);
@@ -66,6 +77,25 @@ export const actions: Actions = {
 					status: 500
 				}
 			);
+		}
+
+		if (user === undefined) {
+			await db.insert(users).values({
+				email: form.data.email,
+				role: roles.student,
+				verificationToken: token,
+				verificationTokenGeneratedAt: utcNow(),
+				lastEmailSentAt: utcNow()
+			});
+		} else {
+			await db
+				.update(users)
+				.set({
+					verificationToken: token,
+					verificationTokenGeneratedAt: utcNow(),
+					lastEmailSentAt: utcNow()
+				})
+				.where(eq(users.id, user.id));
 		}
 
 		return redirect(303, `${base}/auth/register/email-sent`);

@@ -1,6 +1,6 @@
 {
-  "id": "347d1cec-f98e-4d00-a90b-4aad80b9621a",
-  "prevId": "7d324f63-54a8-4507-881a-eadab3701049",
+  "id": "c23d41ba-b409-416f-a2dd-d1382b40513f",
+  "prevId": "6364d750-9d13-4f36-bd71-6d9d7d73c34e",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -36,15 +36,13 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
         }
       },
       "indexes": {},
@@ -126,15 +124,13 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
         }
       },
       "indexes": {},
@@ -225,15 +221,13 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
         }
       },
       "indexes": {},
@@ -308,7 +302,7 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
-          "default": "'1969-12-31 17:00:00.000'"
+          "default": "'1970-01-01 00:00:00.000'"
         },
         "password_reset_token": {
           "name": "password_reset_token",
@@ -321,14 +315,14 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
-          "default": "'1969-12-31 17:00:00.000'"
+          "default": "'1970-01-01 00:00:00.000'"
         },
         "last_email_sent_at": {
           "name": "last_email_sent_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "'1969-12-31 17:00:00.000'"
+          "default": "'1970-01-01 00:00:00.000'"
         },
         "prefix": {
           "name": "prefix",
@@ -400,15 +394,13 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
         }
       },
       "indexes": {},

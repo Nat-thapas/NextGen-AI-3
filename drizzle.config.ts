@@ -9,6 +9,7 @@ if (!process.env.POSTGRES_DB) throw new Error('POSTGRES_DB is not set');
 
 export default defineConfig({
 	schema: './src/lib/server/db/schema.ts',
+	casing: 'snake_case',
 
 	dbCredentials: {
 		host: process.env.POSTGRES_HOST,

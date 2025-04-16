@@ -11,7 +11,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { configConstants } from '../../config-constants';
-import { generateTuid } from '../../utils';
+import { generateGuid, utcNow } from '../../utils';
 
 export const roles = pgEnum('role', ['student', 'staff', 'teacher', 'admin', 'superadmin']);
 
@@ -35,16 +35,18 @@ export const questionTypes = pgEnum('question_types', ['choices', 'checkboxes', 
 export const scoringTypes = pgEnum('scoring_types', ['exact', 'regex', 'and', 'or', 'scale']);
 
 export const users = pgTable('users', {
-	id: char({ length: 16 }).$default(generateTuid).primaryKey(),
+	id: char({ length: 16 }).$default(generateGuid).primaryKey(),
 	email: varchar({ length: configConstants.users.maxEmailLength }).unique().notNull(),
-	hashed_password: varchar({ length: 1023 }),
+	hashedPassword: varchar({ length: 1023 }),
 	role: roles().notNull(),
 	verified: boolean()
 		.generatedAlwaysAs(sql`hashed_password IS NOT NULL`)
 		.notNull(),
-	lastEmailSentAt: timestamp()
-		.default(new Date(1970, 0, 1))
-		.notNull(),
+	verificationToken: varchar({ length: 255 }),
+	verificationTokenGeneratedAt: timestamp().default(new Date(0)),
+	passwordResetToken: varchar({ length: 255 }),
+	passwordResetTokenGeneratedAt: timestamp().default(new Date(0)),
+	lastEmailSentAt: timestamp().default(new Date(0)).notNull(),
 	prefix: varchar({
 		length: configConstants.users.maxPrefixLength,
 		enum: ['เด็กชาย', 'เด็กหญิง', 'นาย', 'นางสาว']
@@ -59,15 +61,12 @@ export const users = pgTable('users', {
 	addressSubDistrict: varchar({ length: configConstants.users.maxAddressSubDistrictLength }),
 	addressPostcode: char({ length: configConstants.users.postcodeLength }),
 	addressDetail: varchar({ length: configConstants.users.maxAddressDetailLength }),
-	createdAt: timestamp().defaultNow().notNull(),
-	updatedAt: timestamp()
-		.defaultNow()
-		.$onUpdate(() => new Date())
-		.notNull()
+	createdAt: timestamp().$default(utcNow).notNull(),
+	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
 });
 
 export const exams = pgTable('exams', {
-	id: char({ length: 16 }).$default(generateTuid).primaryKey(),
+	id: char({ length: 16 }).$default(generateGuid).primaryKey(),
 	title: varchar({ length: configConstants.exams.maxTitleLength }).notNull(),
 	description: varchar({ length: configConstants.exams.maxDescriptionLength }).notNull(),
 	openAt: timestamp().notNull(),
@@ -75,11 +74,8 @@ export const exams = pgTable('exams', {
 	timeLimit: integer().notNull(), // seconds
 	gracePeriod: integer().default(configConstants.exams.defaultGracePeriod).notNull(), // seconds
 	scoreConfirmed: boolean().notNull(),
-	createdAt: timestamp().defaultNow().notNull(),
-	updatedAt: timestamp()
-		.defaultNow()
-		.$onUpdate(() => new Date())
-		.notNull()
+	createdAt: timestamp().$default(utcNow).notNull(),
+	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
 });
 
 export const examsRelation = relations(exams, ({ many }) => ({
@@ -87,7 +83,7 @@ export const examsRelation = relations(exams, ({ many }) => ({
 }));
 
 export const questions = pgTable('questions', {
-	id: char({ length: 16 }).$default(generateTuid).primaryKey(),
+	id: char({ length: 16 }).$default(generateGuid).primaryKey(),
 	examId: char({ length: 16 })
 		.references(() => exams.id, {
 			onUpdate: 'cascade',
@@ -103,11 +99,8 @@ export const questions = pgTable('questions', {
 	fileSizeLimit: integer().default(configConstants.questions.defaultFileSizeLimit), // type=file: upload size limit (MB)
 	maxScore: integer().default(configConstants.questions.defaultMaxScore),
 	minScore: integer().default(configConstants.questions.defaultMinScore),
-	createdAt: timestamp().defaultNow().notNull(),
-	updatedAt: timestamp()
-		.defaultNow()
-		.$onUpdate(() => new Date())
-		.notNull()
+	createdAt: timestamp().$default(utcNow).notNull(),
+	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
 });
 
 export const questionsRelation = relations(questions, ({ one, many }) => ({
@@ -119,7 +112,7 @@ export const questionsRelation = relations(questions, ({ one, many }) => ({
 }));
 
 export const choices = pgTable('choices', {
-	id: char({ length: 16 }).$default(generateTuid).primaryKey(),
+	id: char({ length: 16 }).$default(generateGuid).primaryKey(),
 	questionId: char({ length: 16 })
 		.references(() => questions.id, {
 			onUpdate: 'cascade',
@@ -128,11 +121,8 @@ export const choices = pgTable('choices', {
 		.notNull(),
 	text: text().notNull(),
 	isCorrect: boolean().notNull(),
-	createdAt: timestamp().defaultNow().notNull(),
-	updatedAt: timestamp()
-		.defaultNow()
-		.$onUpdate(() => new Date())
-		.notNull()
+	createdAt: timestamp().$default(utcNow).notNull(),
+	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
 });
 
 export const choicesRelation = relations(choices, ({ one }) => ({

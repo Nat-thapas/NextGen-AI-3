@@ -9,7 +9,7 @@ import { verifyTemplate } from './templates/verify';
 const transporter = nodemailer.createTransport({
 	host: env.SMTP_HOST,
 	port: +env.SMTP_PORT,
-	secure: env.SMTP_TLS.toLowerCase() === 'true',
+	secure: env.SMTP_SECURE.toLowerCase() === 'true',
 	auth: {
 		user: env.SMTP_USER,
 		pass: env.SMTP_PASSWORD

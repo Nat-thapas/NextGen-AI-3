@@ -1,1 +1,0 @@
-ALTER TABLE "users" ADD COLUMN "lastEmailSentAt" timestamp DEFAULT '1969-12-31 17:00:00.000' NOT NULL;

@@ -4,8 +4,6 @@
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
-	import { base } from '$app/paths';
-
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
 	import { getErrorMessage } from '$lib/utils';
@@ -68,14 +66,38 @@
 		<h1 class="mb-8 text-5xl font-semibold text-black">Create Account</h1>
 		<h2 class="mb-8 text-5xl text-black">to get started now!</h2>
 		<div class="mb-8 w-96">
-			<Form.Field {form} name="email" class="mb-4 w-full">
+			<Form.Field {form} name="token">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label class="text-lg text-primary-foreground">Email</Form.Label>
+						<Form.Label class="hidden">Token</Form.Label>
+						<Input {...props} bind:value={$formData.token} readonly class="hidden" />
+					{/snippet}
+				</Form.Control>
+				<Form.FieldErrors />
+			</Form.Field>
+			<Form.Field {form} name="password" class="mb-4 w-full">
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label class="text-lg text-primary-foreground">Password</Form.Label>
 						<Input
 							{...props}
-							bind:value={$formData.email}
-							placeholder="username@email.com"
+							type="password"
+							bind:value={$formData.password}
+							placeholder="P@5sw0rd"
+							class="rounded-xl border-2 border-secondary-foreground text-xl placeholder:text-secondary-foreground" />
+					{/snippet}
+				</Form.Control>
+				<Form.FieldErrors />
+			</Form.Field>
+			<Form.Field {form} name="confirmPassword" class="mb-4 w-full">
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label class="text-lg text-primary-foreground">Confirm Password</Form.Label>
+						<Input
+							{...props}
+							type="password"
+							bind:value={$formData.confirmPassword}
+							placeholder="P@5sw0rd"
 							class="rounded-xl border-2 border-secondary-foreground text-xl placeholder:text-secondary-foreground" />
 					{/snippet}
 				</Form.Control>
@@ -91,12 +113,5 @@
 				{/if}
 			</Form.Button>
 		</div>
-		<span class="font-medium text-secondary-foreground">
-			Already have an account? <a
-				href="{base}/auth/login"
-				class="text-primary-foreground underline">
-				Login
-			</a>
-		</span>
 	</form>
 </div>
