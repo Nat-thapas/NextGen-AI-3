@@ -24,8 +24,7 @@ export const configConstants = {
 	},
 	exams: {
 		maxTitleLength: 255,
-		maxDescriptionLength: 65535,
-		defaultGracePeriod: 15 // seconds
+		maxDescriptionLength: 65535
 	},
 	questions: {
 		defaultTextAnswerLengthLimit: 1024,

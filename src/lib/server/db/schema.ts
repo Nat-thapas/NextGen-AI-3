@@ -109,8 +109,7 @@ export const exams = pgTable('exams', {
 	openAt: timestamp().notNull(),
 	closeAt: timestamp().notNull(),
 	timeLimit: integer().notNull(), // seconds
-	gracePeriod: integer().default(configConstants.exams.defaultGracePeriod).notNull(), // seconds
-	scoreConfirmed: boolean().notNull(),
+	scoreConfirmed: boolean().default(false).notNull(),
 	createdAt: timestamp().$default(utcNow).notNull(),
 	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
 });
@@ -131,13 +130,13 @@ export const questions = pgTable('questions', {
 		.notNull(),
 	text: text().notNull(),
 	questionType: questionTypes().notNull(),
+	maxScore: integer().default(configConstants.questions.defaultMaxScore).notNull(),
+	minScore: integer().default(configConstants.questions.defaultMinScore).notNull(),
 	scoringType: scoringTypes(),
-	limit: integer().default(configConstants.questions.defaultTextAnswerLengthLimit), // type=text: lenght limit
-	correctAnswer: varchar({ length: configConstants.questions.defaultTextAnswerLengthLimit }), // type=text: correct answer to score against, can be regex
+	textLengthLimit: integer().default(configConstants.questions.defaultTextAnswerLengthLimit), // type=text: lenght limit
+	textCorrect: varchar({ length: configConstants.questions.defaultTextAnswerLengthLimit }), // type=text: correct answer to score against, can be regex
 	fileTypes: varchar({ length: 1023 }), // type=file: MIME types for supported file (comma separated)
-	fileSizeLimit: integer().default(configConstants.questions.defaultFileSizeLimit), // type=file: upload size limit (MB)
-	maxScore: integer().default(configConstants.questions.defaultMaxScore),
-	minScore: integer().default(configConstants.questions.defaultMinScore),
+	fileSizeLimit: integer().default(configConstants.questions.defaultFileSizeLimit), // type=file: upload size limit (kB)
 	createdAt: timestamp().$default(utcNow).notNull(),
 	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
 });
