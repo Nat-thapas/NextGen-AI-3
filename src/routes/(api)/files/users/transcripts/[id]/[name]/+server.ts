@@ -24,12 +24,18 @@ export const GET: RequestHandler = async (event) => {
 	}
 
 	const path = env.FILE_STORAGE_PATH + '/users/transcripts/' + user.id + '.pdf';
-	const file = await fs.readFile(path);
 
-	return new Response(file, {
-		headers: {
-			'Content-Type': 'application/pdf',
-			'Content-Disposition': 'inline; filename=Transcript.pdf'
-		}
-	});
+	try {
+		const file = await fs.readFile(path);
+		return new Response(file, {
+			headers: {
+				'Content-Type': 'application/pdf',
+				'Content-Disposition': 'inline; filename=Transcript.pdf'
+			}
+		});
+	} catch {
+		error(404, {
+			message: 'Not Found'
+		});
+	}
 };

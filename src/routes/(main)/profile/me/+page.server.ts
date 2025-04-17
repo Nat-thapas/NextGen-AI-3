@@ -37,18 +37,9 @@ export const load: PageServerLoad = async (event) => {
 	if (user.addressPostcode !== null) form.data.addressPostcode = user.addressPostcode;
 	if (user.addressDetail !== null) form.data.addressDetail = user.addressDetail;
 
-	let userHaveTranscript: boolean | undefined;
-
-	try {
-		await fs.stat(env.FILE_STORAGE_PATH + '/users/transcripts/' + user.id + '.pdf');
-		userHaveTranscript = true;
-	} catch {
-		userHaveTranscript = false;
-	}
-
 	const changePasswordForm = await superValidate(zod(changePasswordSchema));
 
-	return { form, userHaveTranscript, changePasswordForm };
+	return { form, userHaveTranscript: user.isTranscriptAvailable, changePasswordForm };
 };
 
 export const actions: Actions = {
@@ -79,6 +70,7 @@ export const actions: Actions = {
 				phoneNumber: form.data.phoneNumber,
 				schoolName: form.data.schoolName,
 				grade: Number(form.data.grade),
+				isTranscriptAvailable: form.data.transcript ? true : undefined,
 				addressProvince: form.data.addressProvince,
 				addressDistrict: form.data.addressDistrict,
 				addressSubDistrict: form.data.addressSubDistrict,

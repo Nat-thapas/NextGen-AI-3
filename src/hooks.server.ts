@@ -1,7 +1,6 @@
 import fs from 'node:fs/promises';
 
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
-import cookie from 'cookie';
 import { eq } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 
@@ -40,8 +39,7 @@ function isRouteBypassed(route: string | null): boolean {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const cookies = cookie.parse(event.request.headers.get('Cookie') ?? '');
-	const token = cookies.token;
+	const token = event.cookies.get('token');
 
 	let session: Session | undefined = undefined;
 	let user: User | undefined = undefined;
@@ -59,6 +57,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 					(Date.now() - result.createdAt.getTime()) / 1000 > +env.SESSION_LIFETIME &&
 					(Date.now() - result.updatedAt.getTime()) / 1000 > +env.SESSION_GRACEPERIOD
 				) {
+					await db.delete(sessions).where(eq(sessions.token, result.token));
+				} else {
 					session = result;
 					user = result.user;
 
@@ -72,8 +72,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 							lastUseUserAgent: event.request.headers.get('User-Agent') ?? ''
 						})
 						.where(eq(sessions.token, token));
-				} else {
-					await db.delete(sessions).where(eq(sessions.token, result.token));
 				}
 			}
 		}
@@ -111,34 +109,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// FIX: for header too big error
 	// Uncomment next line to enable
 	// response.headers.delete('link');
-
-	if (event.locals.token !== token) {
-		if (!event.locals.token) {
-			response.headers.append(
-				'Set-Cookie',
-				cookie.serialize('token', '', {
-					httpOnly: true,
-					secure: true,
-					path: `${base}/`,
-					sameSite: 'lax',
-					priority: 'high',
-					expires: new Date(0)
-				})
-			);
-		} else {
-			response.headers.append(
-				'Set-Cookie',
-				cookie.serialize('token', event.locals.token, {
-					httpOnly: true,
-					secure: true,
-					path: `${base}/`,
-					sameSite: 'lax',
-					priority: 'high',
-					maxAge: 60 * 60 * 24 * 365
-				})
-			);
-		}
-	}
 
 	return response;
 };

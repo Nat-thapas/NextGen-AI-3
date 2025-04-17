@@ -1,14 +1,15 @@
 <script lang="ts">
 	import '../app.css';
 
-	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+
+	import { afterNavigate } from '$app/navigation';
 
 	import { Toaster } from '$lib/components/ui/sonner';
 
 	let { children } = $props();
 
-	onMount(() => {
+	function showToast() {
 		const urlParams = new URLSearchParams(window.location.search);
 		if (urlParams.has('toast-message') || urlParams.has('toast-description')) {
 			let message = urlParams.get('toast-message');
@@ -50,7 +51,9 @@
 
 			window.history.replaceState(null, '', newUrl);
 		}
-	});
+	}
+
+	afterNavigate(showToast);
 </script>
 
 <Toaster theme="light" duration={5000} richColors closeButton />

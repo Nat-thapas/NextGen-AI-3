@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { LogOut, User } from '@lucide/svelte';
 
+	import { enhance } from '$app/forms';
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
 
@@ -38,13 +39,15 @@
 			<a href="{base}/profile/me">
 				<User
 					size={32}
-					class="text-secondary-foreground transition-colors hover:text-primary-foreground " />
+					class="text-secondary-foreground transition-colors hover:text-primary-foreground" />
 			</a>
-			<a href="{base}/auth/logout">
-				<LogOut
-					size={32}
-					class="text-secondary-foreground transition-colors hover:text-primary-foreground " />
-			</a>
+			<form method="POST" use:enhance action={`${base}/auth/logout`} class="m-0 h-8 w-8 p-0">
+				<button type="submit" class="m-0 h-8 w-8 p-0">
+					<LogOut
+						size={32}
+						class="text-secondary-foreground transition-colors hover:text-primary-foreground" />
+				</button>
+			</form>
 		</div>
 	{:else}
 		<div class="flex w-48 items-center justify-end gap-4">

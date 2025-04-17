@@ -63,6 +63,7 @@ export const users = pgTable('users', {
 	phoneNumber: char({ length: configConstants.users.phoneNumberLength }),
 	schoolName: varchar({ length: configConstants.users.maxSchoolNameLength }),
 	grade: integer(),
+	isTranscriptAvailable: boolean().default(false).notNull(),
 	addressProvince: varchar({ length: configConstants.users.maxAddressProvinceLength }),
 	addressDistrict: varchar({ length: configConstants.users.maxAddressDistrictLength }),
 	addressSubDistrict: varchar({ length: configConstants.users.maxAddressSubDistrictLength }),

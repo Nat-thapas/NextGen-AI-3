@@ -67,7 +67,14 @@ export const actions: Actions = {
 			lastUseUserAgent: event.request.headers.get('User-Agent') ?? ''
 		});
 
-		event.locals.token = token;
+		event.cookies.set('token', token, {
+			httpOnly: true,
+			secure: true,
+			path: `${base}/`,
+			sameSite: 'lax',
+			priority: 'high',
+			maxAge: 60 * 60 * 24 * 365
+		});
 
 		let next = form.data.next;
 		next = decodeURIComponent(next);

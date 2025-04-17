@@ -15,6 +15,7 @@ export interface User {
 	phoneNumber: string | null;
 	schoolName: string | null;
 	grade: number | null;
+	isTranscriptAvailable: boolean;
 	addressProvince: string | null;
 	addressDistrict: string | null;
 	addressSubDistrict: string | null;
