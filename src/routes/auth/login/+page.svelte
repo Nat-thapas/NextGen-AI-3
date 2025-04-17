@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { LoaderCircle } from '@lucide/svelte';
-	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
-	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
+	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
 	import { base } from '$app/paths';
