@@ -4,6 +4,10 @@
 	import robots_phone from '$lib/images/robots-phone.avif';
 </script>
 
+<svelte:head>
+	<title>CE Next Gen AI - Email sent</title>
+</svelte:head>
+
 <div class="mt-8 flex items-center">
 	<div class="-mr-8 flex w-64 max-w-3xl flex-shrink flex-grow-[999] flex-col items-center">
 		<img src={banner} alt="Banner" class="-ml-[20%] mb-[5%] h-fit w-1/3" />

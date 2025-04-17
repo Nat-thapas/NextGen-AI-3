@@ -52,6 +52,10 @@
 	const { form: formData, enhance, delayed } = form;
 </script>
 
+<svelte:head>
+	<title>CE Next Gen AI - Login</title>
+</svelte:head>
+
 <div class="mt-8 flex items-center">
 	<form method="POST" use:enhance class="mx-16 ml-16 flex w-fit flex-grow flex-col items-center">
 		<h1 class="mb-8 text-5xl font-semibold text-black">Welcome Back</h1>
@@ -74,7 +78,7 @@
 							{...props}
 							bind:value={$formData.email}
 							placeholder="username@email.com"
-							class="rounded-xl border-2 border-secondary-foreground text-xl placeholder:text-secondary-foreground" />
+							class="rounded-xl border-2 border-secondary-foreground !text-lg placeholder:text-secondary-foreground" />
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
@@ -88,7 +92,7 @@
 							type="password"
 							bind:value={$formData.password}
 							placeholder="P@5sw0rd"
-							class="rounded-xl border-2 border-secondary-foreground text-xl placeholder:text-secondary-foreground" />
+							class="rounded-xl border-2 border-secondary-foreground !text-lg placeholder:text-secondary-foreground" />
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
@@ -97,11 +101,11 @@
 				Forgot your password?
 			</a>
 			<Form.Button
-				class="button-gradient flex w-full items-center gap-2 rounded-xl text-white drop-shadow-lg">
+				class="button-gradient flex w-full items-center gap-2 rounded-xl text-lg text-white drop-shadow-lg">
 				{#if $delayed}
 					<LoaderCircle class="animate-spin" />
 				{/if}
-				Next
+				Login
 			</Form.Button>
 		</div>
 		<span class="font-medium text-secondary-foreground">

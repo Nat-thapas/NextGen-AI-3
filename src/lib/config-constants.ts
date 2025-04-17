@@ -31,5 +31,8 @@ export const configConstants = {
 		defaultFileSizeLimit: 25, // MB
 		defaultMaxScore: 1,
 		defaultMinScore: 0
+	},
+	announcements: {
+		maxTitleLength: 1023
 	}
 } as const;

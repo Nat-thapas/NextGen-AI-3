@@ -8,8 +8,8 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			token?: string;
-			user: User;
-			session: Session;
+			user?: User;
+			session?: Session;
 		}
 		// interface PageData {}
 		// interface PageState {}

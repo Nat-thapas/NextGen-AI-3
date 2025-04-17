@@ -1,10 +1,12 @@
+import fs from 'node:fs/promises';
+
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import cookie from 'cookie';
 import { eq } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 
 import { base } from '$app/paths';
-import { env } from '$env/dynamic/public';
+import { env } from '$env/dynamic/private';
 
 import { db } from '$lib/server/db';
 import { sessions } from '$lib/server/db/schema';
@@ -13,75 +15,96 @@ import type { User } from '$lib/server/interfaces/user';
 import { setToastParams } from '$lib/toast';
 
 export const init: ServerInit = async () => {
-	console.log(env.PUBLIC_ORIGIN);
 	await migrate(db, { migrationsFolder: 'drizzle' });
+
+	const fileStoragePaths = ['/users/transcripts'];
+
+	for (const path of fileStoragePaths) {
+		const fullPath = env.FILE_STORAGE_PATH + path;
+		await fs.mkdir(fullPath, { recursive: true });
+	}
 };
 
 function isRouteProtected(route: string | null): boolean {
 	if (route === null) return false;
 	if (route === '/(main)') return false;
+	if (route === '/(main)/announcement/[id]') return false;
 	if (route.startsWith('/auth')) return false;
-	if (route.startsWith('/(main)/announcements')) return false;
 	return true;
+}
+
+function isRouteBypassed(route: string | null): boolean {
+	if (route === null) return true;
+	if (route.startsWith('/(api)/public')) return true;
+	return false;
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const cookies = cookie.parse(event.request.headers.get('Cookie') ?? '');
 	const token = cookies.token;
 
-	let session: Session | null = null;
-	let user: User | null = null;
+	let session: Session | undefined = undefined;
+	let user: User | undefined = undefined;
 
-	if (token) {
-		const result = await db.query.sessions.findFirst({
-			where: eq(sessions.token, token),
-			with: {
-				user: true
-			}
-		});
-		if (result) {
-			session = result;
-			user = result.user;
-
-			session.lastUseIP = event.getClientAddress();
-			session.lastUseUserAgent = event.request.headers.get('User-Agent') ?? '';
-
-			await db
-				.update(sessions)
-				.set({
-					lastUseIP: event.getClientAddress(),
-					lastUseUserAgent: event.request.headers.get('User-Agent') ?? ''
-				})
-				.where(eq(sessions.token, token));
-		}
-	}
-
-	if (!user && isRouteProtected(event.route.id)) {
+	if (!isRouteBypassed(event.route.id)) {
 		if (token) {
+			const result = await db.query.sessions.findFirst({
+				where: eq(sessions.token, token),
+				with: {
+					user: true
+				}
+			});
+			if (result) {
+				if (
+					(Date.now() - result.createdAt.getTime()) / 1000 > +env.SESSION_LIFETIME &&
+					(Date.now() - result.updatedAt.getTime()) / 1000 > +env.SESSION_GRACEPERIOD
+				) {
+					session = result;
+					user = result.user;
+
+					session.lastUseIP = event.getClientAddress();
+					session.lastUseUserAgent = event.request.headers.get('User-Agent') ?? '';
+
+					await db
+						.update(sessions)
+						.set({
+							lastUseIP: event.getClientAddress(),
+							lastUseUserAgent: event.request.headers.get('User-Agent') ?? ''
+						})
+						.where(eq(sessions.token, token));
+				} else {
+					await db.delete(sessions).where(eq(sessions.token, result.token));
+				}
+			}
+		}
+
+		if (!user && isRouteProtected(event.route.id)) {
+			if (token) {
+				throw redirect(
+					303,
+					setToastParams(
+						`${base}/auth/login?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
+						'Your session have expired',
+						'Please login again to access the page.',
+						'warning'
+					)
+				);
+			}
 			throw redirect(
 				303,
 				setToastParams(
 					`${base}/auth/login?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
-					'Your session have expired',
-					'Please login again to access the page.',
+					'You have to login to access the page',
+					undefined,
 					'warning'
 				)
 			);
 		}
-		throw redirect(
-			303,
-			setToastParams(
-				`${base}/auth/login?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
-				'You have to login to access the page',
-				undefined,
-				'warning'
-			)
-		);
 	}
 
 	event.locals.token = token;
-	event.locals.user = user as User;
-	event.locals.session = session as Session;
+	event.locals.user = user;
+	event.locals.session = session;
 
 	const response = await resolve(event);
 

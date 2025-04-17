@@ -9,11 +9,12 @@ export interface User {
 	passwordResetToken: string | null;
 	passwordResetTokenGeneratedAt: Date;
 	lastEmailSentAt: Date;
-	prefix: 'เด็กชาย' | 'เด็กหญิง' | 'นาย' | 'นางสาว' | null;
+	prefix: string | null;
 	name: string | null;
 	nickname: string | null;
-	phone: string | null;
-	school: string | null;
+	phoneNumber: string | null;
+	schoolName: string | null;
+	grade: number | null;
 	addressProvince: string | null;
 	addressDistrict: string | null;
 	addressSubDistrict: string | null;

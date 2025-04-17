@@ -1,3 +1,4 @@
+import mime from 'mime-types';
 import xlsx from 'node-xlsx';
 
 import { questionTypes } from '$lib/enums';
@@ -50,10 +51,13 @@ export async function importBuffer(buffer: Buffer, assets: Record<string, string
 					);
 				}
 
-				let text = String(row[1]);
+				const originalText = String(row[1]);
 
 				// The regex is for matching images in markdown
-				const assetMatches = text.matchAll(/(!\[.*?\]\()(.*?)\)/g);
+				const assetMatches = originalText.matchAll(/(!\[.*?\]\()(.*?)\)/g);
+
+				let text: string = '';
+				let index: number = 0;
 
 				for (const match of assetMatches) {
 					let path = match[2];
@@ -63,11 +67,12 @@ export async function importBuffer(buffer: Buffer, assets: Record<string, string
 
 					if (!(path in assets)) continue;
 
-					text =
-						text.slice(0, match.index + match[1].length) +
-						assets[path] +
-						text.slice(match.index + match[1].length + match[2].length);
+					text += originalText.slice(index, match.index + match[1].length) + assets[path];
+
+					index = match.index + match[1].length + match[2].length;
 				}
+
+				text += originalText.slice(index);
 
 				const questionType = String(row[2]).toLowerCase() as
 					| 'choices'
@@ -102,13 +107,31 @@ export async function importBuffer(buffer: Buffer, assets: Record<string, string
 							: String(row[7])
 						: null;
 
-				const fileTypes =
+				const rawFileTypes =
 					questionType === questionTypes.file
 						? row[8] === undefined
 							? null
 							: String(row[8])
 						: null;
 				const fileSizeLimit = questionType === questionTypes.file ? Number(row[9] ?? 10_000) : null;
+
+				let fileTypes: string | null = null;
+				if (questionType === questionTypes.file) {
+					const fileTypesArray = rawFileTypes?.split(/[,;] ?/);
+					const parsedFileTypesArray: string[] = [];
+					if (fileTypesArray !== undefined) {
+						for (const fileType of fileTypesArray) {
+							const contentType = mime.contentType(fileType);
+							if (!contentType) continue;
+							const semicolonIndex = contentType.indexOf(';');
+							if (semicolonIndex === -1) continue;
+							parsedFileTypesArray.push(contentType.slice(0, semicolonIndex));
+						}
+					}
+					if (parsedFileTypesArray.length > 0) {
+						fileTypes = parsedFileTypesArray.join(', ');
+					}
+				}
 
 				question = (
 					await db

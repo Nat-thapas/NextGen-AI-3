@@ -50,6 +50,10 @@
 	const { form: formData, enhance, delayed } = form;
 </script>
 
+<svelte:head>
+	<title>CE Next Gen AI - Register</title>
+</svelte:head>
+
 <div class="mt-8 flex items-center">
 	<div class="-mr-8 flex w-64 max-w-3xl flex-shrink flex-grow-[999] flex-col items-center">
 		<img src={banner} alt="Banner" class="-ml-[20%] mb-[5%] h-fit w-1/3" />
@@ -76,7 +80,7 @@
 							{...props}
 							bind:value={$formData.email}
 							disabled
-							class="rounded-xl border-2 border-secondary-foreground bg-primary text-xl text-primary-foreground placeholder:text-secondary-foreground" />
+							class="rounded-xl border-2 border-secondary-foreground bg-primary !text-lg text-primary-foreground placeholder:text-secondary-foreground" />
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
@@ -90,7 +94,7 @@
 							type="password"
 							bind:value={$formData.password}
 							placeholder="P@5sw0rd"
-							class="rounded-xl border-2 border-secondary-foreground text-xl placeholder:text-secondary-foreground" />
+							class="rounded-xl border-2 border-secondary-foreground !text-lg placeholder:text-secondary-foreground" />
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
@@ -104,17 +108,17 @@
 							type="password"
 							bind:value={$formData.confirmPassword}
 							placeholder="P@5sw0rd"
-							class="rounded-xl border-2 border-secondary-foreground text-xl placeholder:text-secondary-foreground" />
+							class="rounded-xl border-2 border-secondary-foreground !text-lg placeholder:text-secondary-foreground" />
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
 			</Form.Field>
 			<Form.Button
-				class="button-gradient flex w-full items-center gap-2 rounded-xl text-white drop-shadow-lg">
+				class="button-gradient flex w-full items-center gap-2 rounded-xl text-lg text-white drop-shadow-lg">
 				{#if $delayed}
 					<LoaderCircle class="animate-spin" />
 				{/if}
-				Next
+				Register
 			</Form.Button>
 		</div>
 	</form>

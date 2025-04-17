@@ -22,7 +22,7 @@
 	<a href="{base}/" class="h-fit w-fit">
 		<img src={banner} alt="Banner" class="h-fit w-48" />
 	</a>
-	{#if data.user !== null && navs.length > 0}
+	{#if data.user !== undefined && navs.length > 0}
 		<div class="flex items-center gap-8">
 			{#each navs as nav (nav[0])}
 				<a

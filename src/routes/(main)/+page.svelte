@@ -54,6 +54,10 @@
 	];
 </script>
 
+<svelte:head>
+	<title>CE Next Gen AI - Home</title>
+</svelte:head>
+
 <div class="mb-32 mt-16 flex items-center">
 	<div class="ml-16 w-0 flex-grow-[4] xl:flex-grow-[5] 2xl:flex-grow-[6]">
 		<h1 class="mb-4 text-5xl font-semibold !leading-tight">
@@ -71,7 +75,7 @@
 			เพื่อค้นหาศักยภาพ ในตัวคุณ ไม่ว่าคุณจะเริ่มต้นเส้นทางสาย AI หรืออยาก พัฒนาทักษะให้เฉียบคมขึ้น
 			นี่คือจุดเริ่มต้นสำหรับคุณ
 		</p>
-		{#if data.user === null}
+		{#if data.user === undefined}
 			<a
 				href="{base}/auth/register"
 				class="button-gradient rounded-full px-6 py-2 text-xl font-semibold text-white drop-shadow-md transition-colors">

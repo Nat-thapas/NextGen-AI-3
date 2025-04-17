@@ -57,14 +57,11 @@ export const users = pgTable('users', {
 	passwordResetToken: varchar({ length: 255 }),
 	passwordResetTokenGeneratedAt: timestamp().default(new Date(0)).notNull(),
 	lastEmailSentAt: timestamp().default(new Date(0)).notNull(),
-	prefix: varchar({
-		length: configConstants.users.maxPrefixLength,
-		enum: ['เด็กชาย', 'เด็กหญิง', 'นาย', 'นางสาว']
-	}),
+	prefix: varchar({ length: configConstants.users.maxPrefixLength }),
 	name: varchar({ length: configConstants.users.maxNameLength }),
 	nickname: varchar({ length: configConstants.users.maxNicknameLength }),
-	phone: char({ length: configConstants.users.phoneNumberLength }),
-	school: varchar({ length: configConstants.users.maxSchoolNameLength }),
+	phoneNumber: char({ length: configConstants.users.phoneNumberLength }),
+	schoolName: varchar({ length: configConstants.users.maxSchoolNameLength }),
 	grade: integer(),
 	addressProvince: varchar({ length: configConstants.users.maxAddressProvinceLength }),
 	addressDistrict: varchar({ length: configConstants.users.maxAddressDistrictLength }),
@@ -169,5 +166,28 @@ export const choicesRelation = relations(choices, ({ one }) => ({
 	question: one(questions, {
 		fields: [choices.questionId],
 		references: [questions.id]
+	})
+}));
+
+export const announcements = pgTable('announcements', {
+	id: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+		.$default(generateGuid)
+		.primaryKey(),
+	authorId: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+		.references(() => users.id, {
+			onUpdate: 'cascade',
+			onDelete: 'cascade'
+		})
+		.notNull(),
+	title: varchar({ length: configConstants.announcements.maxTitleLength }).notNull(),
+	text: text().notNull(),
+	createdAt: timestamp().$default(utcNow).notNull(),
+	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
+});
+
+export const announcementsRelation = relations(announcements, ({ one }) => ({
+	author: one(users, {
+		fields: [announcements.authorId],
+		references: [users.id]
 	})
 }));
