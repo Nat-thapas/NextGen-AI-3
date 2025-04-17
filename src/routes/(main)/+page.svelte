@@ -19,6 +19,8 @@
 	import robot_trophy from '$lib/images/robot-trophy.avif';
 	import robot_wand from '$lib/images/robot-wand.avif';
 
+	let { data } = $props();
+
 	const agendas: [number, Date, Date | null, string][] = [
 		[0, new Date(2025, 3, 4), new Date(2025, 3, 15), 'ลงทะเบียน'],
 		[1, new Date(2025, 3, 19), new Date(2025, 3, 20), 'สอบคัดเลือก'],
@@ -69,14 +71,13 @@
 			เพื่อค้นหาศักยภาพ ในตัวคุณ ไม่ว่าคุณจะเริ่มต้นเส้นทางสาย AI หรืออยาก พัฒนาทักษะให้เฉียบคมขึ้น
 			นี่คือจุดเริ่มต้นสำหรับคุณ
 		</p>
-		<!--
-			TODO: Redirect the button elsewhere if the user is logged in
-		-->
-		<a
-			href="{base}/auth/register"
-			class="button-gradient rounded-full px-6 py-2 text-xl font-semibold text-white drop-shadow-md transition-colors motion-reduce:transition-none">
-			Join Us
-		</a>
+		{#if data.user === null}
+			<a
+				href="{base}/auth/register"
+				class="button-gradient rounded-full px-6 py-2 text-xl font-semibold text-white drop-shadow-md transition-colors">
+				Join Us
+			</a>
+		{/if}
 	</div>
 	<img src={robots} alt="Robots" class="-z-10 -mb-80 -ml-16 -mt-40 h-fit w-0 flex-grow-[4]" />
 </div>

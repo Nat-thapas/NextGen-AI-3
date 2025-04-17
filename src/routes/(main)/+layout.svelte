@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { LogOut, User } from '@lucide/svelte';
+
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
 
@@ -6,7 +8,7 @@
 
 	let { data, children } = $props();
 
-	const pathname = $derived(page.url.pathname);
+	let pathname = $derived(page.url.pathname);
 
 	const navs: [string, string][] = [
 		[`${base}/`, 'Home'],
@@ -17,7 +19,9 @@
 </script>
 
 <nav class="mx-16 mt-4 flex h-16 items-center justify-between">
-	<img src={banner} alt="Banner" class="h-fit w-48" />
+	<a href="{base}/" class="h-fit w-fit">
+		<img src={banner} alt="Banner" class="h-fit w-48" />
+	</a>
 	{#if data.user !== null && navs.length > 0}
 		<div class="flex items-center gap-8">
 			{#each navs as nav (nav[0])}
@@ -25,24 +29,37 @@
 					href={nav[0]}
 					class:text-secondary-foreground={!pathname.startsWith(nav[0])}
 					class:text-primary-foreground={pathname.startsWith(nav[0])}
-					class="font-semibold transition-colors hover:text-primary-foreground motion-reduce:transition-none">
+					class="text-lg font-semibold transition-colors hover:text-primary-foreground">
 					{nav[1]}
 				</a>
 			{/each}
 		</div>
+		<div class="flex w-48 items-center justify-end gap-4">
+			<a href="{base}/profile/me">
+				<User
+					size={32}
+					class="text-secondary-foreground transition-colors hover:text-primary-foreground " />
+			</a>
+			<a href="{base}/auth/logout">
+				<LogOut
+					size={32}
+					class="text-secondary-foreground transition-colors hover:text-primary-foreground " />
+			</a>
+		</div>
+	{:else}
+		<div class="flex w-48 items-center justify-end gap-4">
+			<a
+				href="{base}/auth/login"
+				class="font-semibold text-secondary-foreground transition-colors hover:text-primary-foreground">
+				Login
+			</a>
+			<a
+				href="{base}/auth/register"
+				class="button-gradient rounded-full px-4 py-2 font-semibold text-white drop-shadow-md transition-colors">
+				Register
+			</a>
+		</div>
 	{/if}
-	<div class="flex w-48 items-center justify-end">
-		<a
-			href="{base}/auth/login"
-			class="font-semibold text-secondary-foreground transition-colors hover:text-primary-foreground motion-reduce:transition-none">
-			Login
-		</a>
-		<a
-			href="{base}/auth/register"
-			class="button-gradient ml-4 rounded-full px-4 py-2 font-semibold text-white drop-shadow-md transition-colors motion-reduce:transition-none">
-			Register
-		</a>
-	</div>
 </nav>
 
 {@render children()}
