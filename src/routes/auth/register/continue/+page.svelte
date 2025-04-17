@@ -15,19 +15,13 @@
 
 	let { data } = $props();
 
-	let formWaiting: boolean = $state(false);
-
 	const form = superForm(data.form, {
 		validators: zodClient(formSchema),
 		resetForm: false,
-		onSubmit() {
-			formWaiting = true;
-		},
-		onResult() {
-			formWaiting = false;
-		},
+		delayMs: 100,
+		timeoutMs: 5000,
+		multipleSubmits: 'prevent',
 		onUpdated({ form }) {
-			formWaiting = false;
 			if (form.message) {
 				switch (form.message.type) {
 					case 'success':
@@ -49,12 +43,11 @@
 			}
 		},
 		onError({ result }) {
-			formWaiting = false;
 			toast.error(getErrorMessage(result.error));
 		}
 	});
 
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance, delayed } = form;
 </script>
 
 <div class="mt-8 flex items-center">
@@ -117,13 +110,11 @@
 				<Form.FieldErrors />
 			</Form.Field>
 			<Form.Button
-				disabled={formWaiting}
 				class="button-gradient flex w-full items-center gap-2 rounded-xl text-white drop-shadow-lg">
-				{#if formWaiting}
-					<LoaderCircle class="animate-spin" /> Loading...
-				{:else}
-					Register
+				{#if $delayed}
+					<LoaderCircle class="animate-spin" />
 				{/if}
+				Next
 			</Form.Button>
 		</div>
 	</form>

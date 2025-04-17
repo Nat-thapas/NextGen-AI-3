@@ -142,9 +142,9 @@ export const actions: Actions = {
 		return redirect(
 			303,
 			setToastParams(
-				`${base}/profile/me`,
+				`${base}/auth/login?next=${encodeURIComponent('/profile/me')}`,
 				'Registration successful',
-				'Registration completed, please fill out your details completely by using the edit function.',
+				'Registration completed, please login then fill your details on the profile page.',
 				'success'
 			)
 		);

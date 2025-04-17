@@ -41,7 +41,7 @@ export const actions: Actions = {
 			form.errors.email = ['Invalid email'];
 			return fail(400, { form });
 		}
-		if (!argon2.verify(user.hashedPassword!, form.data.password)) {
+		if (!(await argon2.verify(user.hashedPassword!, form.data.password))) {
 			form.errors.password = ['Invalid password'];
 			return fail(400, { form });
 		}
