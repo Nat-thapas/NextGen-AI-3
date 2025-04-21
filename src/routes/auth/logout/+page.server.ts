@@ -1,18 +1,16 @@
 import { redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
 
 import { base } from '$app/paths';
 
-import { db } from '$lib/server/db';
-import { sessions } from '$lib/server/db/schema';
+import { deleteSession } from '$lib/server/db/prepared-statements';
 import { setToastParams } from '$lib/toast';
 
 import type { Actions } from './$types';
 
 export const actions: Actions = {
 	default: async ({ locals, cookies }) => {
-		if (locals.token) {
-			await db.delete(sessions).where(eq(sessions.token, locals.token));
+		if (locals.session) {
+			await deleteSession.execute({ token: locals.session.token });
 		}
 
 		cookies.set('token', '', {

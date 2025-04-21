@@ -9,7 +9,7 @@ import { env } from '$env/dynamic/private';
 
 import { getSecondsSince } from '$lib/datetime';
 import { db } from '$lib/server/db';
-import { getSessionFromToken } from '$lib/server/db/prepared-statements';
+import { deleteSession, getSession, updateSession } from '$lib/server/db/prepared-statements';
 import { sessions, users } from '$lib/server/db/schema';
 import type { Session } from '$lib/server/interfaces/session';
 import type { User } from '$lib/server/interfaces/user';
@@ -49,27 +49,25 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	if (!isRouteBypassed(event.route.id)) {
 		if (token) {
-			const result = await getSessionFromToken.execute({ token });
+			const result = await getSession.execute({ token });
 			if (result) {
 				if (
 					getSecondsSince(result.createdAt) > +env.SESSION_LIFETIME &&
 					getSecondsSince(result.updatedAt) > +env.SESSION_GRACEPERIOD
 				) {
-					await db.delete(sessions).where(eq(sessions.token, result.token));
+					await deleteSession.execute({ token });
 				} else {
 					session = result;
 					user = result.user;
 
-					session.lastUseIP = event.getClientAddress();
-					session.lastUseUserAgent = event.request.headers.get('User-Agent') ?? '';
+					let ip = '0.0.0.0';
+					try {
+						ip = event.getClientAddress();
+					} catch {} // eslint-disable-line no-empty
 
-					await db
-						.update(sessions)
-						.set({
-							lastUseIP: event.getClientAddress(),
-							lastUseUserAgent: event.request.headers.get('User-Agent') ?? ''
-						})
-						.where(eq(sessions.token, token));
+					const userAgent = event.request.headers.get('User-Agent') ?? '';
+
+					await updateSession.execute({ ip, userAgent, token });
 				}
 			}
 		}
