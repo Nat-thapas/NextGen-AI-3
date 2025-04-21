@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
-import { eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 
 import { base } from '$app/paths';
@@ -10,7 +10,6 @@ import { env } from '$env/dynamic/private';
 import { getSecondsSince } from '$lib/datetime';
 import { db } from '$lib/server/db';
 import { deleteSession, getSession, updateSession } from '$lib/server/db/prepared-statements';
-import { sessions, users } from '$lib/server/db/schema';
 import type { Session } from '$lib/server/interfaces/session';
 import type { User } from '$lib/server/interfaces/user';
 import { setToastParams } from '$lib/toast';

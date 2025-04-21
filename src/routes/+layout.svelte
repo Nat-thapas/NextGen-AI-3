@@ -9,7 +9,7 @@
 
 	let { children } = $props();
 
-	function showToast() {
+	function showToast(): void {
 		const urlParams = new URLSearchParams(window.location.search);
 		if (urlParams.has('toast-message') || urlParams.has('toast-description')) {
 			let message = urlParams.get('toast-message');
