@@ -12,6 +12,10 @@ patchedDependencies:
 importers:
 
   .:
+    dependencies:
+      argon2:
+        specifier: ^0.41.1
+        version: 0.41.1
     devDependencies:
       '@eslint/compat':
         specifier: ^1.2.8
@@ -61,9 +65,6 @@ importers:
       '@types/pg':
         specifier: ^8.11.12
         version: 8.11.13
-      argon2:
-        specifier: ^0.41.1
-        version: 0.41.1
       autoprefixer:
         specifier: ^10.4.21
         version: 10.4.21(postcss@8.5.3)

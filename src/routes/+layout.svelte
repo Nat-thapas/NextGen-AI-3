@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import '../font.css';
 	import '../katex.css';
 
 	import { toast } from 'svelte-sonner';
