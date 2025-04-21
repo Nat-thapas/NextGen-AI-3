@@ -50,7 +50,7 @@ export const users = pgTable('users', {
 	hashedPassword: varchar({ length: 1023 }),
 	role: roles().notNull(),
 	verified: boolean()
-		.generatedAlwaysAs(sql`hashed_password IS NOT NULL`)
+		.generatedAlwaysAs(sql`"hashed_password" IS NOT NULL`)
 		.notNull(),
 	verificationToken: varchar({ length: 255 }),
 	verificationTokenGeneratedAt: timestamp().default(new Date(0)).notNull(),

@@ -7,7 +7,7 @@ import { base } from '$app/paths';
 import { env } from '$env/dynamic/public';
 
 import { configConstants } from '$lib/config-constants';
-import { formatDuration, utcNow } from '$lib/datetime';
+import { formatDuration, getSecondsSince, utcNow } from '$lib/datetime';
 import { roles } from '$lib/enums';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
@@ -38,14 +38,10 @@ export const actions: Actions = {
 				form.errors.email = ['This email is already in use'];
 				return fail(400, { form });
 			}
-			if (
-				(Date.now() - user.lastEmailSentAt.getTime()) / 1000 <
-				configConstants.users.emailCooldown
-			) {
+			if (getSecondsSince(user.lastEmailSentAt) < configConstants.users.emailCooldown) {
 				form.errors.email = ['Email request quota exceeded'];
 				const cooldownRemaining =
-					configConstants.users.emailCooldown -
-					Math.floor((Date.now() - user.lastEmailSentAt.getTime()) / 1000);
+					configConstants.users.emailCooldown - Math.floor(getSecondsSince(user.lastEmailSentAt));
 				return message(
 					form,
 					{

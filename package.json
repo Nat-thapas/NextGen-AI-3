@@ -54,6 +54,7 @@
 		"node-xlsx": "^0.24.0",
 		"nodemailer": "^6.10.1",
 		"pg": "^8.14.1",
+		"pg-native": "^3.3.0",
 		"prettier": "^3.5.3",
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
@@ -74,6 +75,11 @@
 	"pnpm": {
 		"patchedDependencies": {
 			"svelte-sonner@0.3.28": "patches/svelte-sonner@0.3.28.patch"
-		}
+		},
+		"onlyBuiltDependencies": [
+			"argon2",
+			"esbuild",
+			"libpq"
+		]
 	}
 }

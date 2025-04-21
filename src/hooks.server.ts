@@ -1,20 +1,23 @@
 import fs from 'node:fs/promises';
 
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 
 import { base } from '$app/paths';
 import { env } from '$env/dynamic/private';
 
+import { getSecondsSince } from '$lib/datetime';
 import { db } from '$lib/server/db';
-import { sessions } from '$lib/server/db/schema';
+import { getSessionFromToken } from '$lib/server/db/prepared-statements';
+import { sessions, users } from '$lib/server/db/schema';
 import type { Session } from '$lib/server/interfaces/session';
 import type { User } from '$lib/server/interfaces/user';
 import { setToastParams } from '$lib/toast';
 
 export const init: ServerInit = async () => {
 	await migrate(db, { migrationsFolder: 'drizzle' });
+	await db.execute(sql`SET TIME ZONE 'UTC'`);
 
 	const fileStoragePaths = ['/users/transcripts'];
 
@@ -46,16 +49,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	if (!isRouteBypassed(event.route.id)) {
 		if (token) {
-			const result = await db.query.sessions.findFirst({
-				where: eq(sessions.token, token),
-				with: {
-					user: true
-				}
-			});
+			const result = await getSessionFromToken.execute({ token });
 			if (result) {
 				if (
-					(Date.now() - result.createdAt.getTime()) / 1000 > +env.SESSION_LIFETIME &&
-					(Date.now() - result.updatedAt.getTime()) / 1000 > +env.SESSION_GRACEPERIOD
+					getSecondsSince(result.createdAt) > +env.SESSION_LIFETIME &&
+					getSecondsSince(result.updatedAt) > +env.SESSION_GRACEPERIOD
 				) {
 					await db.delete(sessions).where(eq(sessions.token, result.token));
 				} else {
@@ -100,7 +98,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	}
 
-	event.locals.token = token;
 	event.locals.user = user;
 	event.locals.session = session;
 

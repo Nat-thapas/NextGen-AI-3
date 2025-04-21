@@ -48,3 +48,7 @@ export function formatDuration(duration: number): string {
 export function utcNow(): Date {
 	return new Date(Date.now());
 }
+
+export function getSecondsSince(date: Date): number {
+	return (Date.now() - date.getTime()) / 1000;
+}

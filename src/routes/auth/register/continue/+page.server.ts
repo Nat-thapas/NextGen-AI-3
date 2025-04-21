@@ -7,6 +7,7 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { base } from '$app/paths';
 
 import { configConstants } from '$lib/config-constants';
+import { getSecondsSince } from '$lib/datetime';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
 import { setToastParams } from '$lib/toast';
@@ -55,8 +56,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		);
 	}
 	if (
-		(Date.now() - user.verificationTokenGeneratedAt!.getTime()) / 1000 >
-		configConstants.users.verificationTimeout
+		getSecondsSince(user.verificationTokenGeneratedAt) > configConstants.users.verificationTimeout
 	) {
 		redirect(
 			303,
@@ -120,7 +120,7 @@ export const actions: Actions = {
 			);
 		}
 		if (
-			(Date.now() - user.verificationTokenGeneratedAt!.getTime()) / 1000 >
+			getSecondsSince(user.verificationTokenGeneratedAt) >
 			configConstants.users.verificationTimeout +
 				configConstants.users.verificationTimeoutGracePeriod
 		) {

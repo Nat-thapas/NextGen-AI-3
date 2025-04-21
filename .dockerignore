@@ -33,3 +33,6 @@ docker-compose.yml
 components.json
 drizzle.config.ts
 playwright.config.ts
+
+# Private Files
+___private.*

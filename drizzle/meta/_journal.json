@@ -29,6 +29,13 @@
       "when": 1744909610040,
       "tag": "0003_same_exiles",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1745219028264,
+      "tag": "0004_light_beast",
+      "breakpoints": true
     }
   ]
 }
