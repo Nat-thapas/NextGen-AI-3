@@ -9,7 +9,11 @@ import { env } from '$env/dynamic/private';
 
 import { getSecondsSince } from '$lib/datetime';
 import { db } from '$lib/server/db';
-import { deleteSession, getSession, updateSession } from '$lib/server/db/prepared-statements';
+import {
+	deleteSession,
+	getSession,
+	updateSession
+} from '$lib/server/db/prepared-statements/sessions';
 import type { Session } from '$lib/server/interfaces/session';
 import type { User } from '$lib/server/interfaces/user';
 import { setToastParams } from '$lib/toast';
@@ -36,7 +40,7 @@ function isRouteProtected(route: string | null): boolean {
 
 function isRouteBypassed(route: string | null): boolean {
 	if (route === null) return true;
-	if (route.startsWith('/(api)/public')) return true;
+	if (route.startsWith('/api/public')) return true;
 	return false;
 }
 

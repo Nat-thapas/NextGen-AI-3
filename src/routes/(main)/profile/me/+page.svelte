@@ -297,7 +297,7 @@
 									<Form.Label class="text-lg text-secondary-foreground">Transcript</Form.Label>
 									{#if data.userHaveTranscript && data.user}
 										<a
-											href={`${base}/files/users/transcripts/${data.user.id}/Transcript.pdf`}
+											href={`${base}/api/files/users/transcripts/${data.user.id}/Transcript.pdf`}
 											target="_blank">
 											<Download
 												class="text-secondary-foreground transition-colors hover:text-primary-foreground" />

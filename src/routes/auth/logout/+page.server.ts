@@ -2,7 +2,7 @@ import { redirect } from '@sveltejs/kit';
 
 import { base } from '$app/paths';
 
-import { deleteSession } from '$lib/server/db/prepared-statements';
+import { deleteSession } from '$lib/server/db/prepared-statements/sessions';
 import { setToastParams } from '$lib/toast';
 
 import type { Actions } from './$types';

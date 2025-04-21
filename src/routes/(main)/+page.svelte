@@ -4,6 +4,8 @@
 	import { base } from '$app/paths';
 
 	import { formatDate, formatDateTime } from '$lib/datetime';
+	import { FetchJson } from '$lib/fetch-json.js';
+	import type { Announcement } from '$lib/interfaces/announcement.js';
 
 	import robots from '$lib/images/3-robots.avif';
 	import badge_10 from '$lib/images/badge-10.avif';
@@ -36,22 +38,31 @@
 		'นักเรียนที่สามารถเข้าร่วมกิจกรรมต่างๆ ตามกำหนดการ ที่ทางค่ายได้แจ้งไว้'
 	];
 
-	// TODO: Load announcements from database
-	const announcements: { id: string; title: string; date: Date; url: string }[] = [
-		{
-			id: 'isretnrset',
-			title: 'World Wars III have begun',
-			date: new Date(2025, 3, 19, 13, 59, 42),
-			url: '/announcements/isretnrset'
-		},
-		{
-			id: 'khuyaloursyt',
-			title:
-				"Really long title because someone doesn't understand what title mean and put the whole content in this box instead of a summary of what the content is, thank you humans.",
-			date: new Date(2025, 3, 20, 6, 12, 53),
-			url: '/announcements/khuyaloursyt'
+	let announcements: Announcement[] = $state(data.announcements);
+	let moreAnnouncementsAvailable: boolean = $state(data.moreAnnouncementsAvailable);
+
+	async function loadMoreAnnouncements(): Promise<void> {
+		const fetchJson = new FetchJson(fetch, base);
+
+		const response = await fetchJson.get<{
+			announcements: Announcement[];
+			moreAnnouncementsAvailable: boolean;
+		}>('/api/public/announcements', {
+			limit: 5,
+			offset: announcements.length
+		});
+
+		for (const announcement of response.announcements) {
+			announcements.push({
+				id: announcement.id,
+				title: announcement.title,
+				text: announcement.text,
+				createdAt: new Date(announcement.createdAt),
+				updatedAt: new Date(announcement.updatedAt)
+			});
 		}
-	];
+		moreAnnouncementsAvailable = response.moreAnnouncementsAvailable;
+	}
 </script>
 
 <svelte:head>
@@ -197,7 +208,7 @@
 	<div class="mx-16 -mt-16 space-y-4">
 		{#each announcements as announcement (announcement.id)}
 			<a
-				href={announcement.url}
+				href={`${base}/announcements/${announcement.id}`}
 				class="mx-auto flex max-w-7xl items-center gap-4 rounded-xl bg-white p-4 drop-shadow-lg">
 				<img src={bell} alt="Bell" class="h-12 w-12" />
 				<div class="w-0 flex-grow overflow-hidden">
@@ -205,20 +216,19 @@
 						class="block overflow-hidden text-ellipsis text-nowrap text-lg font-semibold text-primary-foreground">
 						{announcement.title}
 					</span>
-					<span class="text-secondary-foreground">{formatDateTime(announcement.date)}</span>
+					<span class="text-secondary-foreground">{formatDateTime(announcement.createdAt)}</span>
 				</div>
 				<ChevronRight size={32} class="text-secondary-foreground" />
 			</a>
 		{:else}
 			<span class="text-secondary-foreground block text-center text-lg">ไม่มีประกาศในขณะนี้</span>
 		{/each}
-		{#if announcements.length > 0}
-			<button class="mx-auto !mt-8 block text-lg text-primary-foreground underline">
+		{#if moreAnnouncementsAvailable}
+			<button
+				onclick={loadMoreAnnouncements}
+				class="mx-auto !mt-8 block text-lg text-primary-foreground underline">
 				ดูเพิ่มเติม
 			</button>
-			<!--
-				TODO: Finish load more button
-			-->
 		{/if}
 	</div>
 </div>
