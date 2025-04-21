@@ -33,7 +33,7 @@ export const init: ServerInit = async () => {
 function isRouteProtected(route: string | null): boolean {
 	if (route === null) return false;
 	if (route === '/(main)') return false;
-	if (route === '/(main)/announcement/[id]') return false;
+	if (route === '/(main)/announcements/[id]') return false;
 	if (route.startsWith('/auth')) return false;
 	return true;
 }

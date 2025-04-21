@@ -1,4 +1,4 @@
-import { count, desc, sql } from 'drizzle-orm';
+import { count, desc, eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { announcements } from '$lib/server/db/schema';
@@ -18,3 +18,12 @@ export const getAnnouncements = db.query.announcements
 		orderBy: [desc(announcements.createdAt)]
 	})
 	.prepare('get_announcements');
+
+export const getAnnouncement = db.query.announcements
+	.findFirst({
+		columns: {
+			authorId: false
+		},
+		where: eq(announcements.id, sql.placeholder('id'))
+	})
+	.prepare('get_announcement');
