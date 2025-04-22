@@ -5,6 +5,7 @@ WORKDIR /app
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
+RUN apt-get update && apt-get install --no-install-recommends -y g++ make libpq-dev && rm -rf /var/lib/apt/lists/*
 RUN npm install -g pnpm
 
 

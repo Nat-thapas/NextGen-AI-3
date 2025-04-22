@@ -1,4 +1,3 @@
-SET TIME ZONE 'UTC';
 CREATE TYPE "public"."question_types" AS ENUM('choices', 'checkboxes', 'text', 'file');--> statement-breakpoint
 CREATE TYPE "public"."role" AS ENUM('registrant', 'student', 'staff', 'teacher', 'admin', 'superadmin');--> statement-breakpoint
 CREATE TYPE "public"."scoring_types" AS ENUM('exact', 'regex', 'and', 'or', 'scale');--> statement-breakpoint

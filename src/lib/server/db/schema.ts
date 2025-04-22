@@ -2,6 +2,7 @@ import { relations, sql } from 'drizzle-orm';
 import {
 	boolean,
 	char,
+	index,
 	integer,
 	pgEnum,
 	pgTable,
@@ -73,23 +74,27 @@ export const users = pgTable('users', {
 	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
 });
 
-export const sessions = pgTable('sessions', {
-	token: char({ length: Math.ceil(configConstants.entropy.token / 6) })
-		.$default(generateToken)
-		.primaryKey(),
-	userId: char({ length: Math.ceil(configConstants.entropy.id / 6) })
-		.references(() => users.id, {
-			onUpdate: 'cascade',
-			onDelete: 'cascade'
-		})
-		.notNull(),
-	firstLoginIP: varchar({ length: 39 }).notNull(),
-	firstLoginUserAgent: varchar({ length: 1023 }).notNull(),
-	lastUseIP: varchar({ length: 39 }).notNull(),
-	lastUseUserAgent: varchar({ length: 1023 }).notNull(),
-	createdAt: timestamp().$default(utcNow).notNull(),
-	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
-});
+export const sessions = pgTable(
+	'sessions',
+	{
+		token: char({ length: Math.ceil(configConstants.entropy.token / 6) })
+			.$default(generateToken)
+			.primaryKey(),
+		userId: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+			.references(() => users.id, {
+				onUpdate: 'cascade',
+				onDelete: 'cascade'
+			})
+			.notNull(),
+		firstLoginIP: varchar({ length: 39 }).notNull(),
+		firstLoginUserAgent: varchar({ length: 1023 }).notNull(),
+		lastUseIP: varchar({ length: 39 }).notNull(),
+		lastUseUserAgent: varchar({ length: 1023 }).notNull(),
+		createdAt: timestamp().$default(utcNow).notNull(),
+		updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
+	},
+	(table) => [index('sessions_user').on(table.userId)]
+);
 
 export const sessionsRelation = relations(sessions, ({ one }) => ({
 	user: one(users, {
@@ -116,28 +121,32 @@ export const examsRelation = relations(exams, ({ many }) => ({
 	questions: many(questions)
 }));
 
-export const questions = pgTable('questions', {
-	id: char({ length: Math.ceil(configConstants.entropy.id / 6) })
-		.$default(generateGuid)
-		.primaryKey(),
-	examId: char({ length: Math.ceil(configConstants.entropy.id / 6) })
-		.references(() => exams.id, {
-			onUpdate: 'cascade',
-			onDelete: 'cascade'
-		})
-		.notNull(),
-	text: text().notNull(),
-	questionType: questionTypes().notNull(),
-	maxScore: integer().default(configConstants.questions.defaultMaxScore).notNull(),
-	minScore: integer().default(configConstants.questions.defaultMinScore).notNull(),
-	scoringType: scoringTypes(),
-	textLengthLimit: integer().default(configConstants.questions.defaultTextAnswerLengthLimit), // type=text: lenght limit
-	textCorrect: varchar({ length: configConstants.questions.defaultTextAnswerLengthLimit }), // type=text: correct answer to score against, can be regex
-	fileTypes: varchar({ length: 1023 }), // type=file: MIME types for supported file (comma separated)
-	fileSizeLimit: integer().default(configConstants.questions.defaultFileSizeLimit), // type=file: upload size limit (kB)
-	createdAt: timestamp().$default(utcNow).notNull(),
-	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
-});
+export const questions = pgTable(
+	'questions',
+	{
+		id: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+			.$default(generateGuid)
+			.primaryKey(),
+		examId: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+			.references(() => exams.id, {
+				onUpdate: 'cascade',
+				onDelete: 'cascade'
+			})
+			.notNull(),
+		text: text().notNull(),
+		questionType: questionTypes().notNull(),
+		maxScore: integer().default(configConstants.questions.defaultMaxScore).notNull(),
+		minScore: integer().default(configConstants.questions.defaultMinScore).notNull(),
+		scoringType: scoringTypes(),
+		textLengthLimit: integer().default(configConstants.questions.defaultTextAnswerLengthLimit), // type=text: lenght limit
+		textCorrect: varchar({ length: configConstants.questions.defaultTextAnswerLengthLimit }), // type=text: correct answer to score against, can be regex
+		fileTypes: varchar({ length: 1023 }), // type=file: MIME types for supported file (comma separated)
+		fileSizeLimit: integer().default(configConstants.questions.defaultFileSizeLimit), // type=file: upload size limit (kB)
+		createdAt: timestamp().$default(utcNow).notNull(),
+		updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
+	},
+	(table) => [index('questions_exam').on(table.examId)]
+);
 
 export const questionsRelation = relations(questions, ({ one, many }) => ({
 	exam: one(exams, {
@@ -147,21 +156,25 @@ export const questionsRelation = relations(questions, ({ one, many }) => ({
 	choices: many(choices)
 }));
 
-export const choices = pgTable('choices', {
-	id: char({ length: Math.ceil(configConstants.entropy.id / 6) })
-		.$default(generateGuid)
-		.primaryKey(),
-	questionId: char({ length: Math.ceil(configConstants.entropy.id / 6) })
-		.references(() => questions.id, {
-			onUpdate: 'cascade',
-			onDelete: 'cascade'
-		})
-		.notNull(),
-	text: text().notNull(),
-	isCorrect: boolean().notNull(),
-	createdAt: timestamp().$default(utcNow).notNull(),
-	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
-});
+export const choices = pgTable(
+	'choices',
+	{
+		id: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+			.$default(generateGuid)
+			.primaryKey(),
+		questionId: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+			.references(() => questions.id, {
+				onUpdate: 'cascade',
+				onDelete: 'cascade'
+			})
+			.notNull(),
+		text: text().notNull(),
+		isCorrect: boolean().notNull(),
+		createdAt: timestamp().$default(utcNow).notNull(),
+		updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
+	},
+	(table) => [index('choices_question').on(table.questionId)]
+);
 
 export const choicesRelation = relations(choices, ({ one }) => ({
 	question: one(questions, {
@@ -170,21 +183,25 @@ export const choicesRelation = relations(choices, ({ one }) => ({
 	})
 }));
 
-export const announcements = pgTable('announcements', {
-	id: char({ length: Math.ceil(configConstants.entropy.id / 6) })
-		.$default(generateGuid)
-		.primaryKey(),
-	authorId: char({ length: Math.ceil(configConstants.entropy.id / 6) })
-		.references(() => users.id, {
-			onUpdate: 'cascade',
-			onDelete: 'cascade'
-		})
-		.notNull(),
-	title: varchar({ length: configConstants.announcements.maxTitleLength }).notNull(),
-	text: text().notNull(),
-	createdAt: timestamp().$default(utcNow).notNull(),
-	updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
-});
+export const announcements = pgTable(
+	'announcements',
+	{
+		id: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+			.$default(generateGuid)
+			.primaryKey(),
+		authorId: char({ length: Math.ceil(configConstants.entropy.id / 6) })
+			.references(() => users.id, {
+				onUpdate: 'cascade',
+				onDelete: 'cascade'
+			})
+			.notNull(),
+		title: varchar({ length: configConstants.announcements.maxTitleLength }).notNull(),
+		text: text().notNull(),
+		createdAt: timestamp().$default(utcNow).notNull(),
+		updatedAt: timestamp().$default(utcNow).$onUpdate(utcNow).notNull()
+	},
+	(table) => [index('announcements_author').on(table.authorId)]
+);
 
 export const announcementsRelation = relations(announcements, ({ one }) => ({
 	author: one(users, {

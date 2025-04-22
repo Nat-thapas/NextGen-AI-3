@@ -5,7 +5,11 @@ import { env } from '$env/dynamic/private';
 
 import * as schema from './schema';
 
-const pool = new pg.Pool({
+if (pg.native === null || pg.native === undefined) {
+	throw Error('pg-native is required for this application');
+}
+
+const pool = new pg.native.Pool({
 	host: env.POSTGRES_HOST,
 	port: +env.POSTGRES_PORT,
 	user: env.POSTGRES_USER,

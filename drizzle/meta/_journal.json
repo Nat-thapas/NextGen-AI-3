@@ -36,6 +36,13 @@
       "when": 1745219028264,
       "tag": "0004_light_beast",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1745313204352,
+      "tag": "0005_exotic_prowler",
+      "breakpoints": true
     }
   ]
 }
