@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { ChevronRight, Facebook, Instagram, Pin } from '@lucide/svelte';
+	import { toast } from 'svelte-sonner';
 
 	import { base } from '$app/paths';
 
 	import { formatDate, formatDateTime } from '$lib/datetime';
+	import { getErrorMessage } from '$lib/error.js';
 	import { FetchJson } from '$lib/fetch-json.js';
 	import type { Announcement } from '$lib/interfaces/announcement.js';
 
@@ -44,24 +46,20 @@
 	async function loadMoreAnnouncements(): Promise<void> {
 		const fetchJson = new FetchJson(fetch, base);
 
-		const response = await fetchJson.get<{
-			announcements: Announcement[];
-			moreAnnouncementsAvailable: boolean;
-		}>('/api/public/announcements', {
-			limit: 5,
-			offset: announcements.length
-		});
-
-		for (const announcement of response.announcements) {
-			announcements.push({
-				id: announcement.id,
-				title: announcement.title,
-				text: announcement.text,
-				createdAt: new Date(announcement.createdAt),
-				updatedAt: new Date(announcement.updatedAt)
+		try {
+			const response = await fetchJson.get<{
+				announcements: Announcement[];
+				moreAnnouncementsAvailable: boolean;
+			}>('/api/public/announcements', {
+				limit: 5,
+				offset: announcements.length
 			});
+
+			announcements.push(...response.announcements);
+			moreAnnouncementsAvailable = response.moreAnnouncementsAvailable;
+		} catch (err) {
+			toast.error(getErrorMessage(err));
 		}
-		moreAnnouncementsAvailable = response.moreAnnouncementsAvailable;
 	}
 </script>
 
