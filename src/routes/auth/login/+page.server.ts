@@ -22,10 +22,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		next = '/' + next;
 	}
 
-	const form = await superValidate(zod(formSchema));
-	form.data.next = next;
-
-	return { form };
+	return { form: await superValidate({ next }, zod(formSchema)) };
 };
 
 export const actions: Actions = {

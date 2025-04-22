@@ -5,29 +5,38 @@ import { HttpMethod } from '$lib/enums';
 export class ResponseError {
 	status: number;
 	message?: string | string[];
-	errors?: Record<string, string | string[] | Record<string | number, string | string[]>>;
+	errors?: Record<
+		string,
+		string | string[] | number | Record<string | number, string | string[] | number>
+	>[];
 
 	constructor(
 		status: number,
 		message?: string | string[],
-		errors?: Record<string, string | string[] | Record<string | number, string | string[]>>
+		errors?: Record<
+			string,
+			string | string[] | number | Record<string | number, string | string[] | number>
+		>[]
 	) {
 		this.status = status;
 		this.message = message ?? 'Unknown error';
-		this.errors = errors ?? {};
+		this.errors = errors ?? [];
 	}
 }
 
 type ParamValue = string | number | null | undefined;
 
 export function setSearchParams(url: URL, params: Record<string, ParamValue>): URL;
-export function setSearchParams(path: string, params: Record<string, ParamValue>): string;
+export function setSearchParams(urlString: string, params: Record<string, ParamValue>): string;
 export function setSearchParams(
-	urlOrpath: string | URL,
+	urlOrUrlString: string | URL,
 	params: Record<string, ParamValue>
 ): string | URL {
-	const isInputUrl = urlOrpath instanceof URL;
-	const url = isInputUrl ? urlOrpath : new URL(urlOrpath, env.PUBLIC_ORIGIN);
+	const isInputUrl = urlOrUrlString instanceof URL;
+	const isInputAbsoluteUrlString = isInputUrl
+		? false
+		: urlOrUrlString.startsWith('http://') || urlOrUrlString.startsWith('https://');
+	const url = isInputUrl ? urlOrUrlString : new URL(urlOrUrlString, env.PUBLIC_ORIGIN);
 
 	for (const [key, value] of Object.entries(params)) {
 		if (value === undefined || value === null) {
@@ -39,6 +48,10 @@ export function setSearchParams(
 
 	if (isInputUrl) {
 		return url;
+	}
+
+	if (isInputAbsoluteUrlString) {
+		return url.toString();
 	}
 
 	return url.pathname + url.search + url.hash;
@@ -61,9 +74,6 @@ export class FetchJson {
 		if (baseUrl.endsWith('/')) {
 			baseUrl = baseUrl.slice(0, -1);
 		}
-		if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-			baseUrl = env.PUBLIC_ORIGIN + baseUrl;
-		}
 		this.baseUrl = baseUrl;
 		this.bearerToken = bearerToken;
 	}
@@ -72,16 +82,16 @@ export class FetchJson {
 		this.bearerToken = bearerToken;
 	}
 
-	private addHeaders(baseHeaders?: Record<string, string>): Record<string, string> {
-		const headers: Record<string, string> = {
+	private addHeaders(headers?: Record<string, string>): Record<string, string> {
+		const baseHeaders: Record<string, string> = {
 			Accept: 'application/json'
 		};
 		if (this.bearerToken) {
-			headers.Authorization = `Bearer ${this.bearerToken}`;
+			baseHeaders.Authorization = `Bearer ${this.bearerToken}`;
 		}
 		return {
-			...headers,
-			...baseHeaders
+			...baseHeaders,
+			...headers
 		};
 	}
 
@@ -99,7 +109,7 @@ export class FetchJson {
 	): Promise<T> {
 		path = this.normalizePath(path);
 
-		const url = setSearchParams(new URL(path, this.baseUrl), params);
+		const url = setSearchParams(this.baseUrl, params);
 
 		const response = await this.fetch(url, {
 			headers: this.addHeaders(headers)
@@ -131,7 +141,7 @@ export class FetchJson {
 	): Promise<T> {
 		path = this.normalizePath(path);
 
-		const url = new URL(path, this.baseUrl);
+		const url = this.baseUrl + path;
 
 		const isBodyEmpty = Object.keys(body).length === 0 && body.constructor === Object;
 

@@ -64,6 +64,7 @@
 	},
 	"dependencies": {
 		"argon2": "^0.41.1",
+		"arktype": "^2.1.20",
 		"base64url": "^3.0.1",
 		"drizzle-orm": "0.42.0",
 		"handlebars": "^4.7.8",

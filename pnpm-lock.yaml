@@ -19,6 +19,9 @@ importers:
       argon2:
         specifier: ^0.41.1
         version: 0.41.1
+      arktype:
+        specifier: ^2.1.20
+        version: 2.1.20
       base64url:
         specifier: ^3.0.1
         version: 3.0.1
@@ -2672,10 +2675,8 @@ snapshots:
   '@ark/schema@0.46.0':
     dependencies:
       '@ark/util': 0.46.0
-    optional: true
 
-  '@ark/util@0.46.0':
-    optional: true
+  '@ark/util@0.46.0': {}
 
   '@babel/code-frame@7.26.2':
     dependencies:
@@ -3459,7 +3460,6 @@ snapshots:
     dependencies:
       '@ark/schema': 0.46.0
       '@ark/util': 0.46.0
-    optional: true
 
   assertion-error@2.0.1: {}
 

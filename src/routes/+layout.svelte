@@ -5,13 +5,20 @@
 
 	import { toast } from 'svelte-sonner';
 
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, beforeNavigate } from '$app/navigation';
+	import { updated } from '$app/state';
 
 	import { Toaster } from '$lib/components/ui/sonner';
 
 	let { children } = $props();
 
-	function showToast(): void {
+	beforeNavigate(({ willUnload, to }) => {
+		if (updated.current && !willUnload && to?.url) {
+			location.href = to.url.href;
+		}
+	});
+
+	afterNavigate(() => {
 		const urlParams = new URLSearchParams(window.location.search);
 		if (urlParams.has('toast-message') || urlParams.has('toast-description')) {
 			let message = urlParams.get('toast-message');
@@ -53,9 +60,7 @@
 
 			window.history.replaceState(null, '', newUrl);
 		}
-	}
-
-	afterNavigate(showToast);
+	});
 </script>
 
 <Toaster theme="light" duration={5000} richColors closeButton />

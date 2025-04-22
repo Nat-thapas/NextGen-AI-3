@@ -69,11 +69,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		);
 	}
 
-	const form = await superValidate(zod(formSchema));
-	form.data.token = token;
-	form.data.email = user.email;
-
-	return { form };
+	return { form: await superValidate({ token, email: user.email }, zod(formSchema)) };
 };
 
 export const actions: Actions = {

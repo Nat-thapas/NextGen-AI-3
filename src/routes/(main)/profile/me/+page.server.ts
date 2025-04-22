@@ -23,23 +23,26 @@ export const load: PageServerLoad = async (event) => {
 		});
 	}
 
-	const form = await superValidate(zod(formSchema));
-
-	if (user.prefix !== null) form.data.prefix = user.prefix;
-	if (user.name !== null) form.data.name = user.name;
-	if (user.nickname !== null) form.data.nickname = user.nickname;
-	if (user.phoneNumber !== null) form.data.phoneNumber = user.phoneNumber;
-	if (user.schoolName !== null) form.data.schoolName = user.schoolName;
-	if (user.grade !== null) form.data.grade = String(user.grade);
-	if (user.addressProvince !== null) form.data.addressProvince = user.addressProvince;
-	if (user.addressDistrict !== null) form.data.addressDistrict = user.addressDistrict;
-	if (user.addressSubDistrict !== null) form.data.addressSubDistrict = user.addressSubDistrict;
-	if (user.addressPostcode !== null) form.data.addressPostcode = user.addressPostcode;
-	if (user.addressDetail !== null) form.data.addressDetail = user.addressDetail;
-
-	const changePasswordForm = await superValidate(zod(changePasswordSchema));
-
-	return { form, userHaveTranscript: user.isTranscriptAvailable, changePasswordForm };
+	return {
+		form: await superValidate(
+			{
+				prefix: user.prefix ?? undefined,
+				name: user.name ?? undefined,
+				nickname: user.nickname ?? undefined,
+				phoneNumber: user.phoneNumber ?? undefined,
+				schoolName: user.schoolName ?? undefined,
+				grade: user.grade ? String(user.grade) : undefined,
+				addressProvince: user.addressProvince ?? undefined,
+				addressDistrict: user.addressDistrict ?? undefined,
+				addressSubDistrict: user.addressSubDistrict ?? undefined,
+				addressPostcode: user.addressPostcode ?? undefined,
+				addressDetail: user.addressDetail ?? undefined
+			},
+			zod(formSchema)
+		),
+		userHaveTranscript: user.isTranscriptAvailable,
+		changePasswordForm: await superValidate(zod(changePasswordSchema))
+	};
 };
 
 export const actions: Actions = {
