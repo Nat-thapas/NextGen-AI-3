@@ -1,4 +1,3 @@
-test-results
 node_modules
 
 # Output
@@ -18,6 +17,7 @@ vite.config.ts.timestamp-*
 
 # Tests
 /e2e
+test-results
 
 # Docs and other texts
 *.md

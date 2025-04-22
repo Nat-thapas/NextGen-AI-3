@@ -4,6 +4,8 @@ services:
   sveltekit:
     build: .
     container_name: ce-nextgen-ai-2-sveltekit
+    volumes:
+      - ./files:/app/files
     ports:
       - 5173:5173
     depends_on:
