@@ -28,7 +28,6 @@ export const load: PageServerLoad = async ({ url }) => {
 export const actions: Actions = {
 	default: async (event) => {
 		const form = await superValidate(event.request, zod(formSchema));
-
 		if (!form.valid) return fail(400, { form });
 
 		const user = await db.query.users.findFirst({

@@ -18,6 +18,7 @@
 # Databases
 /databases
 /drizzle
+/files
 
 # Private Files
 ___private.*

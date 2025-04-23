@@ -10,6 +10,6 @@ export function generateToken(entropy?: number): string {
 	return base64url(Buffer.from(bytes));
 }
 
-export function generateGuid(): string {
+export function generateId(): string {
 	return generateToken(configConstants.entropy.id);
 }

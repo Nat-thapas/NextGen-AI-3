@@ -22,7 +22,7 @@
 		validators: zodClient(formSchema),
 		resetForm: false,
 		delayMs: configConstants.forms.delay,
-		timeoutMs: configConstants.forms.timeoutLong,
+		timeoutMs: configConstants.forms.longTimeout,
 		multipleSubmits: 'prevent',
 		onUpdated({ form }) {
 			if (form.message) {

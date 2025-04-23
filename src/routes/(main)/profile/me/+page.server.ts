@@ -12,7 +12,7 @@ import { env } from '$env/dynamic/private';
 import { getExtension } from '$lib/files';
 import { db } from '$lib/server/db';
 import { createFileReturning, getFile } from '$lib/server/db/prepared-statements/files';
-import { users } from '$lib/server/db/schema';
+import { files, users } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
 import { changePasswordFormSchema, updateProfileFormSchema } from './schema';
@@ -21,7 +21,7 @@ export const load: PageServerLoad = async (event) => {
 	const user = event.locals.user;
 
 	if (!user) {
-		error(403, {
+		error(401, {
 			message: 'You have to be logged in to access this page'
 		});
 	}
@@ -52,18 +52,18 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
 	'update-profile': async (event) => {
 		const form = await superValidate(event.request, zod(updateProfileFormSchema));
-
 		if (!form.valid) return fail(400, { form });
 
 		const user = event.locals.user;
 
 		if (!user) {
-			error(403, {
+			error(401, {
 				message: 'You have to be logged in to access this page'
 			});
 		}
 
 		if (form.data.transcript) {
+			const oldTranscript = await getFile.execute({ id: user.transcriptId });
 			const transcript = (
 				await createFileReturning.execute({
 					size: form.data.transcript.size.toString(),
@@ -94,6 +94,17 @@ export const actions: Actions = {
 					addressDetail: form.data.addressDetail
 				})
 				.where(eq(users.id, user.id));
+
+			if (oldTranscript) {
+				await db.delete(files).where(eq(files.id, oldTranscript.id));
+
+				try {
+					await fs.unlink(join(env.FILE_STORAGE_PATH, oldTranscript.storedName));
+				} catch (err) {
+					console.error(`Cannot delete file '${oldTranscript.storedName}'`);
+					console.error(err);
+				}
+			}
 		} else {
 			await db
 				.update(users)
@@ -121,13 +132,12 @@ export const actions: Actions = {
 
 	'change-password': async (event) => {
 		const form = await superValidate(event.request, zod(changePasswordFormSchema));
-
 		if (!form.valid) return fail(400, { form });
 
 		const user = event.locals.user;
 
 		if (!user) {
-			error(403, {
+			error(401, {
 				message: 'You have to be logged in to access this page'
 			});
 		}

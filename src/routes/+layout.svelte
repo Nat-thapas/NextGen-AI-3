@@ -2,6 +2,7 @@
 	import '../app.css';
 	import '../font.css';
 	import '../katex.css';
+	import '../hljs.css';
 
 	import { toast } from 'svelte-sonner';
 

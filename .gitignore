@@ -21,6 +21,7 @@ vite.config.ts.timestamp-*
 
 # Databases
 /databases/*/data
+/files
 
 # Private Files
 ___private.*

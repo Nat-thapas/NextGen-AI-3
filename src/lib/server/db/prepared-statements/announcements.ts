@@ -6,7 +6,8 @@ import { announcements } from '$lib/server/db/schema';
 export const getAnnouncements = db.query.announcements
 	.findMany({
 		columns: {
-			authorId: false
+			text: false,
+			html: false
 		},
 		limit: sql.placeholder<string>('limit'),
 		offset: sql.placeholder<string>('offset'),
@@ -17,7 +18,7 @@ export const getAnnouncements = db.query.announcements
 export const getAnnouncement = db.query.announcements
 	.findFirst({
 		columns: {
-			authorId: false
+			text: false
 		},
 		where: eq(announcements.id, sql.placeholder('id'))
 	})

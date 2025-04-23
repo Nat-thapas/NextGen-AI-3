@@ -1,7 +1,6 @@
 export interface Announcement {
 	id: string;
 	title: string;
-	text: string;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -9,7 +8,6 @@ export interface Announcement {
 export interface AnnouncementDateString {
 	id: string;
 	title: string;
-	text: string;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -20,7 +18,6 @@ export function convertAnnouncement(
 	return {
 		id: announcement.id,
 		title: announcement.title,
-		text: announcement.text,
 		createdAt:
 			announcement.createdAt instanceof Date
 				? announcement.createdAt

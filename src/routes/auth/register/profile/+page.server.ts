@@ -82,7 +82,6 @@ export const load: PageServerLoad = async ({ url }) => {
 export const actions: Actions = {
 	default: async (event) => {
 		const form = await superValidate(event.request, zod(formSchema));
-
 		if (!form.valid) return fail(400, { form });
 
 		if (!form.data.token) {
@@ -154,6 +153,7 @@ export const actions: Actions = {
 			.update(users)
 			.set({
 				registrationComplete: true,
+				verificationToken: null,
 				prefix: form.data.prefix,
 				name: form.data.name,
 				nickname: form.data.nickname,

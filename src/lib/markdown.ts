@@ -4,7 +4,7 @@ import markdownIt from 'markdown-it';
 // @ts-expect-error This module doesn't have type
 import markdownItTexmath from 'markdown-it-texmath';
 
-const md = markdownIt({
+const mdi = markdownIt({
 	html: false,
 	linkify: true,
 	highlight: function (str, lang) {
@@ -17,11 +17,11 @@ const md = markdownIt({
 	}
 });
 
-md.use(markdownItTexmath, {
+mdi.use(markdownItTexmath, {
 	engine: katex,
 	delimiters: 'dollars'
 });
 
 export function renderMarkdown(markdown: string): string {
-	return md.render(markdown);
+	return mdi.render(markdown);
 }

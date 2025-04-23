@@ -1,0 +1,62 @@
+import fs from 'node:fs/promises';
+import { join } from 'node:path';
+
+import mimeTypes from 'mime-types';
+import unzipper from 'unzipper';
+
+import { base } from '$app/paths';
+import { env } from '$env/dynamic/private';
+
+import { getExtension } from '$lib/files';
+import { renderMarkdown } from '$lib/markdown';
+import { db } from '$lib/server/db';
+import { createFileWithReferenceReturning } from '$lib/server/db/prepared-statements/files';
+import { announcements } from '$lib/server/db/schema';
+import { generateId } from '$lib/token';
+
+import { updateAssets } from './update-assets';
+
+export async function importAnnouncement(title: string, file: File): Promise<void> {
+	const archive = await unzipper.Open.buffer(Buffer.from(await file.arrayBuffer()));
+
+	const id = generateId();
+	let markdown = '';
+	const assets: Record<string, string> = {};
+
+	for (const compressed of archive.files) {
+		if (compressed.type === 'File') {
+			if (/^(?:[^/]*?)\.md/.test(compressed.path)) {
+				if (markdown) {
+					throw Error('Multiple markdown file in root directory detected');
+				}
+				markdown = (await compressed.buffer()).toString();
+			} else {
+				const mimeType = mimeTypes.lookup(compressed.path) || 'application/octet-stream';
+				const extension = getExtension(compressed.path, mimeType);
+				const file = (
+					await createFileWithReferenceReturning.execute({
+						size: compressed.uncompressedSize,
+						mimeType,
+						extension,
+						referenceId: id
+					})
+				)[0];
+				await fs.writeFile(join(env.FILE_STORAGE_PATH, file.storedName), compressed.stream());
+				assets[compressed.path] = `${base}/api/public/files/${file.id}/file${extension}`;
+			}
+		}
+	}
+
+	if (!markdown) {
+		throw Error('No markdown file detected');
+	}
+
+	markdown = updateAssets(markdown, assets);
+
+	await db.insert(announcements).values({
+		id,
+		title,
+		text: markdown,
+		html: renderMarkdown(markdown)
+	});
+}

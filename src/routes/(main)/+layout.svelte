@@ -6,6 +6,8 @@
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
 
+	import { isRoleAtLeast } from '$lib/roles.js';
+
 	import banner from '$lib/images/banner/banner-512.avif';
 
 	let { data, children } = $props();
@@ -13,7 +15,6 @@
 	let pathname = $derived(page.url.pathname);
 
 	const navs: [string, string][] = [
-		[`${base}/`, 'Home'],
 		[`${base}/exercise`, 'Exercise'],
 		[`${base}/challenge`, 'Challenge'],
 		[`${base}/leaderboard`, 'Leaderboard']
@@ -30,6 +31,13 @@
 	</a>
 	{#if data.user !== undefined && navs.length > 0}
 		<div class="flex items-center gap-8">
+			<a
+				href={`${base}/`}
+				class:text-secondary-foreground={pathname !== `${base}/`}
+				class:text-primary-foreground={pathname === `${base}/`}
+				class="text-lg font-semibold transition-colors hover:text-primary-foreground">
+				Home
+			</a>
 			{#each navs as nav (nav[0])}
 				<a
 					href={nav[0]}
@@ -39,6 +47,15 @@
 					{nav[1]}
 				</a>
 			{/each}
+			{#if isRoleAtLeast(data.user.role, 'staff')}
+				<a
+					href={`${base}/markdown-preview`}
+					class:text-secondary-foreground={!pathname.startsWith(`${base}/markdown-preview`)}
+					class:text-primary-foreground={pathname.startsWith(`${base}/markdown-preview`)}
+					class="text-lg font-semibold transition-colors hover:text-primary-foreground">
+					Markdown Preview
+				</a>
+			{/if}
 		</div>
 		<div class="flex w-48 items-center justify-end gap-4">
 			<a href="{base}/profile/me">

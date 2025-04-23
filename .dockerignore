@@ -14,6 +14,7 @@ vite.config.ts.timestamp-*
 
 # Databases
 /databases
+/files
 
 # Tests
 /e2e

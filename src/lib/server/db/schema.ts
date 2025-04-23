@@ -13,7 +13,7 @@ import {
 
 import { configConstants } from '../../config-constants';
 import { utcNow } from '../../datetime';
-import { generateGuid, generateToken } from '../../token';
+import { generateId, generateToken } from '../../token';
 
 const idLength = Math.ceil((Math.ceil(configConstants.entropy.id / 8) * 4) / 3);
 
@@ -46,7 +46,7 @@ export const questionTypes = pgEnum('question_types', ['choices', 'checkboxes', 
 export const scoringTypes = pgEnum('scoring_types', ['exact', 'regex', 'and', 'or', 'scale']);
 
 export const users = pgTable('users', {
-	id: char({ length: idLength }).$default(generateGuid).primaryKey(),
+	id: char({ length: idLength }).$default(generateId).primaryKey(),
 	email: varchar({ length: configConstants.users.maxEmailLength }).unique().notNull(),
 	hashedPassword: varchar({ length: 1023 }),
 	role: roles().notNull(),
@@ -112,7 +112,7 @@ export const sessionsRelation = relations(sessions, ({ one }) => ({
 }));
 
 export const exams = pgTable('exams', {
-	id: char({ length: idLength }).$default(generateGuid).primaryKey(),
+	id: char({ length: idLength }).$default(generateId).primaryKey(),
 	title: varchar({ length: configConstants.exams.maxTitleLength }).notNull(),
 	description: varchar({ length: configConstants.exams.maxDescriptionLength }).notNull(),
 	openAt: timestamp().notNull(),
@@ -130,7 +130,7 @@ export const examsRelation = relations(exams, ({ many }) => ({
 export const questions = pgTable(
 	'questions',
 	{
-		id: char({ length: idLength }).$default(generateGuid).primaryKey(),
+		id: char({ length: idLength }).$default(generateId).primaryKey(),
 		examId: char({ length: idLength })
 			.references(() => exams.id, {
 				onUpdate: 'cascade',
@@ -138,6 +138,7 @@ export const questions = pgTable(
 			})
 			.notNull(),
 		text: text().notNull(),
+		html: text().notNull(),
 		questionType: questionTypes().notNull(),
 		maxScore: integer().default(configConstants.questions.defaultMaxScore).notNull(),
 		minScore: integer().default(configConstants.questions.defaultMinScore).notNull(),
@@ -163,7 +164,7 @@ export const questionsRelation = relations(questions, ({ one, many }) => ({
 export const choices = pgTable(
 	'choices',
 	{
-		id: char({ length: idLength }).$default(generateGuid).primaryKey(),
+		id: char({ length: idLength }).$default(generateId).primaryKey(),
 		questionId: char({ length: idLength })
 			.references(() => questions.id, {
 				onUpdate: 'cascade',
@@ -171,6 +172,7 @@ export const choices = pgTable(
 			})
 			.notNull(),
 		text: text().notNull(),
+		html: text().notNull(),
 		isCorrect: boolean().notNull(),
 		createdAt: timestamp().$default(utcNow).notNull(),
 		updatedAt: timestamp().$onUpdate(utcNow).notNull()
@@ -186,30 +188,21 @@ export const choicesRelation = relations(choices, ({ one }) => ({
 }));
 
 export const announcements = pgTable('announcements', {
-	id: char({ length: idLength }).$default(generateGuid).primaryKey(),
-	authorId: char({ length: idLength }).references(() => users.id, {
-		onUpdate: 'cascade',
-		onDelete: 'set null'
-	}),
+	id: char({ length: idLength }).$default(generateId).primaryKey(),
 	title: varchar({ length: configConstants.announcements.maxTitleLength }).notNull(),
 	text: text().notNull(),
+	html: text().notNull(),
 	createdAt: timestamp().$default(utcNow).notNull(),
 	updatedAt: timestamp().$onUpdate(utcNow).notNull()
 });
 
-export const announcementsRelation = relations(announcements, ({ one }) => ({
-	author: one(users, {
-		fields: [announcements.authorId],
-		references: [users.id]
-	})
-}));
-
 export const files = pgTable('files', {
-	id: char({ length: idLength }).$default(generateGuid).primaryKey(),
+	id: char({ length: idLength }).$default(generateId).primaryKey(),
 	size: integer().notNull(),
 	mimeType: varchar({ length: 255 }).notNull(),
 	extension: varchar({ length: 255 }).notNull(),
 	storedName: varchar({ length: 1023 })
 		.generatedAlwaysAs((): SQL => sql`${files.id} || ${files.extension}`)
-		.notNull()
+		.notNull(),
+	referenceId: char({ length: idLength })
 });

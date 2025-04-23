@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { ChevronRight, Facebook, Instagram, Pin, Plus } from '@lucide/svelte';
+	import { ChevronRight, Facebook, Instagram, LoaderCircle, Pin, Plus } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
+	import { writable } from 'svelte/store';
 	import { fileProxy, superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
@@ -8,6 +9,7 @@
 
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Form from '$lib/components/ui/form';
+	import { Input } from '$lib/components/ui/input';
 	import { configConstants } from '$lib/config-constants.js';
 	import { convertAnnouncement, type Announcement } from '$lib/converters/announcement.js';
 	import { formatDate, formatDateTime } from '$lib/datetime';
@@ -16,7 +18,7 @@
 	import { isRoleAtLeast } from '$lib/roles.js';
 
 	import type { AnnouncementsResponse } from '../api/public/announcements/schema.js';
-	import { formSchema } from './schema.js';
+	import { createAnnouncementFormSchema } from './schema.js';
 
 	import robots from '$lib/images/3-robots.avif';
 	import badge_10 from '$lib/images/badge-10.avif';
@@ -49,8 +51,10 @@
 		'นักเรียนที่สามารถเข้าร่วมกิจกรรมต่างๆ ตามกำหนดการ ที่ทางค่ายได้แจ้งไว้'
 	];
 
-	let announcements: Announcement[] = $state(data.announcements);
+	let extraAnnouncements: Announcement[] = $state([]);
 	let moreAnnouncementsAvailable: boolean = $state(data.moreAnnouncementsAvailable);
+
+	let announcements = $derived(data.announcements.concat(extraAnnouncements));
 
 	async function loadMoreAnnouncements(): Promise<void> {
 		const fetchJson = new FetchJson(fetch, base);
@@ -65,7 +69,7 @@
 				if (announcements.find((element) => element.id === announcement.id)) {
 					continue;
 				}
-				announcements.push(convertAnnouncement(announcement));
+				extraAnnouncements.push(convertAnnouncement(announcement));
 			}
 			moreAnnouncementsAvailable = response.moreAnnouncementsAvailable;
 		} catch (err) {
@@ -73,20 +77,24 @@
 		}
 	}
 
-	const form = superForm(data.form, {
-		validators: zodClient(formSchema),
+	let isFormDialogOpen = $state(false);
+
+	const createAnnouncementForm = superForm(data.createAnnouncementForm, {
+		validators: zodClient(createAnnouncementFormSchema),
 		resetForm: false,
 		delayMs: configConstants.forms.delay,
-		timeoutMs: configConstants.forms.timeout,
+		timeoutMs: configConstants.forms.longTimeout,
 		multipleSubmits: 'prevent',
 		onUpdated({ form }) {
 			if (form.message) {
 				switch (form.message.type) {
 					case 'success':
 						toast.success(form.message.text);
+						isFormDialogOpen = false;
 						break;
 					case 'info':
 						toast.info(form.message.text);
+						isFormDialogOpen = false;
 						break;
 					case 'warning':
 						toast.warning(form.message.text);
@@ -105,9 +113,13 @@
 		}
 	});
 
-	const { form: formData, enhance, delayed } = form;
+	const {
+		form: createAnnouncementFormData,
+		enhance: createAnnouncementEnhance,
+		delayed: createAnnouncementDelayed
+	} = createAnnouncementForm;
 
-	let file = fileProxy(form, 'file');
+	let file = fileProxy(createAnnouncementForm, 'file');
 </script>
 
 <svelte:head>
@@ -291,7 +303,7 @@
 		<div class="flex w-0 flex-grow flex-col items-center">
 			<div class="mb-4 flex items-center justify-center gap-4">
 				{#if isRoleAtLeast(data.user?.role, 'teacher')}
-					<Dialog.Root>
+					<Dialog.Root bind:open={isFormDialogOpen}>
 						<Dialog.Trigger
 							class="flex h-12 w-12 items-center justify-center rounded-full bg-secondary-foreground text-white transition-colors hover:bg-primary-foreground">
 							<Plus />
@@ -307,8 +319,24 @@
 									</a>
 								</Dialog.Description>
 							</Dialog.Header>
-							<form method="POST" use:enhance>
-								<Form.Field {form} name="file" class="mb-4 w-full">
+							<form
+								method="POST"
+								action="?/create-announcement"
+								enctype="multipart/form-data"
+								use:createAnnouncementEnhance>
+								<Form.Field form={createAnnouncementForm} name="title" class="mb-4 w-full">
+									<Form.Control>
+										{#snippet children({ props })}
+											<Form.Label class="text-lg text-primary-foreground">Title</Form.Label>
+											<Input
+												{...props}
+												bind:value={$createAnnouncementFormData.title}
+												class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										{/snippet}
+									</Form.Control>
+									<Form.FieldErrors />
+								</Form.Field>
+								<Form.Field form={createAnnouncementForm} name="file" class="mb-4 w-full">
 									<Form.Control>
 										{#snippet children({ props })}
 											<div class="flex items-center gap-2">
@@ -324,6 +352,13 @@
 									</Form.Control>
 									<Form.FieldErrors />
 								</Form.Field>
+								<Form.Button
+									class="button-gradient flex w-full items-center gap-2 rounded-xl text-lg text-white drop-shadow-lg">
+									{#if $createAnnouncementDelayed}
+										<LoaderCircle class="animate-spin" />
+									{/if}
+									Create
+								</Form.Button>
 							</form>
 						</Dialog.Content>
 					</Dialog.Root>

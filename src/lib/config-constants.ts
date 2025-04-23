@@ -6,7 +6,7 @@ export const configConstants = {
 	forms: {
 		delay: 100, // milliseconds
 		timeout: 5000, // milliseconds
-		timeoutLong: 10000 // milliseconds
+		longTimeout: 10000 // milliseconds
 	},
 	users: {
 		maxEmailLength: 255,
