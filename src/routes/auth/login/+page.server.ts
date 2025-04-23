@@ -34,8 +34,12 @@ export const actions: Actions = {
 		const user = await db.query.users.findFirst({
 			where: eq(users.email, form.data.email)
 		});
-		if (user === undefined || !user.registrationComplete) {
+		if (user === undefined) {
 			form.errors.email = ['Invalid email'];
+			return fail(400, { form });
+		}
+		if (!user.registrationComplete) {
+			form.errors.email = ['This account have not finished registration yet'];
 			return fail(400, { form });
 		}
 		if (!(await argon2.verify(user.hashedPassword!, form.data.password))) {
@@ -74,7 +78,6 @@ export const actions: Actions = {
 		});
 
 		let next = form.data.next;
-		next = decodeURIComponent(next);
 		next ||= `${base}/`;
 		if (!next.startsWith('/')) {
 			next = '/' + next;

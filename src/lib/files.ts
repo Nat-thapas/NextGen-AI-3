@@ -6,8 +6,9 @@ export function getExtension(name: string, mime: string): string {
 	if (dotIndex !== -1) {
 		const extension = name.slice(dotIndex);
 		const extensionMime = mimeTypes.lookup(extension);
+		const mimeExtension = mimeTypes.extension(mime);
 
-		if (extensionMime === mime) {
+		if (extensionMime === mime || mimeExtension === extension) {
 			return extension;
 		}
 	}

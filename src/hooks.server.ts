@@ -61,10 +61,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (token) {
 			const result = await getSession.execute({ token });
 			if (result) {
-				if (
-					getSecondsSince(result.createdAt) > +env.SESSION_LIFETIME &&
-					getSecondsSince(result.updatedAt) > +env.SESSION_GRACEPERIOD
-				) {
+				if (getSecondsSince(result.updatedAt) > +env.SESSION_LIFETIME) {
 					await deleteSession.execute({ token });
 				} else {
 					session = result;

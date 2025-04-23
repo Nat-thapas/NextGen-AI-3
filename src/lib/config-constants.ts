@@ -3,6 +3,11 @@ export const configConstants = {
 		id: 120,
 		token: 480
 	},
+	forms: {
+		delay: 100, // milliseconds
+		timeout: 5000, // milliseconds
+		timeoutLong: 10000 // milliseconds
+	},
 	users: {
 		maxEmailLength: 255,
 		minPasswordLength: 8,
@@ -19,8 +24,9 @@ export const configConstants = {
 		postcodeLength: 5,
 		maxAddressDetailLength: 1023,
 		emailCooldown: 900, // seconds
-		verificationTimeout: 900, // seconds: from email sent to clicking button
-		verificationTimeoutGracePeriod: 300 // seconds: from email sent to password submit
+		registrationLinkTimeout: 900, // seconds: from email sent to clicking button
+		registrationSetPasswordTimeout: 1200, // seconds: from email sent to password submit
+		registrationUpdateProfileTimeout: 3600 // seconds: from email sent to profile update
 	},
 	exams: {
 		maxTitleLength: 255,

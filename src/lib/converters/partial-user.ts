@@ -1,7 +1,9 @@
+import type { Role } from '$lib/roles';
+
 export interface OwnUser {
 	id: string;
 	email: string;
-	role: 'registrant' | 'student' | 'staff' | 'teacher' | 'admin' | 'superadmin';
+	role: Role;
 	prefix: string | null;
 	name: string | null;
 	nickname: string | null;

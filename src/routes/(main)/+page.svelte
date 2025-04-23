@@ -1,15 +1,22 @@
 <script lang="ts">
-	import { ChevronRight, Facebook, Instagram, Pin } from '@lucide/svelte';
+	import { ChevronRight, Facebook, Instagram, Pin, Plus } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
+	import { fileProxy, superForm } from 'sveltekit-superforms';
+	import { zodClient } from 'sveltekit-superforms/adapters';
 
 	import { base } from '$app/paths';
 
+	import * as Dialog from '$lib/components/ui/dialog';
+	import * as Form from '$lib/components/ui/form';
+	import { configConstants } from '$lib/config-constants.js';
 	import { convertAnnouncement, type Announcement } from '$lib/converters/announcement.js';
 	import { formatDate, formatDateTime } from '$lib/datetime';
 	import { getErrorMessage } from '$lib/error.js';
 	import { FetchJson } from '$lib/fetch-json.js';
+	import { isRoleAtLeast } from '$lib/roles.js';
 
 	import type { AnnouncementsResponse } from '../api/public/announcements/schema.js';
+	import { formSchema } from './schema.js';
 
 	import robots from '$lib/images/3-robots.avif';
 	import badge_10 from '$lib/images/badge-10.avif';
@@ -55,6 +62,9 @@
 			});
 
 			for (const announcement of response.announcements) {
+				if (announcements.find((element) => element.id === announcement.id)) {
+					continue;
+				}
 				announcements.push(convertAnnouncement(announcement));
 			}
 			moreAnnouncementsAvailable = response.moreAnnouncementsAvailable;
@@ -62,6 +72,42 @@
 			toast.error(getErrorMessage(err));
 		}
 	}
+
+	const form = superForm(data.form, {
+		validators: zodClient(formSchema),
+		resetForm: false,
+		delayMs: configConstants.forms.delay,
+		timeoutMs: configConstants.forms.timeout,
+		multipleSubmits: 'prevent',
+		onUpdated({ form }) {
+			if (form.message) {
+				switch (form.message.type) {
+					case 'success':
+						toast.success(form.message.text);
+						break;
+					case 'info':
+						toast.info(form.message.text);
+						break;
+					case 'warning':
+						toast.warning(form.message.text);
+						break;
+					case 'error':
+						toast.error(form.message.text);
+						break;
+					default:
+						toast(form.message.text);
+						break;
+				}
+			}
+		},
+		onError({ result }) {
+			toast.error(getErrorMessage(result.error));
+		}
+	});
+
+	const { form: formData, enhance, delayed } = form;
+
+	let file = fileProxy(form, 'file');
 </script>
 
 <svelte:head>
@@ -243,7 +289,47 @@
 			alt="Robot announcing decoration"
 			class="-mt-16 h-fit w-56" />
 		<div class="flex w-0 flex-grow flex-col items-center">
-			<h2 class="mb-4 text-4xl font-semibold">Announcements</h2>
+			<div class="mb-4 flex items-center justify-center gap-4">
+				{#if isRoleAtLeast(data.user?.role, 'teacher')}
+					<Dialog.Root>
+						<Dialog.Trigger
+							class="flex h-12 w-12 items-center justify-center rounded-full bg-secondary-foreground text-white transition-colors hover:bg-primary-foreground">
+							<Plus />
+						</Dialog.Trigger>
+						<Dialog.Content>
+							<Dialog.Header>
+								<Dialog.Title class="text-lg">Create announcement</Dialog.Title>
+								<Dialog.Description class="text-base text-primary-foreground">
+									Upload a .zip file containing the announcement data in markdown format and your
+									assets. For more instruction please visit
+									<a class="underline" href="/instructions/upload-contents">
+										how to upload contents
+									</a>
+								</Dialog.Description>
+							</Dialog.Header>
+							<form method="POST" use:enhance>
+								<Form.Field {form} name="file" class="mb-4 w-full">
+									<Form.Control>
+										{#snippet children({ props })}
+											<div class="flex items-center gap-2">
+												<Form.Label class="text-lg text-primary-foreground">Upload file</Form.Label>
+											</div>
+											<input
+												{...props}
+												bind:files={$file}
+												type="file"
+												accept="application/zip, application/zip-compressed, application/x-zip-compressed, multipart/x-zip"
+												class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-secondary-foreground file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
+										{/snippet}
+									</Form.Control>
+									<Form.FieldErrors />
+								</Form.Field>
+							</form>
+						</Dialog.Content>
+					</Dialog.Root>
+				{/if}
+				<h2 class="text-4xl font-semibold">Announcements</h2>
+			</div>
 			<p class="max-w-xl text-center text-xl leading-relaxed text-primary-foreground">
 				ติดตามข่าวสารและประกาศสำคัญเกี่ยวกับโครงการ CE Next Gen AI
 				เพื่อไม่พลาดโอกาสสำคัญในการพัฒนาทักษะและเข้าร่วมกิจกรรมต่างๆ

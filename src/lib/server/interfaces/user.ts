@@ -1,8 +1,10 @@
+import type { Role } from '$lib/roles';
+
 export interface User {
 	id: string;
 	email: string;
 	hashedPassword: string | null;
-	role: 'registrant' | 'student' | 'staff' | 'teacher' | 'admin' | 'superadmin';
+	role: Role;
 	registrationComplete: boolean;
 	verificationToken: string | null;
 	verificationTokenGeneratedAt: Date;

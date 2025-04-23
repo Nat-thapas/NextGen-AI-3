@@ -8,6 +8,7 @@
 
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
+	import { configConstants } from '$lib/config-constants';
 	import { getErrorMessage } from '$lib/error';
 
 	import { formSchema } from './schema';
@@ -20,8 +21,8 @@
 	const form = superForm(data.form, {
 		validators: zodClient(formSchema),
 		resetForm: false,
-		delayMs: 100,
-		timeoutMs: 5000,
+		delayMs: configConstants.forms.delay,
+		timeoutMs: configConstants.forms.timeout,
 		multipleSubmits: 'prevent',
 		onUpdated({ form }) {
 			if (form.message) {
@@ -65,7 +66,7 @@
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label class="hidden">Next</Form.Label>
-						<Input {...props} bind:value={$formData.next} readonly class="hidden" />
+						<Input {...props} type="hidden" bind:value={$formData.next} readonly class="hidden" />
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
@@ -76,6 +77,7 @@
 						<Form.Label class="text-lg text-primary-foreground">Email</Form.Label>
 						<Input
 							{...props}
+							type="email"
 							bind:value={$formData.email}
 							placeholder="username@email.com"
 							class="rounded-xl border-2 border-secondary-foreground !text-lg placeholder:text-secondary-foreground" />

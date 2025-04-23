@@ -1,19 +1,23 @@
-import { redirect } from '@sveltejs/kit';
-import argon2 from 'argon2';
+import fs from 'node:fs/promises';
+import { join } from 'node:path';
+
+import { error, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { fail, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
 import { base } from '$app/paths';
+import { env } from '$env/dynamic/private';
 
 import { configConstants } from '$lib/config-constants';
 import { getSecondsSince } from '$lib/datetime';
+import { getExtension } from '$lib/files';
 import { db } from '$lib/server/db';
+import { createFileReturning } from '$lib/server/db/prepared-statements/files';
 import { users } from '$lib/server/db/schema';
 import { setToastParams } from '$lib/toast';
 
-import type { Actions } from '../$types';
-import type { PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { formSchema } from './schema';
 
 export const load: PageServerLoad = async ({ url }) => {
@@ -57,7 +61,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	}
 	if (
 		getSecondsSince(user.verificationTokenGeneratedAt) >
-		configConstants.users.registrationLinkTimeout
+		configConstants.users.registrationSetPasswordTimeout
 	) {
 		redirect(
 			303,
@@ -76,8 +80,8 @@ export const load: PageServerLoad = async ({ url }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request }) => {
-		const form = await superValidate(request, zod(formSchema));
+	default: async (event) => {
+		const form = await superValidate(event.request, zod(formSchema));
 
 		if (!form.valid) return fail(400, { form });
 
@@ -120,7 +124,7 @@ export const actions: Actions = {
 		}
 		if (
 			getSecondsSince(user.verificationTokenGeneratedAt) >
-			configConstants.users.registrationSetPasswordTimeout
+			configConstants.users.registrationUpdateProfileTimeout
 		) {
 			redirect(
 				303,
@@ -133,18 +137,41 @@ export const actions: Actions = {
 			);
 		}
 
-		const hashedPassword = await argon2.hash(form.data.password);
+		const transcript = (
+			await createFileReturning.execute({
+				size: form.data.transcript.size.toString(),
+				mime: form.data.transcript.type,
+				extension: getExtension(form.data.transcript.name, form.data.transcript.type)
+			})
+		)[0];
 
-		await db.update(users).set({ hashedPassword }).where(eq(users.id, user.id));
+		await fs.writeFile(
+			join(env.FILE_STORAGE_PATH, transcript.storedName),
+			await form.data.transcript.bytes()
+		);
+
+		await db
+			.update(users)
+			.set({
+				registrationComplete: true,
+				prefix: form.data.prefix,
+				name: form.data.name,
+				nickname: form.data.nickname,
+				phoneNumber: form.data.phoneNumber,
+				schoolName: form.data.schoolName,
+				grade: Number(form.data.grade),
+				transcriptId: transcript.id,
+				addressProvince: form.data.addressProvince,
+				addressDistrict: form.data.addressDistrict,
+				addressSubDistrict: form.data.addressSubDistrict,
+				addressPostcode: form.data.addressPostcode,
+				addressDetail: form.data.addressDetail
+			})
+			.where(eq(users.id, user.id));
 
 		return redirect(
 			303,
-			setToastParams(
-				`${base}/auth/register/profile?token=${form.data.token}`,
-				'Accoount created',
-				'Please fill in your informations to complete the registration process',
-				'info'
-			)
+			setToastParams(`${base}/auth/login`, 'Registration complete', 'Please login', 'success')
 		);
 	}
 };
