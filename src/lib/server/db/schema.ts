@@ -207,7 +207,7 @@ export const announcementsRelation = relations(announcements, ({ one }) => ({
 export const files = pgTable('files', {
 	id: char({ length: idLength }).$default(generateGuid).primaryKey(),
 	size: integer().notNull(),
-	mime: varchar({ length: 255 }).notNull(),
+	mimeType: varchar({ length: 255 }).notNull(),
 	extension: varchar({ length: 255 }).notNull(),
 	storedName: varchar({ length: 1023 })
 		.generatedAlwaysAs((): SQL => sql`${files.id} || ${files.extension}`)

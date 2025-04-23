@@ -52,7 +52,7 @@
 </script>
 
 <svelte:head>
-	<title>CE Next Gen AI - Profile</title>
+	<title>CE Next Gen AI - Register</title>
 </svelte:head>
 
 <div class="mx-auto mt-8 max-w-6xl rounded-2xl bg-white p-8 px-16 drop-shadow-xl">

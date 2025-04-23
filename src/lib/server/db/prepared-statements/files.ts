@@ -7,7 +7,7 @@ export const createFile = db
 	.insert(files)
 	.values({
 		size: sql`${sql.placeholder<string>('size')}`,
-		mime: sql`${sql.placeholder<string>('mime')}`,
+		mimeType: sql`${sql.placeholder<string>('mimeType')}`,
 		extension: sql`${sql.placeholder<string>('extension')}`
 	})
 	.prepare('create-file');
@@ -16,7 +16,7 @@ export const createFileReturning = db
 	.insert(files)
 	.values({
 		size: sql`${sql.placeholder<string>('size')}`,
-		mime: sql`${sql.placeholder<string>('mime')}`,
+		mimeType: sql`${sql.placeholder<string>('mimeType')}`,
 		extension: sql`${sql.placeholder<string>('extension')}`
 	})
 	.returning()

@@ -95,7 +95,7 @@
 </script>
 
 <svelte:head>
-	<title>CE Next Gen AI - Profile</title>
+	<title>CE Next Gen AI - My Profile</title>
 </svelte:head>
 
 <div class="mx-auto mt-8 max-w-6xl rounded-2xl bg-white p-8 px-16 drop-shadow-xl">
@@ -307,7 +307,7 @@
 									<Form.Label class="text-lg text-secondary-foreground">Transcript</Form.Label>
 									{#if data.transcript}
 										<a
-											href={`${base}/api/public/files/${data.transcript.id}/Transcript${data.transcript.extension}`}
+											href={`${base}/api/public/files/${data.transcript.id}/transcript${data.transcript.extension}`}
 											target="_blank">
 											<Download
 												class="text-secondary-foreground transition-colors hover:text-primary-foreground" />

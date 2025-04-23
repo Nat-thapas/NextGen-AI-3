@@ -5,15 +5,13 @@ import { error } from '@sveltejs/kit';
 
 import { env } from '$env/dynamic/private';
 
+import { shouldDispositionInline, toFileNameSafe } from '$lib/files';
 import { getFile } from '$lib/server/db/prepared-statements/files';
 
 import type { RequestHandler } from './$types';
 
-export const GET: RequestHandler = async (event) => {
-	const id = event.params.id;
-	const name = event.params.name;
-
-	const file = await getFile.execute({ id });
+export const GET: RequestHandler = async ({ params }) => {
+	const file = await getFile.execute({ id: params.id });
 
 	if (!file) {
 		error(404, {
@@ -23,12 +21,15 @@ export const GET: RequestHandler = async (event) => {
 
 	const path = join(env.FILE_STORAGE_PATH, file.storedName);
 
+	const dispositionInline = shouldDispositionInline(file.mimeType);
+
 	try {
 		const data = await fs.readFile(path);
 		return new Response(data, {
 			headers: {
-				'Content-Type': file.mime,
-				'Content-Disposition': `inline; filename=${name}`
+				'Cache-Control': 'public, max-age=31536000, immutable',
+				'Content-Type': file.mimeType,
+				'Content-Disposition': `${dispositionInline ? 'inline' : 'attachment'}; filename="${toFileNameSafe(params.name)}"`
 			}
 		});
 	} catch {

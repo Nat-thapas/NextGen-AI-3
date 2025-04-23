@@ -67,7 +67,7 @@ export const actions: Actions = {
 			const transcript = (
 				await createFileReturning.execute({
 					size: form.data.transcript.size.toString(),
-					mime: form.data.transcript.type,
+					mimeType: form.data.transcript.type,
 					extension: getExtension(form.data.transcript.name, form.data.transcript.type)
 				})
 			)[0];
