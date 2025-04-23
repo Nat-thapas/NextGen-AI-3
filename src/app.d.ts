@@ -7,6 +7,7 @@ declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
+			timeZone: string;
 			session?: Session;
 			user?: User;
 		}

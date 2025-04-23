@@ -11,12 +11,12 @@
 	import * as Select from '$lib/components/ui/select';
 	import { getErrorMessage } from '$lib/error.js';
 
-	import { changePasswordSchema, formSchema } from './schema.js';
+	import { changePasswordFormSchema, updateProfileFormSchema } from './schema.js';
 
 	let { data } = $props();
 
-	const form = superForm(data.form, {
-		validators: zodClient(formSchema),
+	const updateProfileForm = superForm(data.updateProfileForm, {
+		validators: zodClient(updateProfileFormSchema),
 		resetForm: false,
 		delayMs: 100,
 		timeoutMs: 5000,
@@ -47,10 +47,14 @@
 		}
 	});
 
-	const { form: formData, enhance, delayed } = form;
+	const {
+		form: updateProfileFormData,
+		enhance: updateProfileEnhance,
+		delayed: updateProfileDelayed
+	} = updateProfileForm;
 
 	const changePasswordForm = superForm(data.changePasswordForm, {
-		validators: zodClient(changePasswordSchema),
+		validators: zodClient(changePasswordFormSchema),
 		delayMs: 100,
 		timeoutMs: 5000,
 		multipleSubmits: 'prevent',
@@ -86,7 +90,7 @@
 		delayed: changePasswordDelayed
 	} = changePasswordForm;
 
-	let file = fileProxy(form, 'transcript');
+	let file = fileProxy(updateProfileForm, 'transcript');
 </script>
 
 <svelte:head>
@@ -99,7 +103,7 @@
 		method="POST"
 		action="?/update-profile"
 		enctype="multipart/form-data"
-		use:enhance
+		use:updateProfileEnhance
 		class="mb-8">
 		<div class="mb-4 rounded-xl border-2 border-secondary-foreground p-4">
 			<span class="mb-4 block text-xl font-semibold text-primary-foreground">
@@ -107,13 +111,13 @@
 			</span>
 			<div class="flex">
 				<div class="w-1/3 px-4">
-					<Form.Field {form} name="prefix" class="mb-4 w-full">
+					<Form.Field form={updateProfileForm} name="prefix" class="mb-4 w-full">
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label class="text-lg text-secondary-foreground">Prefix</Form.Label>
 								<Input
 									{...props}
-									bind:value={$formData.prefix}
+									bind:value={$updateProfileFormData.prefix}
 									class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 							{/snippet}
 						</Form.Control>
@@ -121,13 +125,13 @@
 					</Form.Field>
 				</div>
 				<div class="w-2/3 px-4">
-					<Form.Field {form} name="name" class="mb-4 w-full">
+					<Form.Field form={updateProfileForm} name="name" class="mb-4 w-full">
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label class="text-lg text-secondary-foreground">Name</Form.Label>
 								<Input
 									{...props}
-									bind:value={$formData.name}
+									bind:value={$updateProfileFormData.name}
 									class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 							{/snippet}
 						</Form.Control>
@@ -137,13 +141,13 @@
 			</div>
 			<div class="flex">
 				<div class="w-1/3 px-4">
-					<Form.Field {form} name="nickname" class="mb-4 w-full">
+					<Form.Field form={updateProfileForm} name="nickname" class="mb-4 w-full">
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label class="text-lg text-secondary-foreground">Nickname</Form.Label>
 								<Input
 									{...props}
-									bind:value={$formData.nickname}
+									bind:value={$updateProfileFormData.nickname}
 									class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 							{/snippet}
 						</Form.Control>
@@ -151,13 +155,13 @@
 					</Form.Field>
 				</div>
 				<div class="w-1/3 px-4">
-					<Form.Field {form} name="phoneNumber" class="mb-4 w-full">
+					<Form.Field form={updateProfileForm} name="phoneNumber" class="mb-4 w-full">
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label class="text-lg text-secondary-foreground">Phone number</Form.Label>
 								<Input
 									{...props}
-									bind:value={$formData.phoneNumber}
+									bind:value={$updateProfileFormData.phoneNumber}
 									class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 							{/snippet}
 						</Form.Control>
@@ -177,13 +181,13 @@
 			<span class="mb-4 block text-xl font-semibold text-primary-foreground">Address</span>
 			<div class="flex">
 				<div class="w-2/3 px-4">
-					<Form.Field {form} name="addressDetail" class="mb-4 w-full">
+					<Form.Field form={updateProfileForm} name="addressDetail" class="mb-4 w-full">
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label class="text-lg text-secondary-foreground">Detail</Form.Label>
 								<Input
 									{...props}
-									bind:value={$formData.addressDetail}
+									bind:value={$updateProfileFormData.addressDetail}
 									class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 							{/snippet}
 						</Form.Control>
@@ -191,13 +195,13 @@
 					</Form.Field>
 				</div>
 				<div class="w-1/3 px-4">
-					<Form.Field {form} name="addressSubDistrict" class="mb-4 w-full">
+					<Form.Field form={updateProfileForm} name="addressSubDistrict" class="mb-4 w-full">
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label class="text-lg text-secondary-foreground">Sub-district</Form.Label>
 								<Input
 									{...props}
-									bind:value={$formData.addressSubDistrict}
+									bind:value={$updateProfileFormData.addressSubDistrict}
 									class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 							{/snippet}
 						</Form.Control>
@@ -207,13 +211,13 @@
 			</div>
 			<div class="flex">
 				<div class="w-1/3 px-4">
-					<Form.Field {form} name="addressDistrict" class="mb-4 w-full">
+					<Form.Field form={updateProfileForm} name="addressDistrict" class="mb-4 w-full">
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label class="text-lg text-secondary-foreground">District</Form.Label>
 								<Input
 									{...props}
-									bind:value={$formData.addressDistrict}
+									bind:value={$updateProfileFormData.addressDistrict}
 									class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 							{/snippet}
 						</Form.Control>
@@ -221,13 +225,13 @@
 					</Form.Field>
 				</div>
 				<div class="w-1/3 px-4">
-					<Form.Field {form} name="addressProvince" class="mb-4 w-full">
+					<Form.Field form={updateProfileForm} name="addressProvince" class="mb-4 w-full">
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label class="text-lg text-secondary-foreground">Province</Form.Label>
 								<Input
 									{...props}
-									bind:value={$formData.addressProvince}
+									bind:value={$updateProfileFormData.addressProvince}
 									class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 							{/snippet}
 						</Form.Control>
@@ -235,13 +239,13 @@
 					</Form.Field>
 				</div>
 				<div class="w-1/3 px-4">
-					<Form.Field {form} name="addressPostcode" class="mb-4 w-full">
+					<Form.Field form={updateProfileForm} name="addressPostcode" class="mb-4 w-full">
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label class="text-lg text-secondary-foreground">Postcode</Form.Label>
 								<Input
 									{...props}
-									bind:value={$formData.addressPostcode}
+									bind:value={$updateProfileFormData.addressPostcode}
 									class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 							{/snippet}
 						</Form.Control>
@@ -254,13 +258,13 @@
 			<span class="mb-4 block text-xl font-semibold text-primary-foreground">Education</span>
 			<div class="flex">
 				<div class="w-1/3 px-4">
-					<Form.Field {form} name="schoolName" class="mb-4 w-full">
+					<Form.Field form={updateProfileForm} name="schoolName" class="mb-4 w-full">
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label class="text-lg text-secondary-foreground">School</Form.Label>
 								<Input
 									{...props}
-									bind:value={$formData.schoolName}
+									bind:value={$updateProfileFormData.schoolName}
 									class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 							{/snippet}
 						</Form.Control>
@@ -268,15 +272,20 @@
 					</Form.Field>
 				</div>
 				<div class="w-1/3 px-4">
-					<Form.Field {form} name="grade" class="mb-4 w-full">
+					<Form.Field form={updateProfileForm} name="grade" class="mb-4 w-full">
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label class="text-lg text-secondary-foreground">Grade</Form.Label>
-								<Select.Root type="single" bind:value={$formData.grade} name={props.name}>
+								<Select.Root
+									type="single"
+									bind:value={$updateProfileFormData.grade}
+									name={props.name}>
 									<Select.Trigger
 										{...props}
 										class="rounded-xl border-2 border-secondary-foreground bg-white text-lg font-medium !text-primary-foreground">
-										{$formData.grade ? $formData.grade : 'Select your grade'}
+										{$updateProfileFormData.grade
+											? $updateProfileFormData.grade
+											: 'Select your grade'}
 									</Select.Trigger>
 									<Select.Content>
 										<Select.Item value="4" label="4" />
@@ -290,14 +299,14 @@
 					</Form.Field>
 				</div>
 				<div class="w-1/3 px-4">
-					<Form.Field {form} name="transcript" class="mb-4 w-full">
+					<Form.Field form={updateProfileForm} name="transcript" class="mb-4 w-full">
 						<Form.Control>
 							{#snippet children({ props })}
 								<div class="flex items-center gap-2">
 									<Form.Label class="text-lg text-secondary-foreground">Transcript</Form.Label>
-									{#if data.userHaveTranscript && data.user}
+									{#if data.transcript}
 										<a
-											href={`${base}/api/files/users/transcripts/${data.user.id}/Transcript.pdf`}
+											href={`${base}/api/public/files/${data.transcript.id}/Transcript${data.transcript.extension}`}
 											target="_blank">
 											<Download
 												class="text-secondary-foreground transition-colors hover:text-primary-foreground" />
@@ -319,7 +328,7 @@
 		</div>
 		<Form.Button
 			class="button-gradient flex w-full items-center gap-2 rounded-xl text-lg text-white drop-shadow-lg">
-			{#if $delayed}
+			{#if $updateProfileDelayed}
 				<LoaderCircle class="animate-spin" />
 			{/if}
 			Save

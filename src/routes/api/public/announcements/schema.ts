@@ -12,3 +12,14 @@ export const Options = type({
 		.or(type.undefined.pipe(() => 0))
 		.default('0')
 });
+
+export interface AnnouncementsResponse {
+	announcements: {
+		text: string;
+		id: string;
+		createdAt: string;
+		updatedAt: string;
+		title: string;
+	}[];
+	moreAnnouncementsAvailable: boolean;
+}

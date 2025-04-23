@@ -34,7 +34,7 @@ export const actions: Actions = {
 		});
 
 		if (user !== undefined) {
-			if (user.verified) {
+			if (user.registrationComplete) {
 				form.errors.email = ['This email is already in use'];
 				return fail(400, { form });
 			}

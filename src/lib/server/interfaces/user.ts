@@ -3,7 +3,7 @@ export interface User {
 	email: string;
 	hashedPassword: string | null;
 	role: 'registrant' | 'student' | 'staff' | 'teacher' | 'admin' | 'superadmin';
-	verified: boolean;
+	registrationComplete: boolean;
 	verificationToken: string | null;
 	verificationTokenGeneratedAt: Date;
 	passwordResetToken: string | null;
@@ -15,7 +15,7 @@ export interface User {
 	phoneNumber: string | null;
 	schoolName: string | null;
 	grade: number | null;
-	isTranscriptAvailable: boolean;
+	transcriptId: string | null;
 	addressProvince: string | null;
 	addressDistrict: string | null;
 	addressSubDistrict: string | null;

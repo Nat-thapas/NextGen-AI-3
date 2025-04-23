@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { configConstants } from '$lib/config-constants';
 
-export const formSchema = z.object({
+export const updateProfileFormSchema = z.object({
 	prefix: z
 		.string()
 		.min(1, 'Prefix is required')
@@ -81,9 +81,9 @@ export const formSchema = z.object({
 		)
 });
 
-export type FormSchema = typeof formSchema;
+export type UpdateProfileFormSchema = typeof updateProfileFormSchema;
 
-export const changePasswordSchema = z
+export const changePasswordFormSchema = z
 	.object({
 		currentPassword: z.string().min(1, 'Current password is required'),
 		newPassword: z
@@ -133,3 +133,5 @@ export const changePasswordSchema = z
 			});
 		}
 	});
+
+export type ChangePasswordFormSchema = typeof changePasswordFormSchema;

@@ -44,7 +44,7 @@ export const load: PageServerLoad = async ({ url }) => {
 			)
 		);
 	}
-	if (user.verified) {
+	if (user.registrationComplete) {
 		redirect(
 			303,
 			setToastParams(
@@ -69,7 +69,9 @@ export const load: PageServerLoad = async ({ url }) => {
 		);
 	}
 
-	return { form: await superValidate({ token, email: user.email }, zod(formSchema)) };
+	return {
+		form: await superValidate({ token, email: user.email }, zod(formSchema), { errors: false })
+	};
 };
 
 export const actions: Actions = {
@@ -104,7 +106,7 @@ export const actions: Actions = {
 				)
 			);
 		}
-		if (user.verified) {
+		if (user.registrationComplete) {
 			redirect(
 				303,
 				setToastParams(
@@ -138,10 +140,10 @@ export const actions: Actions = {
 		return redirect(
 			303,
 			setToastParams(
-				`${base}/auth/login?next=${encodeURIComponent('/profile/me')}`,
-				'Registration successful',
-				'Registration completed, please login then fill your details on the profile page.',
-				'success'
+				`${base}/auth/register/profile`,
+				'Accoount created',
+				'Please fill in your informations to complete the registration process',
+				'info'
 			)
 		);
 	}

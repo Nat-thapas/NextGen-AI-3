@@ -10,10 +10,11 @@ export function formatTime(date: Date): string {
 	});
 }
 
-export function formatDateTime(date: Date): string {
+export function formatDateTime(date: Date, timeZone: string): string {
 	return date.toLocaleString('th-TH', {
 		dateStyle: 'medium',
-		timeStyle: 'medium'
+		timeStyle: 'medium',
+		timeZone
 	});
 }
 
@@ -51,4 +52,13 @@ export function utcNow(): Date {
 
 export function getSecondsSince(date: Date): number {
 	return (Date.now() - date.getTime()) / 1000;
+}
+
+export function isTimeZoneValid(timeZone: string): boolean {
+	try {
+		Intl.DateTimeFormat(undefined, { timeZone });
+		return true;
+	} catch {
+		return false;
+	}
 }

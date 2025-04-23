@@ -97,6 +97,7 @@ export const verifyTemplate: string = `<!doctype html>
 															<img
 																src="https://cdn.jsdelivr.net/gh/phuwit/CE-NextGenAi-Email@main/images/logo-w360.png"
 																width="360"
+																height="92"
 																alt
 																style="max-width: 100%; vertical-align: middle" />
 														</a>

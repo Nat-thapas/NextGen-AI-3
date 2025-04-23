@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		next = '/' + next;
 	}
 
-	return { form: await superValidate({ next }, zod(formSchema)) };
+	return { form: await superValidate({ next }, zod(formSchema), { errors: false }) };
 };
 
 export const actions: Actions = {
@@ -34,7 +34,7 @@ export const actions: Actions = {
 		const user = await db.query.users.findFirst({
 			where: eq(users.email, form.data.email)
 		});
-		if (user === undefined || !user.verified) {
+		if (user === undefined || !user.registrationComplete) {
 			form.errors.email = ['Invalid email'];
 			return fail(400, { form });
 		}

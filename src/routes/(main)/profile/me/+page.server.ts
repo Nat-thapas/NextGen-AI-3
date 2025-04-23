@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import { join } from 'node:path';
 
 import { error } from '@sveltejs/kit';
 import argon2 from 'argon2';
@@ -8,11 +9,13 @@ import { zod } from 'sveltekit-superforms/adapters';
 
 import { env } from '$env/dynamic/private';
 
+import { getExtension } from '$lib/files';
 import { db } from '$lib/server/db';
+import { createFileReturning, getFile } from '$lib/server/db/prepared-statements/files';
 import { users } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
-import { changePasswordSchema, formSchema } from './schema';
+import { changePasswordFormSchema, updateProfileFormSchema } from './schema';
 
 export const load: PageServerLoad = async (event) => {
 	const user = event.locals.user;
@@ -24,7 +27,7 @@ export const load: PageServerLoad = async (event) => {
 	}
 
 	return {
-		form: await superValidate(
+		updateProfileForm: await superValidate(
 			{
 				prefix: user.prefix ?? undefined,
 				name: user.name ?? undefined,
@@ -38,16 +41,17 @@ export const load: PageServerLoad = async (event) => {
 				addressPostcode: user.addressPostcode ?? undefined,
 				addressDetail: user.addressDetail ?? undefined
 			},
-			zod(formSchema)
+			zod(updateProfileFormSchema),
+			{ errors: false }
 		),
-		userHaveTranscript: user.isTranscriptAvailable,
-		changePasswordForm: await superValidate(zod(changePasswordSchema))
+		transcript: await getFile.execute({ id: user.transcriptId }),
+		changePasswordForm: await superValidate(zod(changePasswordFormSchema))
 	};
 };
 
 export const actions: Actions = {
 	'update-profile': async (event) => {
-		const form = await superValidate(event.request, zod(formSchema));
+		const form = await superValidate(event.request, zod(updateProfileFormSchema));
 
 		if (!form.valid) return fail(400, { form });
 
@@ -60,27 +64,54 @@ export const actions: Actions = {
 		}
 
 		if (form.data.transcript) {
-			const transcriptSavePath = env.FILE_STORAGE_PATH + '/users/transcripts/' + user.id + '.pdf';
-			await fs.writeFile(transcriptSavePath, await form.data.transcript.bytes());
-		}
+			const transcript = (
+				await createFileReturning.execute({
+					size: form.data.transcript.size.toString(),
+					mime: form.data.transcript.type,
+					extension: getExtension(form.data.transcript.name, form.data.transcript.type)
+				})
+			)[0];
 
-		await db
-			.update(users)
-			.set({
-				prefix: form.data.prefix,
-				name: form.data.name,
-				nickname: form.data.nickname,
-				phoneNumber: form.data.phoneNumber,
-				schoolName: form.data.schoolName,
-				grade: Number(form.data.grade),
-				isTranscriptAvailable: form.data.transcript ? true : undefined,
-				addressProvince: form.data.addressProvince,
-				addressDistrict: form.data.addressDistrict,
-				addressSubDistrict: form.data.addressSubDistrict,
-				addressPostcode: form.data.addressPostcode,
-				addressDetail: form.data.addressDetail
-			})
-			.where(eq(users.id, user.id));
+			await fs.writeFile(
+				join(env.FILE_STORAGE_PATH, transcript.storedName),
+				await form.data.transcript.bytes()
+			);
+
+			await db
+				.update(users)
+				.set({
+					prefix: form.data.prefix,
+					name: form.data.name,
+					nickname: form.data.nickname,
+					phoneNumber: form.data.phoneNumber,
+					schoolName: form.data.schoolName,
+					grade: Number(form.data.grade),
+					transcriptId: transcript.id,
+					addressProvince: form.data.addressProvince,
+					addressDistrict: form.data.addressDistrict,
+					addressSubDistrict: form.data.addressSubDistrict,
+					addressPostcode: form.data.addressPostcode,
+					addressDetail: form.data.addressDetail
+				})
+				.where(eq(users.id, user.id));
+		} else {
+			await db
+				.update(users)
+				.set({
+					prefix: form.data.prefix,
+					name: form.data.name,
+					nickname: form.data.nickname,
+					phoneNumber: form.data.phoneNumber,
+					schoolName: form.data.schoolName,
+					grade: Number(form.data.grade),
+					addressProvince: form.data.addressProvince,
+					addressDistrict: form.data.addressDistrict,
+					addressSubDistrict: form.data.addressSubDistrict,
+					addressPostcode: form.data.addressPostcode,
+					addressDetail: form.data.addressDetail
+				})
+				.where(eq(users.id, user.id));
+		}
 
 		return message(form, {
 			type: 'success',
@@ -89,13 +120,13 @@ export const actions: Actions = {
 	},
 
 	'change-password': async (event) => {
-		const form = await superValidate(event.request, zod(changePasswordSchema));
+		const form = await superValidate(event.request, zod(changePasswordFormSchema));
 
 		if (!form.valid) return fail(400, { form });
 
 		const user = event.locals.user;
 
-		if (!user || !user.verified) {
+		if (!user) {
 			error(403, {
 				message: 'You have to be logged in to access this page'
 			});

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { LogOut, User } from '@lucide/svelte';
+	import { onMount } from 'svelte';
 
 	import { enhance } from '$app/forms';
 	import { base } from '$app/paths';
@@ -17,11 +18,15 @@
 		[`${base}/challenge`, 'Challenge'],
 		[`${base}/leaderboard`, 'Leaderboard']
 	];
+
+	onMount(() => {
+		document.cookie = `time-zone=${Intl.DateTimeFormat().resolvedOptions().timeZone}; Secure; Path=/; SameSite=Lax; Priority=Medium; max-age=31536000`;
+	});
 </script>
 
 <nav class="mx-16 mt-4 flex h-16 items-center justify-between">
 	<a href="{base}/" class="h-fit w-fit">
-		<img src={banner} alt="Banner" class="h-fit w-48" />
+		<img src={banner} width="512" height="133" alt="Banner" class="h-fit w-48" />
 	</a>
 	{#if data.user !== undefined && navs.length > 0}
 		<div class="flex items-center gap-8">

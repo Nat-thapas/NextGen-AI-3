@@ -1,13 +1,11 @@
-import {
-	countAnnouncements,
-	getAnnouncements
-} from '$lib/server/db/prepared-statements/announcements';
+import { getAnnouncements } from '$lib/server/db/prepared-statements/announcements';
 
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
-	return {
-		announcements: await getAnnouncements.execute({ limit: '3', offset: '0' }),
-		moreAnnouncementsAvailable: (await countAnnouncements.execute())[0].count > 3
-	};
+	const announcements = await getAnnouncements.execute({ limit: '4', offset: '0' });
+	const moreAnnouncementsAvailable = announcements.length === 4;
+	if (moreAnnouncementsAvailable) announcements.pop();
+
+	return { announcements, moreAnnouncementsAvailable };
 };

@@ -1,12 +1,7 @@
-import { count, desc, eq, sql } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { announcements } from '$lib/server/db/schema';
-
-export const countAnnouncements = db
-	.select({ count: count() })
-	.from(announcements)
-	.prepare('count_announcements');
 
 export const getAnnouncements = db.query.announcements
 	.findMany({

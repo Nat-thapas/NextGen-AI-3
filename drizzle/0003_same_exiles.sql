@@ -1,1 +1,0 @@
-ALTER TABLE "users" ADD COLUMN "is_transcript_available" boolean DEFAULT false NOT NULL;

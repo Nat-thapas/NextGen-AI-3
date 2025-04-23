@@ -109,7 +109,7 @@ export class FetchJson {
 	): Promise<T> {
 		path = this.normalizePath(path);
 
-		const url = setSearchParams(this.baseUrl, params);
+		const url = setSearchParams(path, params);
 
 		const response = await this.fetch(url, {
 			headers: this.addHeaders(headers)

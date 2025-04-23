@@ -7,7 +7,7 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { base } from '$app/paths';
 import { env } from '$env/dynamic/private';
 
-import { getSecondsSince } from '$lib/datetime';
+import { getSecondsSince, isTimeZoneValid } from '$lib/datetime';
 import { db } from '$lib/server/db';
 import {
 	deleteSession,
@@ -45,12 +45,19 @@ function isRouteBypassed(route: string | null): boolean {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const token = event.cookies.get('token');
+	const timeZone = event.cookies.get('time-zone') ?? env.DEFAULT_TIME_ZONE;
+	if (isTimeZoneValid(timeZone)) {
+		event.locals.timeZone = timeZone;
+	} else {
+		event.locals.timeZone = env.DEFAULT_TIME_ZONE;
+	}
 
 	let session: Session | undefined = undefined;
 	let user: User | undefined = undefined;
 
 	if (!isRouteBypassed(event.route.id)) {
+		const token = event.cookies.get('token');
+
 		if (token) {
 			const result = await getSession.execute({ token });
 			if (result) {

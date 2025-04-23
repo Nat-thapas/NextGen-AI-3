@@ -4,10 +4,12 @@
 
 	import { base } from '$app/paths';
 
+	import { convertAnnouncement, type Announcement } from '$lib/converters/announcement.js';
 	import { formatDate, formatDateTime } from '$lib/datetime';
 	import { getErrorMessage } from '$lib/error.js';
 	import { FetchJson } from '$lib/fetch-json.js';
-	import type { Announcement } from '$lib/interfaces/announcement.js';
+
+	import type { AnnouncementsResponse } from '../api/public/announcements/schema.js';
 
 	import robots from '$lib/images/3-robots.avif';
 	import badge_10 from '$lib/images/badge-10.avif';
@@ -47,15 +49,14 @@
 		const fetchJson = new FetchJson(fetch, base);
 
 		try {
-			const response = await fetchJson.get<{
-				announcements: Announcement[];
-				moreAnnouncementsAvailable: boolean;
-			}>('/api/public/announcements', {
+			const response = await fetchJson.get<AnnouncementsResponse>('/api/public/announcements', {
 				limit: 5,
 				offset: announcements.length
 			});
 
-			announcements.push(...response.announcements);
+			for (const announcement of response.announcements) {
+				announcements.push(convertAnnouncement(announcement));
+			}
 			moreAnnouncementsAvailable = response.moreAnnouncementsAvailable;
 		} catch (err) {
 			toast.error(getErrorMessage(err));
@@ -92,7 +93,12 @@
 			</a>
 		{/if}
 	</div>
-	<img src={robots} alt="Robots" class="-z-10 -mb-80 -ml-16 -mt-40 h-fit w-0 flex-grow-[4]" />
+	<img
+		src={robots}
+		width="1024"
+		height="1202"
+		alt="Robots"
+		class="-z-10 -mb-80 -ml-16 -mt-40 h-fit w-0 flex-grow-[4]" />
 </div>
 
 <div class="mb-32">
@@ -105,19 +111,34 @@
 				เพื่อเป็นแรงบันดาลใจให้คุณก้าวไปสู่ความสำเร็จที่ยิ่งใหญ่กว่าเดิม
 			</p>
 		</div>
-		<img src={robot_trophy} alt="Robot holding a trophy decoration" class="-mt-16 h-fit w-48" />
+		<img
+			src={robot_trophy}
+			width="256"
+			height="403"
+			alt="Robot holding a trophy decoration"
+			class="-mt-16 h-fit w-48" />
 	</div>
 	<div class="mx-16 -mt-8 flex flex-col items-center">
 		<div class="mt-8 flex w-full justify-evenly gap-4">
 			<div class="flex w-96 flex-col items-center rounded-xl bg-white p-4 drop-shadow-lg">
-				<img src={badge_10} alt="Badge 10" class="absolute -top-20 h-fit w-48 drop-shadow-lg" />
+				<img
+					src={badge_10}
+					width="256"
+					height="365"
+					alt="Badge 10"
+					class="absolute -top-20 h-fit w-48 drop-shadow-lg" />
 				<h3 class="text-gradient mb-4 mt-52 text-4xl font-bold">10 อันดับแรก</h3>
 				<p class="text-center text-xl leading-relaxed text-primary-foreground">
 					รับโควตาพิเศษ TCAS69 รอบ Portfolio ก้าวเข้าสู่มหาวิทยาลัยในฝันของคุณได้ทันที!
 				</p>
 			</div>
 			<div class="flex w-96 flex-col items-center rounded-xl bg-white p-4 drop-shadow-lg">
-				<img src={badge_50} alt="Badge 50" class="absolute -top-20 h-fit w-48 drop-shadow-lg" />
+				<img
+					src={badge_50}
+					width="256"
+					height="365"
+					alt="Badge 50"
+					class="absolute -top-20 h-fit w-48 drop-shadow-lg" />
 				<h3 class="text-gradient mb-4 mt-52 text-4xl font-bold">50 อันดับแรก</h3>
 				<p class="text-center text-xl leading-relaxed text-primary-foreground">
 					รับเกียรติบัตรอย่างเป็นทางการ เพิ่มความโดดเด่นให้ Portfolio ของคุณ!
@@ -129,7 +150,12 @@
 
 <div class="mb-32">
 	<div class="flex justify-between">
-		<img src={robot_wand} alt="Robot holding a wand decoration" class="z-10 -mt-16 h-fit w-56" />
+		<img
+			src={robot_wand}
+			width="256"
+			height="384"
+			alt="Robot holding a wand decoration"
+			class="z-10 -mt-16 h-fit w-56" />
 		<div class="flex w-0 flex-grow flex-col items-center">
 			<h2 class="mb-4 text-4xl font-semibold">Agenda</h2>
 			<p class="mb-8 text-center text-xl leading-relaxed text-primary-foreground">
@@ -141,8 +167,18 @@
 	<div class="mx-16 -mt-32">
 		<div
 			class="relative mx-auto w-auto max-w-7xl space-y-2 rounded-xl bg-white px-8 pb-8 pt-12 drop-shadow-lg">
-			<img src={binder} alt="Binder decoration" class="absolute -top-8 left-16 h-16 w-fit" />
-			<img src={binder} alt="Binder decoration" class="absolute -top-8 right-16 h-16 w-fit" />
+			<img
+				src={binder}
+				width="256"
+				height="143"
+				alt="Binder decoration"
+				class="absolute -top-8 left-16 h-16 w-fit" />
+			<img
+				src={binder}
+				width="256"
+				height="143"
+				alt="Binder decoration"
+				class="absolute -top-8 right-16 h-16 w-fit" />
 			{#each agendas as agenda (agenda[0])}
 				<div class="flex">
 					<span class="block w-28 text-lg text-primary-foreground">{formatDate(agenda[1])}</span>
@@ -175,15 +211,22 @@
 		</div>
 		<img
 			src={robot_checklist}
+			width="256"
+			height="396"
 			alt="Robot holding a checklist decoration"
 			class="-mt-16 h-fit w-56" />
 	</div>
 	<div class="mx-auto -mt-48 flex max-w-screen-2xl items-center pr-16">
-		<img src={robot_love_thing} alt="Robots" class="-z-10 h-fit w-0 flex-grow" />
+		<img
+			src={robot_love_thing}
+			width="1024"
+			height="1049"
+			alt="Robots"
+			class="-z-10 h-fit w-0 flex-grow" />
 		<div class="ml-16 w-0 flex-grow space-y-4 xl:mx-32 2xl:flex-grow-[2]">
 			{#each requirements as requirement (requirement)}
 				<div class="flex items-center gap-2">
-					<img src={check_icon} alt="Checkmark" class="h-8 w-8" />
+					<img src={check_icon} width="64" height="64" alt="Checkmark" class="h-8 w-8" />
 					<span class="text-lg text-primary-foreground">{requirement}</span>
 				</div>
 			{/each}
@@ -193,7 +236,12 @@
 
 <div class="mb-24">
 	<div class="flex justify-between">
-		<img src={robot_announce} alt="Robot announcing decoration" class="-mt-16 h-fit w-56" />
+		<img
+			src={robot_announce}
+			width="256"
+			height="326"
+			alt="Robot announcing decoration"
+			class="-mt-16 h-fit w-56" />
 		<div class="flex w-0 flex-grow flex-col items-center">
 			<h2 class="mb-4 text-4xl font-semibold">Announcements</h2>
 			<p class="max-w-xl text-center text-xl leading-relaxed text-primary-foreground">
@@ -208,13 +256,15 @@
 			<a
 				href={`${base}/announcements/${announcement.id}`}
 				class="mx-auto flex max-w-7xl items-center gap-4 rounded-xl bg-white p-4 drop-shadow-lg">
-				<img src={bell} alt="Bell" class="h-12 w-12" />
+				<img src={bell} width="128" height="128" alt="Bell" class="h-12 w-12" />
 				<div class="w-0 flex-grow overflow-hidden">
 					<span
 						class="block overflow-hidden text-ellipsis text-nowrap text-lg font-semibold text-primary-foreground">
 						{announcement.title}
 					</span>
-					<span class="text-secondary-foreground">{formatDateTime(announcement.createdAt)}</span>
+					<span class="text-secondary-foreground">
+						{formatDateTime(announcement.createdAt, data.timeZone)}
+					</span>
 				</div>
 				<ChevronRight size={32} class="text-secondary-foreground" />
 			</a>
@@ -262,8 +312,8 @@
 			</div>
 		</div>
 		<div class="flex items-center gap-4">
-			<img src={kmitl} alt="KMITL logo" class="h-32 w-32" />
-			<img src={ce} alt="CE-KMITL logo" class="h-32 w-32" />
+			<img src={kmitl} width="256" height="257" alt="KMITL logo" class="h-32 w-32" />
+			<img src={ce} width="256" height="257" alt="CE-KMITL logo" class="h-32 w-32" />
 		</div>
 	</div>
 </footer>
