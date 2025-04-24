@@ -1,10 +1,10 @@
 import { json } from '@sveltejs/kit';
 import { type } from 'arktype';
 
-import { getAnnouncements } from '$lib/server/db/prepared-statements/announcements';
+import { getAnnouncements } from '$lib/server/db/services/announcements';
 
 import type { RequestHandler } from './$types';
-import { Options, type AnnouncementsResponse } from './schema';
+import { Options } from './schema';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const options = Options({
@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 
 	options.limit++;
-	const announcements = await getAnnouncements.execute(options);
+	const announcements = await getAnnouncements(options);
 	const moreAnnouncementsAvailable = announcements.length === options.limit;
 
 	if (moreAnnouncementsAvailable) announcements.pop();

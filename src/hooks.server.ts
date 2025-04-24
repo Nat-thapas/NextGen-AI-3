@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import { join } from 'node:path';
 
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
@@ -9,23 +10,19 @@ import { env } from '$env/dynamic/private';
 
 import { getSecondsSince, isTimeZoneValid } from '$lib/datetime';
 import { db } from '$lib/server/db';
-import {
-	deleteSession,
-	getSession,
-	updateSession
-} from '$lib/server/db/prepared-statements/sessions';
+import { deleteSession, getSessionWithUser, updateSession } from '$lib/server/db/services/sessions';
 import type { Session } from '$lib/server/interfaces/session';
 import type { User } from '$lib/server/interfaces/user';
 import { setToastParams } from '$lib/toast';
 
 export const init: ServerInit = async () => {
 	await migrate(db, { migrationsFolder: 'drizzle' });
-	await db.execute(sql`SET TIME ZONE 'UTC'`);
+	await db.execute(sql.raw(`ALTER DATABASE "${env.POSTGRES_DB}" SET timezone TO 'UTC'`));
 
 	const fileStoragePaths = ['/users/transcripts'];
 
 	for (const path of fileStoragePaths) {
-		const fullPath = env.FILE_STORAGE_PATH + path;
+		const fullPath = join(env.FILE_STORAGE_PATH, path);
 		await fs.mkdir(fullPath, { recursive: true });
 	}
 };
@@ -59,10 +56,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const token = event.cookies.get('token');
 
 		if (token) {
-			const result = await getSession.execute({ token });
+			const result = await getSessionWithUser(token);
 			if (result) {
 				if (getSecondsSince(result.updatedAt) > +env.SESSION_LIFETIME) {
-					await deleteSession.execute({ token });
+					await deleteSession(token);
 				} else {
 					session = result;
 					user = result.user;
@@ -74,7 +71,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 					const userAgent = event.request.headers.get('User-Agent') ?? '';
 
-					await updateSession.execute({ ip, userAgent, token });
+					await updateSession({ ip, userAgent, token });
 				}
 			}
 		}

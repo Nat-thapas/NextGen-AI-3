@@ -1,8 +1,8 @@
 export interface Session {
 	token: string;
-	firstLoginIP: string;
+	firstLoginIp: string;
 	firstLoginUserAgent: string;
-	lastUseIP: string;
+	lastUseIp: string;
 	lastUseUserAgent: string;
 	createdAt: Date;
 	updatedAt: Date;

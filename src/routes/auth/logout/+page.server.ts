@@ -2,7 +2,7 @@ import { redirect } from '@sveltejs/kit';
 
 import { base } from '$app/paths';
 
-import { deleteSession } from '$lib/server/db/prepared-statements/sessions';
+import { deleteSession } from '$lib/server/db/services/sessions';
 import { setToastParams } from '$lib/toast';
 
 import type { Actions } from './$types';
@@ -10,7 +10,7 @@ import type { Actions } from './$types';
 export const actions: Actions = {
 	default: async ({ locals, cookies }) => {
 		if (locals.session) {
-			await deleteSession.execute({ token: locals.session.token });
+			await deleteSession(locals.session.token);
 		}
 
 		cookies.set('token', '', {

@@ -5,9 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
-  drizzle-orm@0.42.0:
-    hash: 05b0451b22c35318b0ac6c98ae7429b97f5e7939e38bd743b63388ec7d422d54
-    path: patches/drizzle-orm@0.42.0.patch
+  drizzle-orm:
+    hash: 4814d0c6392bf2abc1587693a58aa9336313de1c9ca70ee602106f8e85db6b81
+    path: patches/drizzle-orm.patch
   svelte-sonner@0.3.28:
     hash: a0f6303dabecb8bb7853a30ac210dd362912e4199399d47396046894cff4b798
     path: patches/svelte-sonner@0.3.28.patch
@@ -97,7 +97,7 @@ importers:
         version: 0.31.0
       drizzle-orm:
         specifier: 0.42.0
-        version: 0.42.0(patch_hash=05b0451b22c35318b0ac6c98ae7429b97f5e7939e38bd743b63388ec7d422d54)(@types/pg@8.11.13)(gel@2.0.2)(pg@8.14.1(pg-native@3.3.0))
+        version: 0.42.0(patch_hash=4814d0c6392bf2abc1587693a58aa9336313de1c9ca70ee602106f8e85db6b81)(@types/pg@8.11.13)(gel@2.0.2)(pg@8.14.1(pg-native@3.3.0))
       eslint:
         specifier: ^9.25.1
         version: 9.25.1(jiti@1.21.7)
@@ -3685,7 +3685,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.42.0(patch_hash=05b0451b22c35318b0ac6c98ae7429b97f5e7939e38bd743b63388ec7d422d54)(@types/pg@8.11.13)(gel@2.0.2)(pg@8.14.1(pg-native@3.3.0)):
+  drizzle-orm@0.42.0(patch_hash=4814d0c6392bf2abc1587693a58aa9336313de1c9ca70ee602106f8e85db6b81)(@types/pg@8.11.13)(gel@2.0.2)(pg@8.14.1(pg-native@3.3.0)):
     optionalDependencies:
       '@types/pg': 8.11.13
       gel: 2.0.2

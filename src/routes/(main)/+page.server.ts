@@ -5,7 +5,7 @@ import { zod } from 'sveltekit-superforms/adapters';
 import type { Announcement } from '$lib/converters/announcement';
 import { getErrorMessage } from '$lib/error';
 import { isRoleAtLeast } from '$lib/roles';
-import { getAnnouncements } from '$lib/server/db/prepared-statements/announcements';
+import { getAnnouncements } from '$lib/server/db/services/announcements';
 import { importAnnouncement } from '$lib/server/file-import/announcement';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -16,7 +16,7 @@ export const load: PageServerLoad = async () => {
 		announcements: Announcement[];
 		moreAnnouncementsAvailable: boolean;
 	}> {
-		const announcements = await getAnnouncements.execute({ limit: '4', offset: '0' });
+		const announcements = await getAnnouncements({ limit: 4, offset: 0 });
 		const moreAnnouncementsAvailable = announcements.length === 4;
 		if (moreAnnouncementsAvailable) announcements.pop();
 		return { announcements, moreAnnouncementsAvailable };

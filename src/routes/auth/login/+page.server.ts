@@ -1,13 +1,12 @@
 import { redirect } from '@sveltejs/kit';
 import argon2 from 'argon2';
-import { eq } from 'drizzle-orm';
 import { fail, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
 import { base } from '$app/paths';
 
-import { db } from '$lib/server/db';
-import { sessions, users } from '$lib/server/db/schema';
+import { createSession } from '$lib/server/db/services/sessions';
+import { getUserByEmail, updateUserPassword } from '$lib/server/db/services/users';
 import { setToastParams } from '$lib/toast';
 import { generateToken } from '$lib/token';
 
@@ -30,9 +29,7 @@ export const actions: Actions = {
 		const form = await superValidate(event.request, zod(formSchema));
 		if (!form.valid) return fail(400, { form });
 
-		const user = await db.query.users.findFirst({
-			where: eq(users.email, form.data.email)
-		});
+		const user = await getUserByEmail(form.data.email);
 		if (user === undefined) {
 			form.errors.email = ['Invalid email'];
 			return fail(400, { form });
@@ -48,22 +45,20 @@ export const actions: Actions = {
 
 		if (argon2.needsRehash(user.hashedPassword!)) {
 			const hashedPassword = await argon2.hash(form.data.password);
-			await db
-				.update(users)
-				.set({
-					hashedPassword
-				})
-				.where(eq(users.id, user.id));
+			await updateUserPassword({
+				id: user.id,
+				hashedPassword
+			});
 		}
 
 		const token = generateToken();
 
-		await db.insert(sessions).values({
+		await createSession({
 			token,
 			userId: user.id,
-			firstLoginIP: event.getClientAddress(),
+			firstLoginIp: event.getClientAddress(),
 			firstLoginUserAgent: event.request.headers.get('User-Agent') ?? '',
-			lastUseIP: event.getClientAddress(),
+			lastUseIp: event.getClientAddress(),
 			lastUseUserAgent: event.request.headers.get('User-Agent') ?? ''
 		});
 

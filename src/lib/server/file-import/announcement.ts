@@ -9,11 +9,10 @@ import { env } from '$env/dynamic/private';
 
 import { getExtension } from '$lib/files';
 import { renderMarkdown } from '$lib/markdown';
-import { db } from '$lib/server/db';
-import { createFileWithReferenceReturning } from '$lib/server/db/prepared-statements/files';
-import { announcements } from '$lib/server/db/schema';
+import { createFileWithReferenceReturning } from '$lib/server/db/services/files';
 import { generateId } from '$lib/token';
 
+import { createAnnouncement } from '../db/services/announcements';
 import { updateAssets } from './update-assets';
 
 export async function importAnnouncement(title: string, file: File): Promise<void> {
@@ -34,7 +33,7 @@ export async function importAnnouncement(title: string, file: File): Promise<voi
 				const mimeType = mimeTypes.lookup(compressed.path) || 'application/octet-stream';
 				const extension = getExtension(compressed.path, mimeType);
 				const file = (
-					await createFileWithReferenceReturning.execute({
+					await createFileWithReferenceReturning({
 						size: compressed.uncompressedSize,
 						mimeType,
 						extension,
@@ -53,7 +52,7 @@ export async function importAnnouncement(title: string, file: File): Promise<voi
 
 	markdown = updateAssets(markdown, assets);
 
-	await db.insert(announcements).values({
+	await createAnnouncement({
 		id,
 		title,
 		text: markdown,

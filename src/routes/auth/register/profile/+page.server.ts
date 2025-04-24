@@ -1,8 +1,7 @@
 import fs from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { error, redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { redirect } from '@sveltejs/kit';
 import { fail, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
@@ -12,9 +11,11 @@ import { env } from '$env/dynamic/private';
 import { configConstants } from '$lib/config-constants';
 import { getSecondsSince } from '$lib/datetime';
 import { getExtension } from '$lib/files';
-import { db } from '$lib/server/db';
-import { createFileReturning } from '$lib/server/db/prepared-statements/files';
-import { users } from '$lib/server/db/schema';
+import { createFileReturning } from '$lib/server/db/services/files';
+import {
+	getUserByVerificationToken,
+	updateUserProfileRegistrationComplete
+} from '$lib/server/db/services/users';
 import { setToastParams } from '$lib/toast';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -34,9 +35,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		);
 	}
 
-	const user = await db.query.users.findFirst({
-		where: eq(users.verificationToken, token)
-	});
+	const user = await getUserByVerificationToken(token);
 	if (!user) {
 		redirect(
 			303,
@@ -96,9 +95,7 @@ export const actions: Actions = {
 			);
 		}
 
-		const user = await db.query.users.findFirst({
-			where: eq(users.verificationToken, form.data.token)
-		});
+		const user = await getUserByVerificationToken(form.data.token);
 		if (!user) {
 			redirect(
 				303,
@@ -137,8 +134,8 @@ export const actions: Actions = {
 		}
 
 		const transcript = (
-			await createFileReturning.execute({
-				size: form.data.transcript.size.toString(),
+			await createFileReturning({
+				size: form.data.transcript.size,
 				mimeType: form.data.transcript.type,
 				extension: getExtension(form.data.transcript.name, form.data.transcript.type)
 			})
@@ -149,25 +146,21 @@ export const actions: Actions = {
 			await form.data.transcript.bytes()
 		);
 
-		await db
-			.update(users)
-			.set({
-				registrationComplete: true,
-				verificationToken: null,
-				prefix: form.data.prefix,
-				name: form.data.name,
-				nickname: form.data.nickname,
-				phoneNumber: form.data.phoneNumber,
-				schoolName: form.data.schoolName,
-				grade: Number(form.data.grade),
-				transcriptId: transcript.id,
-				addressProvince: form.data.addressProvince,
-				addressDistrict: form.data.addressDistrict,
-				addressSubDistrict: form.data.addressSubDistrict,
-				addressPostcode: form.data.addressPostcode,
-				addressDetail: form.data.addressDetail
-			})
-			.where(eq(users.id, user.id));
+		await updateUserProfileRegistrationComplete({
+			id: user.id,
+			prefix: form.data.prefix,
+			name: form.data.name,
+			nickname: form.data.nickname,
+			phoneNumber: form.data.phoneNumber,
+			schoolName: form.data.schoolName,
+			grade: Number(form.data.grade),
+			transcriptId: transcript.id,
+			addressProvince: form.data.addressProvince,
+			addressDistrict: form.data.addressDistrict,
+			addressSubDistrict: form.data.addressSubDistrict,
+			addressPostcode: form.data.addressPostcode,
+			addressDetail: form.data.addressDetail
+		});
 
 		return redirect(
 			303,

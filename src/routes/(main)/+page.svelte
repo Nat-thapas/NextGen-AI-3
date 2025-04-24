@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { ChevronRight, Facebook, Instagram, LoaderCircle, Pin, Plus } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
-	import { writable } from 'svelte/store';
 	import { fileProxy, superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 

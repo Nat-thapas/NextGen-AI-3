@@ -1,0 +1,112 @@
+diff --git a/node-postgres/session.cjs b/node-postgres/session.cjs
+index 863d5762b3cd48b2045952c370d1217f84481fdb..910df2f835f47143646127c6fdba46c722a647e8 100644
+--- a/node-postgres/session.cjs
++++ b/node-postgres/session.cjs
+@@ -41,7 +41,8 @@ var import_session = require("../pg-core/session.cjs");
+ var import_sql = require("../sql/sql.cjs");
+ var import_tracing = require("../tracing.cjs");
+ var import_utils = require("../utils.cjs");
+-const { Pool, types } = import_pg.default;
++const { Pool, native, types } = import_pg.default;
++const NativePool = native?.Pool;
+ class NodePgPreparedQuery extends import_session.PgPreparedQuery {
+   constructor(client, queryString, params, logger, fields, name, _isResponseInArrayMode, customResultMapper) {
+     super({ sql: queryString, params });
+@@ -200,7 +201,9 @@ class NodePgSession extends import_session.PgSession {
+     );
+   }
+   async transaction(transaction, config) {
+-    const session = this.client instanceof Pool ? new NodePgSession(await this.client.connect(), this.dialect, this.schema, this.options) : this;
++    const session = (this.client instanceof Pool || (NativePool && this.client instanceof NativePool))
++      ? new NodePgSession(await this.client.connect(), this.dialect, this.schema, this.options) 
++      : this;
+     const tx = new NodePgTransaction(this.dialect, session, this.schema);
+     await tx.execute(import_sql.sql`begin${config ? import_sql.sql` ${tx.getTransactionConfigSQL(config)}` : void 0}`);
+     try {
+@@ -211,7 +214,7 @@ class NodePgSession extends import_session.PgSession {
+       await tx.execute(import_sql.sql`rollback`);
+       throw error;
+     } finally {
+-      if (this.client instanceof Pool) {
++      if (this.client instanceof Pool || (NativePool && this.client instanceof NativePool)) {
+         session.client.release();
+       }
+     }
+diff --git a/node-postgres/session.js b/node-postgres/session.js
+index 00ee9729c375f0ab2483321033391beed6397bf7..d12c9d51ec42399e0d1c9733e1b3ee039b3c1d2f 100644
+--- a/node-postgres/session.js
++++ b/node-postgres/session.js
+@@ -6,7 +6,8 @@ import { PgPreparedQuery, PgSession } from "../pg-core/session.js";
+ import { fillPlaceholders, sql } from "../sql/sql.js";
+ import { tracer } from "../tracing.js";
+ import { mapResultRow } from "../utils.js";
+-const { Pool, types } = pg;
++const { Pool, native, types } = pg;
++const NativePool = native?.Pool;
+ class NodePgPreparedQuery extends PgPreparedQuery {
+   constructor(client, queryString, params, logger, fields, name, _isResponseInArrayMode, customResultMapper) {
+     super({ sql: queryString, params });
+@@ -165,7 +166,9 @@ class NodePgSession extends PgSession {
+     );
+   }
+   async transaction(transaction, config) {
+-    const session = this.client instanceof Pool ? new NodePgSession(await this.client.connect(), this.dialect, this.schema, this.options) : this;
++    const session = (this.client instanceof Pool || (NativePool && this.client instanceof NativePool))
++      ? new NodePgSession(await this.client.connect(), this.dialect, this.schema, this.options)
++      : this;
+     const tx = new NodePgTransaction(this.dialect, session, this.schema);
+     await tx.execute(sql`begin${config ? sql` ${tx.getTransactionConfigSQL(config)}` : void 0}`);
+     try {
+@@ -176,7 +179,7 @@ class NodePgSession extends PgSession {
+       await tx.execute(sql`rollback`);
+       throw error;
+     } finally {
+-      if (this.client instanceof Pool) {
++      if (this.client instanceof Pool || (NativePool && this.client instanceof NativePool)) {
+         session.client.release();
+       }
+     }
+diff --git a/pg-core/query-builders/update.d.cts b/pg-core/query-builders/update.d.cts
+index 8ee839eaadc97acea0c7a5cbbe522959bce47501..5381b4392044fef8cc2ea599ee06399f84c61045 100644
+--- a/pg-core/query-builders/update.d.cts
++++ b/pg-core/query-builders/update.d.cts
+@@ -7,7 +7,7 @@ import { TypedQueryBuilder } from "../../query-builders/query-builder.cjs";
+ import type { AppendToNullabilityMap, AppendToResult, GetSelectTableName, GetSelectTableSelection, JoinNullability, JoinType, SelectMode, SelectResult } from "../../query-builders/select.types.cjs";
+ import { QueryPromise } from "../../query-promise.cjs";
+ import type { RunnableQuery } from "../../runnable-query.cjs";
+-import { type ColumnsSelection, type Query, SQL, type SQLWrapper } from "../../sql/sql.cjs";
++import { type ColumnsSelection, type Query, SQL, type Placeholder, type SQLWrapper } from "../../sql/sql.cjs";
+ import { Subquery } from "../../subquery.cjs";
+ import { Table } from "../../table.cjs";
+ import { type Assume, DrizzleTypeError, Equal, type NeonAuthToken, Simplify, type UpdateSet } from "../../utils.cjs";
+@@ -25,7 +25,7 @@ export interface PgUpdateConfig {
+     withList?: Subquery[];
+ }
+ export type PgUpdateSetSource<TTable extends PgTable> = {
+-    [Key in keyof TTable['$inferInsert']]?: GetColumnData<TTable['_']['columns'][Key]> | SQL | PgColumn | undefined;
++    [Key in keyof TTable['$inferInsert']]?: GetColumnData<TTable['_']['columns'][Key]> | SQL | PgColumn | Placeholder | undefined;
+ } & {};
+ export declare class PgUpdateBuilder<TTable extends PgTable, TQueryResult extends PgQueryResultHKT> {
+     private table;
+diff --git a/pg-core/query-builders/update.d.ts b/pg-core/query-builders/update.d.ts
+index 9ebfc2a31e647822024df649f4a8c27e7cdae3e6..a39a5e1c537856caae273b4685880bf5c1a5127f 100644
+--- a/pg-core/query-builders/update.d.ts
++++ b/pg-core/query-builders/update.d.ts
+@@ -7,7 +7,7 @@ import { TypedQueryBuilder } from "../../query-builders/query-builder.js";
+ import type { AppendToNullabilityMap, AppendToResult, GetSelectTableName, GetSelectTableSelection, JoinNullability, JoinType, SelectMode, SelectResult } from "../../query-builders/select.types.js";
+ import { QueryPromise } from "../../query-promise.js";
+ import type { RunnableQuery } from "../../runnable-query.js";
+-import { type ColumnsSelection, type Query, SQL, type SQLWrapper } from "../../sql/sql.js";
++import { type ColumnsSelection, type Query, SQL, type Placeholder, type SQLWrapper } from "../../sql/sql.js";
+ import { Subquery } from "../../subquery.js";
+ import { Table } from "../../table.js";
+ import { type Assume, DrizzleTypeError, Equal, type NeonAuthToken, Simplify, type UpdateSet } from "../../utils.js";
+@@ -25,7 +25,7 @@ export interface PgUpdateConfig {
+     withList?: Subquery[];
+ }
+ export type PgUpdateSetSource<TTable extends PgTable> = {
+-    [Key in keyof TTable['$inferInsert']]?: GetColumnData<TTable['_']['columns'][Key]> | SQL | PgColumn | undefined;
++    [Key in keyof TTable['$inferInsert']]?: GetColumnData<TTable['_']['columns'][Key]> | SQL | PgColumn | Placeholder | undefined;
+ } & {};
+ export declare class PgUpdateBuilder<TTable extends PgTable, TQueryResult extends PgQueryResultHKT> {
+     private table;

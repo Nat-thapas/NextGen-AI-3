@@ -1,0 +1,198 @@
+import { eq, sql } from 'drizzle-orm';
+
+import { db } from '$lib/server/db';
+import { users } from '$lib/server/db/schema';
+import { generateId } from '$lib/token';
+
+const createUserQuery = db
+	.insert(users)
+	.values({
+		id: sql.placeholder('id'),
+		email: sql.placeholder('email'),
+		role: sql.placeholder('role'),
+		verificationToken: sql.placeholder('verificationToken'),
+		verificationTokenGeneratedAt: sql`now()`,
+		lastEmailSentAt: sql`now()`
+	})
+	.prepare('create_user');
+
+const getUserByEmailQuery = db.query.users
+	.findFirst({
+		where: eq(users.email, sql.placeholder('email'))
+	})
+	.prepare('get_user_by_email');
+
+const getUserByVerificationTokenQuery = db.query.users
+	.findFirst({
+		where: eq(users.verificationToken, sql.placeholder('verificationToken'))
+	})
+	.prepare('get_user_by_verification_token');
+
+const updateUserVerificationTokenQuery = db
+	.update(users)
+	.set({
+		verificationToken: sql.placeholder('verificationToken'),
+		verificationTokenGeneratedAt: sql`now()`,
+		lastEmailSentAt: sql`now()`
+	})
+	.where(eq(users.id, sql.placeholder('id')))
+	.prepare('update_user_verification_token');
+
+const updateUserProfileQuery = db
+	.update(users)
+	.set({
+		prefix: sql.placeholder('prefix'),
+		name: sql.placeholder('name'),
+		nickname: sql.placeholder('nickname'),
+		phoneNumber: sql.placeholder('phoneNumber'),
+		schoolName: sql.placeholder('schoolName'),
+		grade: sql.placeholder('grade'),
+		addressProvince: sql.placeholder('addressProvince'),
+		addressDistrict: sql.placeholder('addressDistrict'),
+		addressSubDistrict: sql.placeholder('addressSubDistrict'),
+		addressPostcode: sql.placeholder('addressPostcode'),
+		addressDetail: sql.placeholder('addressDetail'),
+		updatedAt: sql`now()`
+	})
+	.where(eq(users.id, sql.placeholder('id')))
+	.prepare('update_user_profile');
+
+const updateUserProfileWithTranscriptQuery = db
+	.update(users)
+	.set({
+		prefix: sql.placeholder('prefix'),
+		name: sql.placeholder('name'),
+		nickname: sql.placeholder('nickname'),
+		phoneNumber: sql.placeholder('phoneNumber'),
+		schoolName: sql.placeholder('schoolName'),
+		grade: sql.placeholder('grade'),
+		transcriptId: sql.placeholder('transcriptId'),
+		addressProvince: sql.placeholder('addressProvince'),
+		addressDistrict: sql.placeholder('addressDistrict'),
+		addressSubDistrict: sql.placeholder('addressSubDistrict'),
+		addressPostcode: sql.placeholder('addressPostcode'),
+		addressDetail: sql.placeholder('addressDetail'),
+		updatedAt: sql`now()`
+	})
+	.where(eq(users.id, sql.placeholder('id')))
+	.prepare('update_user_profile_with_transcript');
+
+const updateUserProfileRegistrationCompleteQuery = db
+	.update(users)
+	.set({
+		registrationComplete: true,
+		verificationToken: null,
+		prefix: sql.placeholder('prefix'),
+		name: sql.placeholder('name'),
+		nickname: sql.placeholder('nickname'),
+		phoneNumber: sql.placeholder('phoneNumber'),
+		schoolName: sql.placeholder('schoolName'),
+		grade: sql.placeholder('grade'),
+		transcriptId: sql.placeholder('transcriptId'),
+		addressProvince: sql.placeholder('addressProvince'),
+		addressDistrict: sql.placeholder('addressDistrict'),
+		addressSubDistrict: sql.placeholder('addressSubDistrict'),
+		addressPostcode: sql.placeholder('addressPostcode'),
+		addressDetail: sql.placeholder('addressDetail'),
+		updatedAt: sql`now()`
+	})
+	.where(eq(users.id, sql.placeholder('id')))
+	.prepare('update_user_profile_registration_complete');
+
+const updateUserPasswordQuery = db
+	.update(users)
+	.set({
+		hashedPassword: sql.placeholder('hashedPassword'),
+		updatedAt: sql`now()`
+	})
+	.where(eq(users.id, sql.placeholder('id')))
+	.prepare('update_user_password');
+
+export async function createUser(data: {
+	id?: string;
+	email: string;
+	role: string;
+	verificationToken: string;
+}): Promise<ReturnType<typeof createUserQuery.execute>> {
+	data.id ??= generateId();
+	return createUserQuery.execute(data);
+}
+
+export async function updateUserVerificationToken(data: {
+	id: string;
+	verificationToken: string;
+}): Promise<ReturnType<typeof updateUserVerificationTokenQuery.execute>> {
+	return updateUserVerificationTokenQuery.execute(data);
+}
+
+export async function getUserByEmail(
+	email: string
+): Promise<ReturnType<typeof getUserByEmailQuery.execute>> {
+	return getUserByEmailQuery.execute({ email });
+}
+
+export async function getUserByVerificationToken(
+	verificationToken: string
+): Promise<ReturnType<typeof getUserByVerificationTokenQuery.execute>> {
+	return getUserByVerificationTokenQuery.execute({ verificationToken });
+}
+
+export async function updateUserProfile(data: {
+	id: string;
+	prefix: string;
+	name: string;
+	nickname: string;
+	phoneNumber: string;
+	schoolName: string;
+	grade: number;
+	addressProvince: string;
+	addressDistrict: string;
+	addressSubDistrict: string;
+	addressPostcode: string;
+	addressDetail: string;
+}): Promise<ReturnType<typeof updateUserProfileQuery.execute>> {
+	return updateUserProfileQuery.execute(data);
+}
+
+export async function updateUserProfileWithTranscript(data: {
+	id: string;
+	prefix: string;
+	name: string;
+	nickname: string;
+	phoneNumber: string;
+	schoolName: string;
+	grade: number;
+	transcriptId: string;
+	addressProvince: string;
+	addressDistrict: string;
+	addressSubDistrict: string;
+	addressPostcode: string;
+	addressDetail: string;
+}): Promise<ReturnType<typeof updateUserProfileWithTranscriptQuery.execute>> {
+	return updateUserProfileWithTranscriptQuery.execute(data);
+}
+
+export async function updateUserProfileRegistrationComplete(data: {
+	id: string;
+	prefix: string;
+	name: string;
+	nickname: string;
+	phoneNumber: string;
+	schoolName: string;
+	grade: number;
+	transcriptId: string;
+	addressProvince: string;
+	addressDistrict: string;
+	addressSubDistrict: string;
+	addressPostcode: string;
+	addressDetail: string;
+}): Promise<ReturnType<typeof updateUserProfileRegistrationCompleteQuery.execute>> {
+	return updateUserProfileRegistrationCompleteQuery.execute(data);
+}
+
+export async function updateUserPassword(data: {
+	id: string;
+	hashedPassword: string;
+}): Promise<ReturnType<typeof updateUserPasswordQuery.execute>> {
+	return updateUserPasswordQuery.execute(data);
+}

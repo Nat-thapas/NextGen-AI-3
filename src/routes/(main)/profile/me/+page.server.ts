@@ -3,16 +3,18 @@ import { join } from 'node:path';
 
 import { error } from '@sveltejs/kit';
 import argon2 from 'argon2';
-import { eq } from 'drizzle-orm';
 import { fail, message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
 import { env } from '$env/dynamic/private';
 
 import { getExtension } from '$lib/files';
-import { db } from '$lib/server/db';
-import { createFileReturning, getFile } from '$lib/server/db/prepared-statements/files';
-import { files, users } from '$lib/server/db/schema';
+import { createFileReturning, deleteFile, getFile } from '$lib/server/db/services/files';
+import {
+	updateUserPassword,
+	updateUserProfile,
+	updateUserProfileWithTranscript
+} from '$lib/server/db/services/users';
 
 import type { Actions, PageServerLoad } from './$types';
 import { changePasswordFormSchema, updateProfileFormSchema } from './schema';
@@ -44,7 +46,7 @@ export const load: PageServerLoad = async (event) => {
 			zod(updateProfileFormSchema),
 			{ errors: false }
 		),
-		transcript: await getFile.execute({ id: user.transcriptId }),
+		transcript: user.transcriptId ? await getFile(user.transcriptId) : undefined,
 		changePasswordForm: await superValidate(zod(changePasswordFormSchema))
 	};
 };
@@ -63,10 +65,10 @@ export const actions: Actions = {
 		}
 
 		if (form.data.transcript) {
-			const oldTranscript = await getFile.execute({ id: user.transcriptId });
+			const oldTranscript = user.transcriptId ? await getFile(user.transcriptId) : undefined;
 			const transcript = (
-				await createFileReturning.execute({
-					size: form.data.transcript.size.toString(),
+				await createFileReturning({
+					size: form.data.transcript.size,
 					mimeType: form.data.transcript.type,
 					extension: getExtension(form.data.transcript.name, form.data.transcript.type)
 				})
@@ -77,26 +79,24 @@ export const actions: Actions = {
 				await form.data.transcript.bytes()
 			);
 
-			await db
-				.update(users)
-				.set({
-					prefix: form.data.prefix,
-					name: form.data.name,
-					nickname: form.data.nickname,
-					phoneNumber: form.data.phoneNumber,
-					schoolName: form.data.schoolName,
-					grade: Number(form.data.grade),
-					transcriptId: transcript.id,
-					addressProvince: form.data.addressProvince,
-					addressDistrict: form.data.addressDistrict,
-					addressSubDistrict: form.data.addressSubDistrict,
-					addressPostcode: form.data.addressPostcode,
-					addressDetail: form.data.addressDetail
-				})
-				.where(eq(users.id, user.id));
+			await updateUserProfileWithTranscript({
+				id: user.id,
+				prefix: form.data.prefix,
+				name: form.data.name,
+				nickname: form.data.nickname,
+				phoneNumber: form.data.phoneNumber,
+				schoolName: form.data.schoolName,
+				grade: Number(form.data.grade),
+				transcriptId: transcript.id,
+				addressProvince: form.data.addressProvince,
+				addressDistrict: form.data.addressDistrict,
+				addressSubDistrict: form.data.addressSubDistrict,
+				addressPostcode: form.data.addressPostcode,
+				addressDetail: form.data.addressDetail
+			});
 
 			if (oldTranscript) {
-				await db.delete(files).where(eq(files.id, oldTranscript.id));
+				await deleteFile(oldTranscript.id);
 
 				try {
 					await fs.unlink(join(env.FILE_STORAGE_PATH, oldTranscript.storedName));
@@ -106,22 +106,20 @@ export const actions: Actions = {
 				}
 			}
 		} else {
-			await db
-				.update(users)
-				.set({
-					prefix: form.data.prefix,
-					name: form.data.name,
-					nickname: form.data.nickname,
-					phoneNumber: form.data.phoneNumber,
-					schoolName: form.data.schoolName,
-					grade: Number(form.data.grade),
-					addressProvince: form.data.addressProvince,
-					addressDistrict: form.data.addressDistrict,
-					addressSubDistrict: form.data.addressSubDistrict,
-					addressPostcode: form.data.addressPostcode,
-					addressDetail: form.data.addressDetail
-				})
-				.where(eq(users.id, user.id));
+			await updateUserProfile({
+				id: user.id,
+				prefix: form.data.prefix,
+				name: form.data.name,
+				nickname: form.data.nickname,
+				phoneNumber: form.data.phoneNumber,
+				schoolName: form.data.schoolName,
+				grade: Number(form.data.grade),
+				addressProvince: form.data.addressProvince,
+				addressDistrict: form.data.addressDistrict,
+				addressSubDistrict: form.data.addressSubDistrict,
+				addressPostcode: form.data.addressPostcode,
+				addressDetail: form.data.addressDetail
+			});
 		}
 
 		return message(form, {
@@ -149,12 +147,7 @@ export const actions: Actions = {
 
 		const hashedPassword = await argon2.hash(form.data.newPassword);
 
-		await db
-			.update(users)
-			.set({
-				hashedPassword
-			})
-			.where(eq(users.id, user.id));
+		await updateUserPassword({ id: user.id, hashedPassword });
 
 		return message(form, {
 			type: 'success',

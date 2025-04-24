@@ -6,12 +6,12 @@ import { error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 
 import { shouldDispositionInline, toFileNameSafe } from '$lib/files';
-import { getFile } from '$lib/server/db/prepared-statements/files';
+import { getFile } from '$lib/server/db/services/files';
 
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params }) => {
-	const file = await getFile.execute({ id: params.id });
+	const file = await getFile(params.id);
 
 	if (!file) {
 		error(404, {

@@ -1,5 +1,4 @@
 import { redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
 import { fail, message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
@@ -7,10 +6,13 @@ import { base } from '$app/paths';
 import { env } from '$env/dynamic/public';
 
 import { configConstants } from '$lib/config-constants';
-import { formatDuration, getSecondsSince, utcNow } from '$lib/datetime';
+import { formatDuration, getSecondsSince } from '$lib/datetime';
 import { roles } from '$lib/enums';
-import { db } from '$lib/server/db';
-import { users } from '$lib/server/db/schema';
+import {
+	createUser,
+	getUserByEmail,
+	updateUserVerificationToken
+} from '$lib/server/db/services/users';
 import { sendVerifyEmail } from '$lib/server/email';
 import { generateToken } from '$lib/token';
 
@@ -28,9 +30,7 @@ export const actions: Actions = {
 		const form = await superValidate(request, zod(formSchema));
 		if (!form.valid) return fail(400, { form });
 
-		const user = await db.query.users.findFirst({
-			where: eq(users.email, form.data.email)
-		});
+		const user = await getUserByEmail(form.data.email);
 
 		if (user !== undefined) {
 			if (user.registrationComplete) {
@@ -76,22 +76,16 @@ export const actions: Actions = {
 		}
 
 		if (user === undefined) {
-			await db.insert(users).values({
+			await createUser({
 				email: form.data.email,
 				role: roles.registrant,
-				verificationToken: token,
-				verificationTokenGeneratedAt: utcNow(),
-				lastEmailSentAt: utcNow()
+				verificationToken: token
 			});
 		} else {
-			await db
-				.update(users)
-				.set({
-					verificationToken: token,
-					verificationTokenGeneratedAt: utcNow(),
-					lastEmailSentAt: utcNow()
-				})
-				.where(eq(users.id, user.id));
+			await updateUserVerificationToken({
+				id: user.id,
+				verificationToken: token
+			});
 		}
 
 		return redirect(303, `${base}/auth/register/email-sent`);

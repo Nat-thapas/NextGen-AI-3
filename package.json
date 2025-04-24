@@ -84,7 +84,7 @@
 	"pnpm": {
 		"patchedDependencies": {
 			"svelte-sonner@0.3.28": "patches/svelte-sonner@0.3.28.patch",
-			"drizzle-orm@0.42.0": "patches/drizzle-orm@0.42.0.patch"
+			"drizzle-orm": "patches/drizzle-orm.patch"
 		},
 		"onlyBuiltDependencies": [
 			"argon2",

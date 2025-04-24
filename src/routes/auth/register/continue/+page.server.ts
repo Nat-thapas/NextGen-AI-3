@@ -1,6 +1,5 @@
 import { redirect } from '@sveltejs/kit';
 import argon2 from 'argon2';
-import { eq } from 'drizzle-orm';
 import { fail, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
@@ -8,8 +7,7 @@ import { base } from '$app/paths';
 
 import { configConstants } from '$lib/config-constants';
 import { getSecondsSince } from '$lib/datetime';
-import { db } from '$lib/server/db';
-import { users } from '$lib/server/db/schema';
+import { getUserByVerificationToken, updateUserPassword } from '$lib/server/db/services/users';
 import { setToastParams } from '$lib/toast';
 
 import type { Actions } from '../$types';
@@ -30,9 +28,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		);
 	}
 
-	const user = await db.query.users.findFirst({
-		where: eq(users.verificationToken, token)
-	});
+	const user = await getUserByVerificationToken(token);
 	if (!user) {
 		redirect(
 			303,
@@ -92,9 +88,7 @@ export const actions: Actions = {
 			);
 		}
 
-		const user = await db.query.users.findFirst({
-			where: eq(users.verificationToken, form.data.token)
-		});
+		const user = await getUserByVerificationToken(form.data.token);
 		if (!user) {
 			redirect(
 				303,
@@ -134,7 +128,7 @@ export const actions: Actions = {
 
 		const hashedPassword = await argon2.hash(form.data.password);
 
-		await db.update(users).set({ hashedPassword }).where(eq(users.id, user.id));
+		await updateUserPassword({ id: user.id, hashedPassword });
 
 		return redirect(
 			303,

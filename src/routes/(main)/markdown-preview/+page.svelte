@@ -18,12 +18,15 @@
 	let syncScrollEnabled = $state(true);
 	let renderThrottlingEnabled = $state(false);
 
+	// eslint-disable-next-line no-undef
 	let renderTimer: NodeJS.Timeout | number | undefined;
+	// eslint-disable-next-line no-undef
 	let saveTimer: NodeJS.Timeout | number | undefined;
 
 	let markdownElement: HTMLElement;
 	let previewElement: HTMLElement;
 
+	// eslint-disable-next-line no-undef
 	let scrollTimer: NodeJS.Timeout | number | undefined;
 	let lastScrollSync = 0;
 
@@ -153,6 +156,7 @@
 		<article
 			bind:this={previewElement}
 			class="prose prose-lg prose-neutral w-full max-w-none flex-grow overflow-scroll rounded-lg border border-gray-300 p-4 py-1 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 			{@html html}
 		</article>
 	</div>

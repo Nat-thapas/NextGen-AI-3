@@ -18,6 +18,7 @@
 	<div class="rounded-xl bg-white px-12 py-8">
 		<article
 			class="prose prose-lg prose-neutral max-w-none prose-img:h-fit prose-img:w-full prose-img:max-w-md">
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 			{@html data.announcement.html}
 		</article>
 	</div>

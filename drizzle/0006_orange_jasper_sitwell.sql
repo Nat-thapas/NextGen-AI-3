@@ -1,0 +1,2 @@
+CREATE INDEX "users_verification_token" ON "users" USING btree ("verification_token");--> statement-breakpoint
+CREATE INDEX "users_password_reset_token" ON "users" USING btree ("password_reset_token");
