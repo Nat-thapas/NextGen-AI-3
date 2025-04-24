@@ -55,7 +55,7 @@ export async function importAnnouncement(title: string, file: File): Promise<voi
 	await createAnnouncement({
 		id,
 		title,
-		text: markdown,
+		markdown,
 		html: renderMarkdown(markdown)
 	});
 }

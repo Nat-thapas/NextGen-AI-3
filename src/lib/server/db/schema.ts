@@ -147,7 +147,7 @@ export const questions = pgTable(
 				onDelete: 'cascade'
 			})
 			.notNull(),
-		text: text().notNull(),
+		markdown: text().notNull(),
 		html: text().notNull(),
 		questionType: questionTypes().notNull(),
 		maxScore: integer().default(configConstants.questions.defaultMaxScore).notNull(),
@@ -180,7 +180,7 @@ export const choices = pgTable(
 				onDelete: 'cascade'
 			})
 			.notNull(),
-		text: text().notNull(),
+		markdown: text().notNull(),
 		html: text().notNull(),
 		isCorrect: boolean().notNull(),
 		...timeStamps
@@ -202,7 +202,7 @@ export const announcements = pgTable('announcements', {
 		onDelete: 'set null'
 	}),
 	title: varchar({ length: configConstants.announcements.maxTitleLength }).notNull(),
-	text: text().notNull(),
+	markdown: text().notNull(),
 	html: text().notNull(),
 	...timeStamps
 });

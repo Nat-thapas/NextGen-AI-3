@@ -9,7 +9,7 @@ const createAnnouncementQuery = db
 	.values({
 		id: sql.placeholder('id'),
 		title: sql.placeholder('title'),
-		text: sql.placeholder('text'),
+		markdown: sql.placeholder('markdown'),
 		html: sql.placeholder('html')
 	})
 	.prepare('create_announcement');
@@ -18,7 +18,7 @@ const getAnnouncementsQuery = db.query.announcements
 	.findMany({
 		columns: {
 			authorId: false,
-			text: false,
+			markdown: false,
 			html: false
 		},
 		limit: sql.placeholder('limit'),
@@ -31,7 +31,7 @@ const getAnnouncementQuery = db.query.announcements
 	.findFirst({
 		columns: {
 			authorId: false,
-			text: false
+			markdown: false
 		},
 		where: eq(announcements.id, sql.placeholder('id'))
 	})
@@ -40,7 +40,7 @@ const getAnnouncementQuery = db.query.announcements
 export async function createAnnouncement(data: {
 	id?: string;
 	title: string;
-	text: string;
+	markdown: string;
 	html: string;
 }): Promise<ReturnType<typeof createAnnouncementQuery.execute>> {
 	data.id ??= generateId();
