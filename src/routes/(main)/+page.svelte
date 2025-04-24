@@ -5,18 +5,17 @@
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
 	import { base } from '$app/paths';
+	import { page } from '$app/state';
 
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
 	import { configConstants } from '$lib/config-constants.js';
-	import { convertAnnouncement, type Announcement } from '$lib/converters/announcement.js';
 	import { formatDate, formatDateTime } from '$lib/datetime';
 	import { getErrorMessage } from '$lib/error.js';
-	import { FetchJson } from '$lib/fetch-json.js';
+	import { setSearchParams } from '$lib/fetch-json.js';
 	import { isRoleAtLeast } from '$lib/roles.js';
 
-	import type { AnnouncementsResponse } from '../api/public/announcements/schema.js';
 	import { createAnnouncementFormSchema } from './schema.js';
 
 	import robots from '$lib/images/3-robots.avif';
@@ -50,31 +49,9 @@
 		'นักเรียนที่สามารถเข้าร่วมกิจกรรมต่างๆ ตามกำหนดการ ที่ทางค่ายได้แจ้งไว้'
 	];
 
-	let extraAnnouncements: Announcement[] = $state([]);
-	let moreAnnouncementsAvailable: boolean = $state(data.moreAnnouncementsAvailable);
-
-	let announcements = $derived(data.announcements.concat(extraAnnouncements));
-
-	async function loadMoreAnnouncements(): Promise<void> {
-		const fetchJson = new FetchJson(fetch, base);
-
-		try {
-			const response = await fetchJson.get<AnnouncementsResponse>('/api/public/announcements', {
-				limit: 5,
-				offset: announcements.length
-			});
-
-			for (const announcement of response.announcements) {
-				if (announcements.find((element) => element.id === announcement.id)) {
-					continue;
-				}
-				extraAnnouncements.push(convertAnnouncement(announcement));
-			}
-			moreAnnouncementsAvailable = response.moreAnnouncementsAvailable;
-		} catch (err) {
-			toast.error(getErrorMessage(err));
-		}
-	}
+	let moreAnnouncementsLink = $derived(
+		setSearchParams(page.url, { 'announcements-count': data.announcements.length + 5 }).toString()
+	);
 
 	let isFormDialogOpen = $state(false);
 
@@ -372,7 +349,7 @@
 		<div class="w-64 flex-shrink"></div>
 	</div>
 	<div class="mx-16 -mt-16 space-y-4">
-		{#each announcements as announcement (announcement.id)}
+		{#each data.announcements as announcement (announcement.id)}
 			<a
 				href={`${base}/announcements/${announcement.id}`}
 				class="mx-auto flex max-w-7xl items-center gap-4 rounded-xl bg-white p-4 drop-shadow-lg">
@@ -391,12 +368,19 @@
 		{:else}
 			<span class="text-secondary-foreground block text-center text-lg">ไม่มีประกาศในขณะนี้</span>
 		{/each}
-		{#if moreAnnouncementsAvailable}
-			<button
+		{#if data.moreAnnouncementsAvailable}
+			<!-- <button
 				onclick={loadMoreAnnouncements}
 				class="mx-auto !mt-8 block text-lg text-primary-foreground underline">
 				ดูเพิ่มเติม
-			</button>
+			</button> -->
+			<a
+				href={moreAnnouncementsLink}
+				data-sveltekit-replacestate
+				data-sveltekit-noscroll
+				class="mx-auto !mt-8 block text-lg text-primary-foreground underline">
+				ดูเพิ่มเติม
+			</a>
 		{/if}
 	</div>
 </div>

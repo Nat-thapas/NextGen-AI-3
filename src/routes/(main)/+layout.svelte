@@ -53,7 +53,7 @@
 					class:text-secondary-foreground={!pathname.startsWith(`${base}/markdown-preview`)}
 					class:text-primary-foreground={pathname.startsWith(`${base}/markdown-preview`)}
 					class="text-lg font-semibold transition-colors hover:text-primary-foreground">
-					Markdown Preview
+					Markdown
 				</a>
 			{/if}
 		</div>

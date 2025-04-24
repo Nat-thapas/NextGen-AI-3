@@ -23,7 +23,6 @@ const getAnnouncementsQuery = db.query.announcements
 			html: false
 		},
 		limit: sql.placeholder('limit'),
-		offset: sql.placeholder('offset'),
 		orderBy: [desc(announcements.createdAt)]
 	})
 	.prepare('get_announcements');
@@ -49,14 +48,10 @@ export async function createAnnouncement(data: {
 	return createAnnouncementQuery.execute(data);
 }
 
-export async function getAnnouncements(options?: {
-	limit?: number;
-	offset?: number;
-}): Promise<ReturnType<typeof getAnnouncementsQuery.execute>> {
-	return getAnnouncementsQuery.execute({
-		limit: options?.limit ?? 3,
-		offset: options?.offset ?? 0
-	});
+export async function getAnnouncements(
+	limit: number = 3
+): Promise<ReturnType<typeof getAnnouncementsQuery.execute>> {
+	return getAnnouncementsQuery.execute({ limit });
 }
 
 export async function getAnnouncement(
