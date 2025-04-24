@@ -1,4 +1,4 @@
-import { ResponseError } from './fetch-json';
+import { ResponseError } from '$lib/fetch-json';
 
 export function getErrorMessage(err: unknown): string {
 	if (err instanceof Error) {

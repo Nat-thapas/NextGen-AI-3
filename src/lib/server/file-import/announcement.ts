@@ -9,11 +9,10 @@ import { env } from '$env/dynamic/private';
 
 import { getExtension } from '$lib/files';
 import { renderMarkdown } from '$lib/markdown';
+import { createAnnouncement } from '$lib/server/db/services/announcements';
 import { createFileWithReferenceReturning } from '$lib/server/db/services/files';
+import { updateAssets } from '$lib/server/file-import/update-assets';
 import { generateId } from '$lib/token';
-
-import { createAnnouncement } from '../db/services/announcements';
-import { updateAssets } from './update-assets';
 
 export async function importAnnouncement(
 	authorId: string,

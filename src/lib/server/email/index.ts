@@ -3,8 +3,8 @@ import nodemailer from 'nodemailer';
 
 import { env } from '$env/dynamic/private';
 
-import { resetTemplate } from './templates/reset';
-import { verifyTemplate } from './templates/verify';
+import { resetTemplate } from '$lib/server/email/templates/reset';
+import { verifyTemplate } from '$lib/server/email/templates/verify';
 
 const transporter = nodemailer.createTransport({
 	host: env.SMTP_HOST,

@@ -11,13 +11,12 @@ import { env } from '$env/dynamic/private';
 import { questionTypes } from '$lib/enums';
 import { getExtension } from '$lib/files';
 import { renderMarkdown } from '$lib/markdown';
+import { createChoice } from '$lib/server/db/services/choices';
 import { createExamReturning } from '$lib/server/db/services/exams';
 import { createFileWithReferenceReturning } from '$lib/server/db/services/files';
+import { createQuestionReturning } from '$lib/server/db/services/questions';
+import { updateAssets } from '$lib/server/file-import/update-assets';
 import type { Question } from '$lib/server/interfaces/quesion';
-
-import { createChoice } from '../db/services/choices';
-import { createQuestionReturning } from '../db/services/questions';
-import { updateAssets } from './update-assets';
 
 function parseFileTypes(fileTypes: string | null): string | null {
 	if (fileTypes === null || fileTypes === undefined) {

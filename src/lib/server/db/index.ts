@@ -3,7 +3,7 @@ import pg from 'pg';
 
 import { env } from '$env/dynamic/private';
 
-import * as schema from './schema';
+import * as schema from '$lib/server/db/schema';
 
 let Pool: typeof pg.Pool;
 

@@ -6,7 +6,7 @@
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
 
-	import { isRoleAtLeast } from '$lib/roles.js';
+	import { isRoleAtLeast } from '$lib/roles';
 
 	import banner from '$lib/images/banner/banner-512.avif';
 

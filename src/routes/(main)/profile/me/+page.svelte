@@ -9,10 +9,10 @@
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
-	import { configConstants } from '$lib/config-constants.js';
-	import { getErrorMessage } from '$lib/error.js';
+	import { configConstants } from '$lib/config-constants';
+	import { getErrorMessage } from '$lib/error';
 
-	import { changePasswordFormSchema, updateProfileFormSchema } from './schema.js';
+	import { changePasswordFormSchema, updateProfileFormSchema } from './schema';
 
 	let { data } = $props();
 

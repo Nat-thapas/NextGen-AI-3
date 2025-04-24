@@ -1,6 +1,6 @@
 import base64url from 'base64url';
 
-import { configConstants } from './config-constants';
+import { configConstants } from '$lib/config-constants';
 
 export function generateToken(entropy?: number): string {
 	entropy ??= configConstants.entropy.token;

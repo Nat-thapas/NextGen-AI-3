@@ -7,10 +7,10 @@
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
-	import { configConstants } from '$lib/config-constants.js';
-	import { getErrorMessage } from '$lib/error.js';
+	import { configConstants } from '$lib/config-constants';
+	import { getErrorMessage } from '$lib/error';
 
-	import { formSchema } from './schema.js';
+	import { formSchema } from './schema';
 
 	let { data } = $props();
 

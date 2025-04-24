@@ -1,24 +1,22 @@
 <script lang="ts">
 	import { ChevronRight, Facebook, Instagram, LoaderCircle, Pin, Plus } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
-	import { preventDefault } from 'svelte/legacy';
 	import { fileProxy, superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
-	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
 
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
-	import { configConstants } from '$lib/config-constants.js';
+	import { configConstants } from '$lib/config-constants';
 	import { formatDate, formatDateTime } from '$lib/datetime';
-	import { getErrorMessage } from '$lib/error.js';
-	import { setSearchParams } from '$lib/fetch-json.js';
-	import { isRoleAtLeast } from '$lib/roles.js';
+	import { getErrorMessage } from '$lib/error';
+	import { setSearchParams } from '$lib/fetch-json';
+	import { isRoleAtLeast } from '$lib/roles';
 
-	import { createAnnouncementFormSchema } from './schema.js';
+	import { createAnnouncementFormSchema } from './schema';
 
 	import robots from '$lib/images/3-robots.avif';
 	import badge_10 from '$lib/images/badge-10.avif';
