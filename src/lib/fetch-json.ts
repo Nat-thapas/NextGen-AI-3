@@ -36,7 +36,7 @@ export function setSearchParams(
 	const isInputAbsoluteUrlString = isInputUrl
 		? false
 		: urlOrUrlString.startsWith('http://') || urlOrUrlString.startsWith('https://');
-	const url = isInputUrl ? urlOrUrlString : new URL(urlOrUrlString, env.PUBLIC_ORIGIN);
+	const url = isInputUrl ? new URL(urlOrUrlString) : new URL(urlOrUrlString, env.PUBLIC_ORIGIN);
 
 	for (const [key, value] of Object.entries(params)) {
 		if (value === undefined || value === null) {

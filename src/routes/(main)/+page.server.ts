@@ -20,7 +20,6 @@ export const load: PageServerLoad = async ({ url }) => {
 		announcementsCount++;
 		const announcements = await getAnnouncements(announcementsCount);
 		const moreAnnouncementsAvailable = announcements.length === announcementsCount;
-		console.log(moreAnnouncementsAvailable, announcementsCount);
 		if (moreAnnouncementsAvailable) announcements.pop();
 		return { announcements, moreAnnouncementsAvailable };
 	}

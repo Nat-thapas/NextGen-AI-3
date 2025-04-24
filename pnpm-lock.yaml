@@ -5,9 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
-  drizzle-orm:
+  drizzle-orm@0.42.0:
     hash: 4814d0c6392bf2abc1587693a58aa9336313de1c9ca70ee602106f8e85db6b81
-    path: patches/drizzle-orm.patch
+    path: patches/drizzle-orm@0.42.0.patch
   svelte-sonner@0.3.28:
     hash: a0f6303dabecb8bb7853a30ac210dd362912e4199399d47396046894cff4b798
     path: patches/svelte-sonner@0.3.28.patch
@@ -25,6 +25,9 @@ importers:
       pg-native:
         specifier: ^3.3.0
         version: 3.3.0
+      unzipper:
+        specifier: ^0.12.3
+        version: 0.12.3
     devDependencies:
       '@eslint/compat':
         specifier: ^1.2.8
@@ -176,9 +179,6 @@ importers:
       typescript-eslint:
         specifier: ^8.31.0
         version: 8.31.0(eslint@9.25.1(jiti@1.21.7))(typescript@5.8.3)
-      unzipper:
-        specifier: ^0.12.3
-        version: 0.12.3
       vite:
         specifier: ^6.3.2
         version: 6.3.2(@types/node@22.14.1)(jiti@1.21.7)(yaml@2.7.1)

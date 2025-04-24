@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { ChevronRight, Facebook, Instagram, LoaderCircle, Pin, Plus } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
+	import { preventDefault } from 'svelte/legacy';
 	import { fileProxy, superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
+	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
 
@@ -369,16 +371,11 @@
 			<span class="text-secondary-foreground block text-center text-lg">ไม่มีประกาศในขณะนี้</span>
 		{/each}
 		{#if data.moreAnnouncementsAvailable}
-			<!-- <button
-				onclick={loadMoreAnnouncements}
-				class="mx-auto !mt-8 block text-lg text-primary-foreground underline">
-				ดูเพิ่มเติม
-			</button> -->
 			<a
 				href={moreAnnouncementsLink}
 				data-sveltekit-replacestate
 				data-sveltekit-noscroll
-				class="mx-auto !mt-8 block text-lg text-primary-foreground underline">
+				class="mx-auto !mt-8 block text-center text-lg text-primary-foreground underline">
 				ดูเพิ่มเติม
 			</a>
 		{/if}

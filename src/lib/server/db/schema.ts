@@ -1,4 +1,4 @@
-import { relations, SQL, sql } from 'drizzle-orm';
+import { relations, sql, type SQL } from 'drizzle-orm';
 import {
 	boolean,
 	char,

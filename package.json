@@ -71,7 +71,6 @@
 		"tailwindcss-animate": "^1.0.7",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.31.0",
-		"unzipper": "^0.12.3",
 		"vite": "^6.3.2",
 		"vitest": "^3.1.2",
 		"zod": "^3.24.3"
@@ -79,12 +78,13 @@
 	"dependencies": {
 		"argon2": "^0.41.1",
 		"pg": "^8.14.1",
-		"pg-native": "^3.3.0"
+		"pg-native": "^3.3.0",
+		"unzipper": "^0.12.3"
 	},
 	"pnpm": {
 		"patchedDependencies": {
 			"svelte-sonner@0.3.28": "patches/svelte-sonner@0.3.28.patch",
-			"drizzle-orm": "patches/drizzle-orm.patch"
+			"drizzle-orm@0.42.0": "patches/drizzle-orm@0.42.0.patch"
 		},
 		"onlyBuiltDependencies": [
 			"argon2",
