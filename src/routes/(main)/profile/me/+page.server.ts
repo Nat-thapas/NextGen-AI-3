@@ -66,13 +66,11 @@ export const actions: Actions = {
 
 		if (form.data.transcript) {
 			const oldTranscript = user.transcriptId ? await getFile(user.transcriptId) : undefined;
-			const transcript = (
-				await createFileReturning({
-					size: form.data.transcript.size,
-					mimeType: form.data.transcript.type,
-					extension: getExtension(form.data.transcript.name, form.data.transcript.type)
-				})
-			)[0];
+			const transcript = await createFileReturning({
+				size: form.data.transcript.size,
+				mimeType: form.data.transcript.type,
+				extension: getExtension(form.data.transcript.name, form.data.transcript.type)
+			});
 
 			await fs.writeFile(
 				join(env.FILE_STORAGE_PATH, transcript.storedName),

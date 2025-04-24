@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 import { eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
@@ -44,27 +46,19 @@ export async function createSession(data: {
 	firstLoginUserAgent: string;
 	lastUseIp: string;
 	lastUseUserAgent: string;
-}): Promise<ReturnType<typeof createSessionQuery.execute>> {
+}) {
 	data.token ??= generateToken();
 	return createSessionQuery.execute(data);
 }
 
-export async function getSessionWithUser(
-	token: string
-): Promise<ReturnType<typeof getSessionWithUserQuery.execute>> {
+export async function getSessionWithUser(token: string) {
 	return getSessionWithUserQuery.execute({ token });
 }
 
-export async function updateSession(data: {
-	token: string;
-	ip: string;
-	userAgent: string;
-}): Promise<ReturnType<typeof updateSessionQuery.execute>> {
+export async function updateSession(data: { token: string; ip: string; userAgent: string }) {
 	return updateSessionQuery.execute(data);
 }
 
-export async function deleteSession(
-	token: string
-): Promise<ReturnType<typeof deleteSessionQuery.execute>> {
+export async function deleteSession(token: string) {
 	return deleteSessionQuery.execute({ token });
 }

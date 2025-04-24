@@ -27,31 +27,29 @@ export async function importAnnouncement(
 	const assets: Record<string, string> = {};
 
 	for (const compressed of archive.files) {
-		if (compressed.type === 'File') {
-			if (/^(?:[^/]*?)\.md/.test(compressed.path)) {
-				if (markdown) {
-					throw Error('Multiple markdown file in root directory detected');
-				}
-				markdown = (await compressed.buffer()).toString();
-			} else {
-				const mimeType = mimeTypes.lookup(compressed.path) || 'application/octet-stream';
-				const extension = getExtension(compressed.path, mimeType);
-				const file = (
-					await createFileWithReferenceReturning({
-						size: compressed.uncompressedSize,
-						mimeType,
-						extension,
-						referenceId: id
-					})
-				)[0];
-				await fs.writeFile(join(env.FILE_STORAGE_PATH, file.storedName), compressed.stream());
-				assets[compressed.path] = `${base}/api/public/files/${file.id}/file${extension}`;
+		if (compressed.type !== 'File') continue;
+
+		if (/^(?:[^/]*?)\.md/.test(compressed.path)) {
+			if (markdown) {
+				throw Error('Multiple markdown files found in root directory');
 			}
+			markdown = (await compressed.buffer()).toString();
+		} else {
+			const mimeType = mimeTypes.lookup(compressed.path) || 'application/octet-stream';
+			const extension = getExtension(compressed.path, mimeType);
+			const file = await createFileWithReferenceReturning({
+				size: compressed.uncompressedSize,
+				mimeType,
+				extension,
+				referenceId: id
+			});
+			await fs.writeFile(join(env.FILE_STORAGE_PATH, file.storedName), compressed.stream());
+			assets[compressed.path] = `${base}/api/public/files/${file.storedName}`;
 		}
 	}
 
 	if (!markdown) {
-		throw Error('No markdown file detected');
+		throw Error('No markdown file found');
 	}
 
 	markdown = updateAssets(markdown, assets);

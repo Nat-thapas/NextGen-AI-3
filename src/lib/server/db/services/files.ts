@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 import { eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
@@ -64,7 +66,7 @@ export async function createFile(data: {
 	size: number;
 	mimeType: string;
 	extension: string;
-}): Promise<ReturnType<typeof createFileQuery.execute>> {
+}) {
 	data.id ??= generateId();
 	return createFileQuery.execute(data);
 }
@@ -75,7 +77,7 @@ export async function createFileWithReference(data: {
 	mimeType: string;
 	extension: string;
 	referenceId: string;
-}): Promise<ReturnType<typeof createFileQuery.execute>> {
+}) {
 	data.id ??= generateId();
 	return createFileWithReferenceQuery.execute(data);
 }
@@ -85,9 +87,9 @@ export async function createFileReturning(data: {
 	size: number;
 	mimeType: string;
 	extension: string;
-}): Promise<ReturnType<typeof createFileReturningQuery.execute>> {
+}) {
 	data.id ??= generateId();
-	return createFileReturningQuery.execute(data);
+	return (await createFileReturningQuery.execute(data))[0];
 }
 
 export async function createFileWithReferenceReturning(data: {
@@ -96,9 +98,9 @@ export async function createFileWithReferenceReturning(data: {
 	mimeType: string;
 	extension: string;
 	referenceId: string;
-}): Promise<ReturnType<typeof createFileWithReferenceReturningQuery.execute>> {
+}) {
 	data.id ??= generateId();
-	return createFileWithReferenceReturningQuery.execute(data);
+	return (await createFileWithReferenceReturningQuery.execute(data))[0];
 }
 
 export async function getFile(id: string): Promise<ReturnType<typeof getFileQuery.execute>> {

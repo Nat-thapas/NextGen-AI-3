@@ -124,6 +124,10 @@ export const sessionsRelation = relations(sessions, ({ one }) => ({
 
 export const exams = pgTable('exams', {
 	id: char({ length: idLength }).primaryKey(),
+	ownerId: char({ length: idLength }).references(() => users.id, {
+		onUpdate: 'cascade',
+		onDelete: 'set null'
+	}),
 	title: varchar({ length: configConstants.exams.maxTitleLength }).notNull(),
 	description: varchar({ length: configConstants.exams.maxDescriptionLength }).notNull(),
 	openAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
@@ -133,7 +137,11 @@ export const exams = pgTable('exams', {
 	...timeStamps
 });
 
-export const examsRelation = relations(exams, ({ many }) => ({
+export const examsRelation = relations(exams, ({ one, many }) => ({
+	owner: one(users, {
+		fields: [exams.ownerId],
+		references: [users.id]
+	}),
 	questions: many(questions)
 }));
 

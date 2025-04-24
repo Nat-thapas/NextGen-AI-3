@@ -4,7 +4,8 @@ export interface Question {
 	id: string;
 	examId: string;
 	exam?: Exam;
-	text: string;
+	markdown: string;
+	html: string;
 	questionType: 'choices' | 'checkboxes' | 'text' | 'file';
 	maxScore: number;
 	minScore: number;

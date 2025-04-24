@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 import { desc, eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
@@ -43,19 +45,15 @@ export async function createAnnouncement(data: {
 	title: string;
 	markdown: string;
 	html: string;
-}): Promise<ReturnType<typeof createAnnouncementQuery.execute>> {
+}) {
 	data.id ??= generateId();
 	return createAnnouncementQuery.execute(data);
 }
 
-export async function getAnnouncements(
-	limit: number = 3
-): Promise<ReturnType<typeof getAnnouncementsQuery.execute>> {
+export async function getAnnouncements(limit: number = 3) {
 	return getAnnouncementsQuery.execute({ limit });
 }
 
-export async function getAnnouncement(
-	id: string
-): Promise<ReturnType<typeof getAnnouncementQuery.execute>> {
+export async function getAnnouncement(id: string) {
 	return getAnnouncementQuery.execute({ id });
 }

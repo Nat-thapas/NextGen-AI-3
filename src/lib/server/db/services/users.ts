@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 import { eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
@@ -33,7 +35,8 @@ const updateUserVerificationTokenQuery = db
 	.set({
 		verificationToken: sql.placeholder('verificationToken'),
 		verificationTokenGeneratedAt: sql`now()`,
-		lastEmailSentAt: sql`now()`
+		lastEmailSentAt: sql`now()`,
+		updatedAt: sql`now()`
 	})
 	.where(eq(users.id, sql.placeholder('id')))
 	.prepare('update_user_verification_token');
@@ -113,27 +116,20 @@ export async function createUser(data: {
 	email: string;
 	role: string;
 	verificationToken: string;
-}): Promise<ReturnType<typeof createUserQuery.execute>> {
+}) {
 	data.id ??= generateId();
 	return createUserQuery.execute(data);
 }
 
-export async function updateUserVerificationToken(data: {
-	id: string;
-	verificationToken: string;
-}): Promise<ReturnType<typeof updateUserVerificationTokenQuery.execute>> {
+export async function updateUserVerificationToken(data: { id: string; verificationToken: string }) {
 	return updateUserVerificationTokenQuery.execute(data);
 }
 
-export async function getUserByEmail(
-	email: string
-): Promise<ReturnType<typeof getUserByEmailQuery.execute>> {
+export async function getUserByEmail(email: string) {
 	return getUserByEmailQuery.execute({ email });
 }
 
-export async function getUserByVerificationToken(
-	verificationToken: string
-): Promise<ReturnType<typeof getUserByVerificationTokenQuery.execute>> {
+export async function getUserByVerificationToken(verificationToken: string) {
 	return getUserByVerificationTokenQuery.execute({ verificationToken });
 }
 
@@ -150,7 +146,7 @@ export async function updateUserProfile(data: {
 	addressSubDistrict: string;
 	addressPostcode: string;
 	addressDetail: string;
-}): Promise<ReturnType<typeof updateUserProfileQuery.execute>> {
+}) {
 	return updateUserProfileQuery.execute(data);
 }
 
@@ -168,7 +164,7 @@ export async function updateUserProfileWithTranscript(data: {
 	addressSubDistrict: string;
 	addressPostcode: string;
 	addressDetail: string;
-}): Promise<ReturnType<typeof updateUserProfileWithTranscriptQuery.execute>> {
+}) {
 	return updateUserProfileWithTranscriptQuery.execute(data);
 }
 
@@ -186,13 +182,10 @@ export async function updateUserProfileRegistrationComplete(data: {
 	addressSubDistrict: string;
 	addressPostcode: string;
 	addressDetail: string;
-}): Promise<ReturnType<typeof updateUserProfileRegistrationCompleteQuery.execute>> {
+}) {
 	return updateUserProfileRegistrationCompleteQuery.execute(data);
 }
 
-export async function updateUserPassword(data: {
-	id: string;
-	hashedPassword: string;
-}): Promise<ReturnType<typeof updateUserPasswordQuery.execute>> {
+export async function updateUserPassword(data: { id: string; hashedPassword: string }) {
 	return updateUserPasswordQuery.execute(data);
 }
