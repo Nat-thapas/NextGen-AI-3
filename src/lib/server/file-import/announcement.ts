@@ -15,7 +15,11 @@ import { generateId } from '$lib/token';
 import { createAnnouncement } from '../db/services/announcements';
 import { updateAssets } from './update-assets';
 
-export async function importAnnouncement(title: string, file: File): Promise<void> {
+export async function importAnnouncement(
+	authorId: string,
+	title: string,
+	file: File
+): Promise<void> {
 	const archive = await unzipper.Open.buffer(Buffer.from(await file.arrayBuffer()));
 
 	const id = generateId();
@@ -54,6 +58,7 @@ export async function importAnnouncement(title: string, file: File): Promise<voi
 
 	await createAnnouncement({
 		id,
+		authorId,
 		title,
 		markdown,
 		html: renderMarkdown(markdown)

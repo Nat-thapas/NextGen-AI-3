@@ -8,6 +8,7 @@ const createAnnouncementQuery = db
 	.insert(announcements)
 	.values({
 		id: sql.placeholder('id'),
+		authorId: sql.placeholder('authorId'),
 		title: sql.placeholder('title'),
 		markdown: sql.placeholder('markdown'),
 		html: sql.placeholder('html')
@@ -39,6 +40,7 @@ const getAnnouncementQuery = db.query.announcements
 
 export async function createAnnouncement(data: {
 	id?: string;
+	authorId: string;
 	title: string;
 	markdown: string;
 	html: string;
