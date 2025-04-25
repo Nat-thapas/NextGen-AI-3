@@ -11,6 +11,7 @@ const createChoiceQuery = db
 	.values({
 		id: sql.placeholder('id'),
 		questionId: sql.placeholder('questionId'),
+		number: sql.placeholder('number'),
 		markdown: sql.placeholder('markdown'),
 		html: sql.placeholder('html'),
 		isCorrect: sql.placeholder('isCorrect')
@@ -21,6 +22,7 @@ const createChoiceQuery = db
 export async function createChoice(data: {
 	id?: string;
 	questionId: string;
+	number: number;
 	markdown: string;
 	html: string;
 	isCorrect: boolean;

@@ -17,7 +17,6 @@ export const GET: RequestHandler = async ({ params }) => {
 		dotIndex = idName.length;
 	}
 	const id = idName.slice(0, dotIndex);
-	const ext = idName.slice(dotIndex);
 
 	const file = await getFile(id);
 

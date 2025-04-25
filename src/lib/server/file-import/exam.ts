@@ -88,6 +88,8 @@ export async function importExam(
 	}
 
 	let question: Question | undefined = undefined;
+	let questionNumber = 0;
+	let choiceNumber = 0;
 	for (const sheet of sheets) {
 		const name = sheet.name;
 		const data = sheet.data;
@@ -152,8 +154,12 @@ export async function importExam(
 
 				const fileTypes = parseFileTypes(rawFileTypes);
 
+				questionNumber++;
+				choiceNumber = 0;
+
 				question = await createQuestionReturning({
 					examId: exam.id,
+					number: questionNumber,
 					markdown,
 					html: renderMarkdown(markdown),
 					questionType,
@@ -180,8 +186,11 @@ export async function importExam(
 				const isCorrect =
 					String(row[2]).toLowerCase() === 'true' || (row[2] instanceof Number && row[2] !== 0);
 
+				choiceNumber++;
+
 				await createChoice({
 					questionId: question.id,
+					number: choiceNumber,
 					markdown,
 					html: renderMarkdown(markdown),
 					isCorrect

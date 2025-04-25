@@ -22,7 +22,7 @@ const getSessionWithUserQuery = db.query.sessions
 			user: true
 		}
 	})
-	.prepare('get_session');
+	.prepare('get_session_with_user');
 
 const updateSessionQuery = db
 	.update(sessions)

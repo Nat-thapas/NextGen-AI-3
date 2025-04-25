@@ -11,6 +11,7 @@ const createQuestionReturningQuery = db
 	.values({
 		id: sql.placeholder('id'),
 		examId: sql.placeholder('examId'),
+		number: sql.placeholder('number'),
 		markdown: sql.placeholder('markdown'),
 		html: sql.placeholder('html'),
 		questionType: sql.placeholder('questionType'),
@@ -28,6 +29,7 @@ const createQuestionReturningQuery = db
 export async function createQuestionReturning(data: {
 	id?: string;
 	examId: string;
+	number: number;
 	markdown: string;
 	html: string;
 	questionType: 'choices' | 'checkboxes' | 'text' | 'file';

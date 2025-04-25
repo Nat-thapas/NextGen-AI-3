@@ -57,6 +57,13 @@
       "when": 1745487007295,
       "tag": "0007_silly_stingray",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1745563634736,
+      "tag": "0008_petite_living_lightning",
+      "breakpoints": true
     }
   ]
 }

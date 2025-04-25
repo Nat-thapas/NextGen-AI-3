@@ -38,15 +38,17 @@
 				class="text-lg font-semibold transition-colors hover:text-primary-foreground">
 				Home
 			</a>
-			{#each navs as nav (nav[0])}
-				<a
-					href={nav[0]}
-					class:text-secondary-foreground={!pathname.startsWith(nav[0])}
-					class:text-primary-foreground={pathname.startsWith(nav[0])}
-					class="text-lg font-semibold transition-colors hover:text-primary-foreground">
-					{nav[1]}
-				</a>
-			{/each}
+			{#if isRoleAtLeast(data.user.role, 'student')}
+				{#each navs as nav (nav[0])}
+					<a
+						href={nav[0]}
+						class:text-secondary-foreground={!pathname.startsWith(nav[0])}
+						class:text-primary-foreground={pathname.startsWith(nav[0])}
+						class="text-lg font-semibold transition-colors hover:text-primary-foreground">
+						{nav[1]}
+					</a>
+				{/each}
+			{/if}
 			{#if isRoleAtLeast(data.user.role, 'staff')}
 				<a
 					href={`${base}/markdown-preview`}

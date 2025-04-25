@@ -10,7 +10,7 @@
 
 <div class="mx-auto mt-4 max-w-7xl px-16">
 	<h1 class="text-5xl font-bold text-primary-foreground">
-		Announcement: {data.announcement.title}
+		{data.announcement.title}
 	</h1>
 	<span class="mb-4 block text-lg text-primary-foreground">
 		Posted: {formatDateTime(data.announcement.createdAt, data.timeZone)}

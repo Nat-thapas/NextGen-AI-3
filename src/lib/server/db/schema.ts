@@ -155,6 +155,7 @@ export const questions = pgTable(
 				onDelete: 'cascade'
 			})
 			.notNull(),
+		number: integer().notNull(),
 		markdown: text().notNull(),
 		html: text().notNull(),
 		questionType: questionTypes().notNull(),
@@ -167,7 +168,7 @@ export const questions = pgTable(
 		fileSizeLimit: integer().default(configConstants.questions.defaultFileSizeLimit), // type=file: upload size limit (kB)
 		...timeStamps
 	},
-	(table) => [index('questions_exam').on(table.examId)]
+	(table) => [index('questions_exam').on(table.examId), index('questions_number').on(table.number)]
 );
 
 export const questionsRelation = relations(questions, ({ one, many }) => ({
@@ -188,12 +189,16 @@ export const choices = pgTable(
 				onDelete: 'cascade'
 			})
 			.notNull(),
+		number: integer().notNull(),
 		markdown: text().notNull(),
 		html: text().notNull(),
 		isCorrect: boolean().notNull(),
 		...timeStamps
 	},
-	(table) => [index('choices_question').on(table.questionId)]
+	(table) => [
+		index('choices_question').on(table.questionId),
+		index('choices_number').on(table.number)
+	]
 );
 
 export const choicesRelation = relations(choices, ({ one }) => ({
