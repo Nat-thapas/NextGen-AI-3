@@ -1,21 +1,48 @@
-export function formatDate(date: Date): string {
-	return date.toLocaleDateString('th-TH', {
-		dateStyle: 'medium'
-	});
+export function formatDate(
+	date: Date,
+	options?: {
+		locale?: string;
+		dateStyle?: 'medium' | 'full' | 'long' | 'short';
+		timeZone?: string;
+	}
+): string {
+	options ??= {};
+	options.locale ??= 'th-TH';
+	options.dateStyle ??= 'medium';
+	options.timeZone ??= 'Asia/Bangkok';
+	return date.toLocaleDateString(options.locale, options);
 }
 
-export function formatTime(date: Date): string {
-	return date.toLocaleTimeString('th-TH', {
-		timeStyle: 'medium'
-	});
+export function formatTime(
+	date: Date,
+	options?: {
+		locale?: string;
+		timeStyle?: 'medium' | 'full' | 'long' | 'short';
+		timeZone?: string;
+	}
+): string {
+	options ??= {};
+	options.locale ??= 'th-TH';
+	options.timeStyle ??= 'short';
+	options.timeZone ??= 'Asia/Bangkok';
+	return date.toLocaleTimeString(options.locale, options);
 }
 
-export function formatDateTime(date: Date, timeZone: string): string {
-	return date.toLocaleString('th-TH', {
-		dateStyle: 'medium',
-		timeStyle: 'medium',
-		timeZone
-	});
+export function formatDateTime(
+	date: Date,
+	options?: {
+		locale?: string;
+		dateStyle?: 'medium' | 'full' | 'long' | 'short';
+		timeStyle?: 'medium' | 'full' | 'long' | 'short';
+		timeZone?: string;
+	}
+): string {
+	options ??= {};
+	options.locale ??= 'th-TH';
+	options.dateStyle ??= 'medium';
+	options.timeStyle ??= 'short';
+	options.timeZone ??= 'Asia/Bangkok';
+	return date.toLocaleString(options.locale, options);
 }
 
 /**

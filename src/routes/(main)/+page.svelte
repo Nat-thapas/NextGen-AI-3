@@ -360,7 +360,9 @@
 						{announcement.title}
 					</span>
 					<span class="text-secondary-foreground">
-						{formatDateTime(announcement.createdAt, data.timeZone)}
+						{formatDateTime(announcement.createdAt, {
+							timeZone: data.timeZone
+						})}
 					</span>
 				</div>
 				<ChevronRight size={32} class="text-secondary-foreground" />

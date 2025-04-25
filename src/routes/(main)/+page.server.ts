@@ -3,8 +3,8 @@ import { type } from 'arktype';
 import { fail, message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
-import type { Announcement } from '$lib/converters/announcement';
 import { getErrorMessage } from '$lib/error';
+import type { Announcement } from '$lib/interfaces/announcement';
 import { isRoleAtLeast } from '$lib/roles';
 import { getAnnouncements } from '$lib/server/db/services/announcements';
 import { importAnnouncement } from '$lib/server/file-import/announcement';

@@ -64,6 +64,20 @@
       "when": 1745563634736,
       "tag": "0008_petite_living_lightning",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1745574629585,
+      "tag": "0009_demonic_pestilence",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1745574698010,
+      "tag": "0010_lowly_silver_samurai",
+      "breakpoints": true
     }
   ]
 }

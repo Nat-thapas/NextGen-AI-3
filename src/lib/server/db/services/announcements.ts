@@ -17,6 +17,16 @@ const createAnnouncementQuery = db
 	})
 	.prepare('create_announcement');
 
+const getAnnouncementQuery = db.query.announcements
+	.findFirst({
+		columns: {
+			authorId: false,
+			markdown: false
+		},
+		where: eq(announcements.id, sql.placeholder('id'))
+	})
+	.prepare('get_announcement');
+
 const getAnnouncementsQuery = db.query.announcements
 	.findMany({
 		columns: {
@@ -29,16 +39,6 @@ const getAnnouncementsQuery = db.query.announcements
 	})
 	.prepare('get_announcements');
 
-const getAnnouncementQuery = db.query.announcements
-	.findFirst({
-		columns: {
-			authorId: false,
-			markdown: false
-		},
-		where: eq(announcements.id, sql.placeholder('id'))
-	})
-	.prepare('get_announcement');
-
 export async function createAnnouncement(data: {
 	id?: string;
 	authorId: string;
@@ -50,10 +50,10 @@ export async function createAnnouncement(data: {
 	return createAnnouncementQuery.execute(data);
 }
 
-export async function getAnnouncements(limit: number = 3) {
-	return getAnnouncementsQuery.execute({ limit });
-}
-
 export async function getAnnouncement(id: string) {
 	return getAnnouncementQuery.execute({ id });
+}
+
+export async function getAnnouncements(limit: number = 3) {
+	return getAnnouncementsQuery.execute({ limit });
 }

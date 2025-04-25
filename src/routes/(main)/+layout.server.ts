@@ -1,4 +1,4 @@
-import { convertOwnUser } from '$lib/converters/partial-user';
+import { convertOwnUser } from '$lib/interfaces/partial-user';
 
 import type { LayoutServerLoad } from './$types';
 

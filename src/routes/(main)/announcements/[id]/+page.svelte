@@ -13,7 +13,9 @@
 		{data.announcement.title}
 	</h1>
 	<span class="mb-4 block text-lg text-primary-foreground">
-		Posted: {formatDateTime(data.announcement.createdAt, data.timeZone)}
+		Posted: {formatDateTime(data.announcement.createdAt, {
+			timeZone: data.timeZone
+		})}
 	</span>
 	<div class="rounded-xl bg-white px-12 py-8">
 		<article
