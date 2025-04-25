@@ -67,6 +67,12 @@ const deleteFileReturningQuery = db
 	.returning()
 	.prepare('delete_file_returning');
 
+const deleteFilesByReferenceReturningQuery = db
+	.delete(files)
+	.where(eq(files.referenceId, sql.placeholder('referenceId')))
+	.returning()
+	.prepare('delete_file_reference_returning');
+
 export async function createFile(data: {
 	id?: string;
 	size: number;
@@ -119,4 +125,8 @@ export async function deleteFile(id: string) {
 
 export async function deleteFileReturning(id: string) {
 	return (await deleteFileReturningQuery.execute({ id }))[0];
+}
+
+export async function deleteFilesByReferenceReturning(referenceId: string) {
+	return deleteFilesByReferenceReturningQuery.execute({ referenceId });
 }

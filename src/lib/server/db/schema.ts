@@ -50,45 +50,38 @@ export const questionTypes = pgEnum('question_types', ['choices', 'checkboxes', 
 //   - scale: perform sequence matching to estimate how correct the answer is (warning: this is not very accurate) and give score based on that
 export const scoringTypes = pgEnum('scoring_types', ['exact', 'regex', 'and', 'or', 'scale']);
 
-export const users = pgTable(
-	'users',
-	{
-		id: char({ length: idLength }).primaryKey(),
-		email: varchar({ length: configConstants.users.maxEmailLength }).unique().notNull(),
-		hashedPassword: varchar({ length: 1023 }),
-		role: roles().notNull(),
-		registrationComplete: boolean().default(false).notNull(),
-		verificationToken: varchar({ length: 255 }),
-		verificationTokenGeneratedAt: timestamp({ precision: 6, withTimezone: true })
-			.default(new Date(0))
-			.notNull(),
-		passwordResetToken: varchar({ length: 255 }),
-		passwordResetTokenGeneratedAt: timestamp({ precision: 6, withTimezone: true })
-			.default(new Date(0))
-			.notNull(),
-		lastEmailSentAt: timestamp({ precision: 6, withTimezone: true }).default(new Date(0)).notNull(),
-		prefix: varchar({ length: configConstants.users.maxPrefixLength }),
-		name: varchar({ length: configConstants.users.maxNameLength }),
-		nickname: varchar({ length: configConstants.users.maxNicknameLength }),
-		phoneNumber: char({ length: configConstants.users.phoneNumberLength }),
-		schoolName: varchar({ length: configConstants.users.maxSchoolNameLength }),
-		grade: integer(),
-		transcriptId: char({ length: idLength }).references(() => files.id, {
-			onUpdate: 'cascade',
-			onDelete: 'set null'
-		}),
-		addressProvince: varchar({ length: configConstants.users.maxAddressProvinceLength }),
-		addressDistrict: varchar({ length: configConstants.users.maxAddressDistrictLength }),
-		addressSubDistrict: varchar({ length: configConstants.users.maxAddressSubDistrictLength }),
-		addressPostcode: char({ length: configConstants.users.postcodeLength }),
-		addressDetail: varchar({ length: configConstants.users.maxAddressDetailLength }),
-		...timeStamps
-	},
-	(table) => [
-		index('users_verification_token').on(table.verificationToken),
-		index('users_password_reset_token').on(table.passwordResetToken)
-	]
-);
+export const users = pgTable('users', {
+	id: char({ length: idLength }).primaryKey(),
+	email: varchar({ length: configConstants.users.maxEmailLength }).unique().notNull(),
+	hashedPassword: varchar({ length: 1023 }),
+	role: roles().notNull(),
+	registrationComplete: boolean().default(false).notNull(),
+	verificationToken: varchar({ length: 255 }),
+	verificationTokenGeneratedAt: timestamp({ precision: 6, withTimezone: true })
+		.default(new Date(0))
+		.notNull(),
+	passwordResetToken: varchar({ length: 255 }),
+	passwordResetTokenGeneratedAt: timestamp({ precision: 6, withTimezone: true })
+		.default(new Date(0))
+		.notNull(),
+	lastEmailSentAt: timestamp({ precision: 6, withTimezone: true }).default(new Date(0)).notNull(),
+	prefix: varchar({ length: configConstants.users.maxPrefixLength }),
+	name: varchar({ length: configConstants.users.maxNameLength }),
+	nickname: varchar({ length: configConstants.users.maxNicknameLength }),
+	phoneNumber: char({ length: configConstants.users.phoneNumberLength }),
+	schoolName: varchar({ length: configConstants.users.maxSchoolNameLength }),
+	grade: integer(),
+	transcriptId: char({ length: idLength }).references(() => files.id, {
+		onUpdate: 'cascade',
+		onDelete: 'set null'
+	}),
+	addressProvince: varchar({ length: configConstants.users.maxAddressProvinceLength }),
+	addressDistrict: varchar({ length: configConstants.users.maxAddressDistrictLength }),
+	addressSubDistrict: varchar({ length: configConstants.users.maxAddressSubDistrictLength }),
+	addressPostcode: char({ length: configConstants.users.postcodeLength }),
+	addressDetail: varchar({ length: configConstants.users.maxAddressDetailLength }),
+	...timeStamps
+});
 
 export const usersRelation = relations(users, ({ one }) => ({
 	transcript: one(files, {
@@ -123,20 +116,27 @@ export const sessionsRelation = relations(sessions, ({ one }) => ({
 	})
 }));
 
-export const exams = pgTable('exams', {
-	id: char({ length: idLength }).primaryKey(),
-	ownerId: char({ length: idLength }).references(() => users.id, {
-		onUpdate: 'cascade',
-		onDelete: 'set null'
-	}),
-	title: varchar({ length: configConstants.exams.maxTitleLength }).notNull(),
-	description: varchar({ length: configConstants.exams.maxDescriptionLength }).notNull(),
-	openAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
-	closeAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
-	timeLimit: integer().notNull(), // seconds
-	scoreConfirmed: boolean().default(false).notNull(),
-	...timeStamps
-});
+export const exams = pgTable(
+	'exams',
+	{
+		id: char({ length: idLength }).primaryKey(),
+		ownerId: char({ length: idLength }).references(() => users.id, {
+			onUpdate: 'cascade',
+			onDelete: 'set null'
+		}),
+		title: varchar({ length: configConstants.exams.maxTitleLength }).notNull(),
+		description: varchar({ length: configConstants.exams.maxDescriptionLength }).notNull(),
+		openAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
+		closeAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
+		timeLimit: integer().notNull(), // seconds
+		scoreConfirmed: boolean().default(false).notNull(),
+		...timeStamps
+	},
+	(table) => [
+		index('exams_open_at_close_at').on(table.openAt, table.closeAt),
+		index('exams_close_at').on(table.closeAt)
+	]
+);
 
 export const examsRelation = relations(exams, ({ one, many }) => ({
 	owner: one(users, {
@@ -169,7 +169,7 @@ export const questions = pgTable(
 		fileSizeLimit: integer().default(configConstants.questions.defaultFileSizeLimit), // type=file: upload size limit (kB)
 		...timeStamps
 	},
-	(table) => [index('questions_exam').on(table.examId), index('questions_number').on(table.number)]
+	(table) => [index('questions_exam').on(table.examId)]
 );
 
 export const questionsRelation = relations(questions, ({ one, many }) => ({
@@ -196,10 +196,7 @@ export const choices = pgTable(
 		isCorrect: boolean().notNull(),
 		...timeStamps
 	},
-	(table) => [
-		index('choices_question').on(table.questionId),
-		index('choices_number').on(table.number)
-	]
+	(table) => [index('choices_question').on(table.questionId)]
 );
 
 export const choicesRelation = relations(choices, ({ one }) => ({
@@ -230,10 +227,8 @@ export const submissions = pgTable(
 		...timeStamps
 	},
 	(table) => [
-		unique('submissions_exam_user_unique').on(table.examId, table.userId),
-		index('submissions_exam').on(table.examId),
-		index('submissions_user').on(table.userId),
-		index('submissions_submitted').on(table.submitted)
+		unique('submissions_user_exam_unique').on(table.userId, table.examId),
+		index('submissions_exam').on(table.examId)
 	]
 );
 
@@ -267,9 +262,8 @@ export const answers = pgTable(
 		answer: text().notNull()
 	},
 	(table) => [
-		unique('answers_submission_question_unique').on(table.submissionId, table.questionId),
-		index('answers_submission').on(table.submissionId),
-		index('answers_question').on(table.questionId)
+		unique('answers_question_submission_unique').on(table.questionId, table.submissionId),
+		index('answers_submission').on(table.submissionId)
 	]
 );
 
@@ -284,17 +278,21 @@ export const answersRelation = relations(answers, ({ one }) => ({
 	})
 }));
 
-export const announcements = pgTable('announcements', {
-	id: char({ length: idLength }).primaryKey(),
-	authorId: char({ length: idLength }).references(() => users.id, {
-		onUpdate: 'cascade',
-		onDelete: 'set null'
-	}),
-	title: varchar({ length: configConstants.announcements.maxTitleLength }).notNull(),
-	markdown: text().notNull(),
-	html: text().notNull(),
-	...timeStamps
-});
+export const announcements = pgTable(
+	'announcements',
+	{
+		id: char({ length: idLength }).primaryKey(),
+		authorId: char({ length: idLength }).references(() => users.id, {
+			onUpdate: 'cascade',
+			onDelete: 'set null'
+		}),
+		title: varchar({ length: configConstants.announcements.maxTitleLength }).notNull(),
+		markdown: text().notNull(),
+		html: text().notNull(),
+		...timeStamps
+	},
+	(table) => [index('announcements_author').on(table.authorId)]
+);
 
 export const announcementsRelation = relations(announcements, ({ one }) => ({
 	author: one(users, {
@@ -303,14 +301,18 @@ export const announcementsRelation = relations(announcements, ({ one }) => ({
 	})
 }));
 
-export const files = pgTable('files', {
-	id: char({ length: idLength }).primaryKey(),
-	size: integer().notNull(),
-	mimeType: varchar({ length: 255 }).notNull(),
-	extension: varchar({ length: 255 }).notNull(),
-	storedName: varchar({ length: 1023 })
-		.generatedAlwaysAs((): SQL => sql`${files.id} || ${files.extension}`)
-		.notNull(),
-	referenceId: char({ length: idLength }),
-	...timeStamps
-});
+export const files = pgTable(
+	'files',
+	{
+		id: char({ length: idLength }).primaryKey(),
+		size: integer().notNull(),
+		mimeType: varchar({ length: 255 }).notNull(),
+		extension: varchar({ length: 255 }).notNull(),
+		storedName: varchar({ length: 1023 })
+			.generatedAlwaysAs((): SQL => sql`${files.id} || ${files.extension}`)
+			.notNull(),
+		referenceId: char({ length: idLength }),
+		...timeStamps
+	},
+	(table) => [index('files_reference').on(table.referenceId)]
+);

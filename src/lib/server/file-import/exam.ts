@@ -11,13 +11,13 @@ import { env } from '$env/dynamic/private';
 import { questionTypes } from '$lib/enums';
 import { getExtension } from '$lib/files';
 import { renderMarkdown } from '$lib/markdown';
-import { createChoiceReturning, deleteChoice } from '$lib/server/db/services/choices';
+import { createChoice } from '$lib/server/db/services/choices';
 import { createExamReturning, deleteExam } from '$lib/server/db/services/exams';
 import {
 	createFileWithReferenceReturning,
-	deleteFileReturning
+	deleteFilesByReferenceReturning
 } from '$lib/server/db/services/files';
-import { createQuestionReturning, deleteQuestion } from '$lib/server/db/services/questions';
+import { createQuestionReturning } from '$lib/server/db/services/questions';
 import { updateAssets } from '$lib/server/file-import/update-assets';
 import type { Question } from '$lib/server/interfaces/quesion';
 
@@ -56,9 +56,6 @@ export async function importExam(
 
 	const exam = await createExamReturning(data);
 	const assets: Record<string, string> = {};
-	const assetIds: string[] = [];
-	const questionIds: string[] = [];
-	const choiceIds: string[] = [];
 
 	let sheets:
 		| {
@@ -85,7 +82,6 @@ export async function importExam(
 					extension,
 					referenceId: exam.id
 				});
-				assetIds.push(file.id);
 				await fs.writeFile(join(env.FILE_STORAGE_PATH, file.storedName), compressed.stream());
 				assets[compressed.path] = `${base}/api/public/files/${file.storedName}`;
 			}
@@ -182,7 +178,6 @@ export async function importExam(
 						fileTypes,
 						fileSizeLimit
 					});
-					questionIds.push(question.id);
 				}
 
 				if (row[0].toLowerCase() === '$choice') {
@@ -203,30 +198,21 @@ export async function importExam(
 
 					choiceNumber++;
 
-					const choice = await createChoiceReturning({
+					await createChoice({
 						questionId: question.id,
 						number: choiceNumber,
 						markdown,
 						html: renderMarkdown(markdown),
 						isCorrect
 					});
-					choiceIds.push(choice.id);
 				}
 			}
 		}
 	} catch (err) {
+		const assets = await deleteFilesByReferenceReturning(exam.id);
 		await Promise.allSettled(
-			assetIds.map(async (id) => {
-				const file = await deleteFileReturning(id);
-				if (file) {
-					try {
-						await fs.unlink(join(env.FILE_STORAGE_PATH, file.storedName));
-					} catch {} // eslint-disable-line no-empty
-				}
-			})
+			assets.map((file) => fs.unlink(join(env.FILE_STORAGE_PATH, file.storedName)))
 		);
-		await Promise.allSettled(choiceIds.map((id) => deleteChoice(id)));
-		await Promise.allSettled(questionIds.map((id) => deleteQuestion(id)));
 		try {
 			await deleteExam(exam.id);
 		} catch (err) {

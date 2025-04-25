@@ -12,7 +12,7 @@ import { renderMarkdown } from '$lib/markdown';
 import { createAnnouncement } from '$lib/server/db/services/announcements';
 import {
 	createFileWithReferenceReturning,
-	deleteFileReturning
+	deleteFilesByReferenceReturning
 } from '$lib/server/db/services/files';
 import { updateAssets } from '$lib/server/file-import/update-assets';
 import { generateId } from '$lib/token';
@@ -27,7 +27,6 @@ export async function importAnnouncement(
 	const id = generateId();
 	let markdown = '';
 	const assets: Record<string, string> = {};
-	const assetIds: string[] = [];
 
 	try {
 		for (const compressed of archive.files) {
@@ -47,7 +46,6 @@ export async function importAnnouncement(
 					extension,
 					referenceId: id
 				});
-				assetIds.push(file.id);
 				await fs.writeFile(join(env.FILE_STORAGE_PATH, file.storedName), compressed.stream());
 				assets[compressed.path] = `${base}/api/public/files/${file.storedName}`;
 			}
@@ -57,15 +55,9 @@ export async function importAnnouncement(
 			throw Error('No markdown file found');
 		}
 	} catch (err) {
+		const assets = await deleteFilesByReferenceReturning(id);
 		await Promise.allSettled(
-			assetIds.map(async (id) => {
-				const file = await deleteFileReturning(id);
-				if (file) {
-					try {
-						await fs.unlink(join(env.FILE_STORAGE_PATH, file.storedName));
-					} catch {} // eslint-disable-line no-empty
-				}
-			})
+			assets.map((file) => fs.unlink(join(env.FILE_STORAGE_PATH, file.storedName)))
 		);
 
 		throw err;
