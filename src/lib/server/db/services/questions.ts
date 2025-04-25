@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { questions } from '$lib/server/db/schema';
@@ -24,7 +24,12 @@ const createQuestionReturningQuery = db
 		fileSizeLimit: sql.placeholder('fileSizeLimit')
 	})
 	.returning()
-	.prepare('create-question-returning');
+	.prepare('create_question_returning');
+
+const deleteQuestionQuery = db
+	.delete(questions)
+	.where(eq(questions.id, sql.placeholder('id')))
+	.prepare('delete_question');
 
 export async function createQuestionReturning(data: {
 	id?: string;
@@ -43,4 +48,8 @@ export async function createQuestionReturning(data: {
 }) {
 	data.id ??= generateId();
 	return (await createQuestionReturningQuery.execute(data))[0];
+}
+
+export async function deleteQuestion(id: string) {
+	return deleteQuestionQuery.execute({ id });
 }

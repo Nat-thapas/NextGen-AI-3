@@ -14,7 +14,7 @@ const createFileQuery = db
 		mimeType: sql.placeholder('mimeType'),
 		extension: sql.placeholder('extension')
 	})
-	.prepare('create-file');
+	.prepare('create_file');
 
 const createFileWithReferenceQuery = db
 	.insert(files)
@@ -25,7 +25,7 @@ const createFileWithReferenceQuery = db
 		extension: sql.placeholder('extension'),
 		referenceId: sql.placeholder('referenceId')
 	})
-	.prepare('create-file-with-reference');
+	.prepare('create_file_with_reference');
 
 const createFileReturningQuery = db
 	.insert(files)
@@ -36,7 +36,7 @@ const createFileReturningQuery = db
 		extension: sql.placeholder('extension')
 	})
 	.returning()
-	.prepare('create-file-returning');
+	.prepare('create_file_returning');
 
 const createFileWithReferenceReturningQuery = db
 	.insert(files)
@@ -48,7 +48,7 @@ const createFileWithReferenceReturningQuery = db
 		referenceId: sql.placeholder('referenceId')
 	})
 	.returning()
-	.prepare('create-file-with-reference-returning');
+	.prepare('create_file_with_reference_returning');
 
 const getFileQuery = db.query.files
 	.findFirst({
@@ -60,6 +60,12 @@ const deleteFileQuery = db
 	.delete(files)
 	.where(eq(files.id, sql.placeholder('id')))
 	.prepare('delete_file');
+
+const deleteFileReturningQuery = db
+	.delete(files)
+	.where(eq(files.id, sql.placeholder('id')))
+	.returning()
+	.prepare('delete_file_returning');
 
 export async function createFile(data: {
 	id?: string;
@@ -103,10 +109,14 @@ export async function createFileWithReferenceReturning(data: {
 	return (await createFileWithReferenceReturningQuery.execute(data))[0];
 }
 
-export async function getFile(id: string): Promise<ReturnType<typeof getFileQuery.execute>> {
+export async function getFile(id: string) {
 	return getFileQuery.execute({ id });
 }
 
-export async function deleteFile(id: string): Promise<ReturnType<typeof deleteFileQuery.execute>> {
+export async function deleteFile(id: string) {
 	return deleteFileQuery.execute({ id });
+}
+
+export async function deleteFileReturning(id: string) {
+	return (await deleteFileReturningQuery.execute({ id }))[0];
 }

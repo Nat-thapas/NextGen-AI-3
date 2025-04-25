@@ -18,7 +18,7 @@ const createExamReturningQuery = db
 		timeLimit: sql.placeholder('timeLimit')
 	})
 	.returning()
-	.prepare('create-exam-returning');
+	.prepare('create_exam_returning');
 
 const getExamsAvailableQuery = db.query.exams
 	.findMany({
@@ -88,6 +88,11 @@ const getExamsExpiredQuery = db.query.exams
 	})
 	.prepare('get_exams_expired');
 
+const deleteExamQuery = db
+	.delete(exams)
+	.where(eq(exams.id, sql.placeholder('id')))
+	.prepare('delete_exam');
+
 export async function createExamReturning(data: {
 	id?: string;
 	ownerId: string;
@@ -115,4 +120,8 @@ export async function getExamsCompleted(userId: string) {
 
 export async function getExamsExpired(userId: string) {
 	return getExamsExpiredQuery.execute({ userId });
+}
+
+export async function deleteExam(id: string) {
+	return deleteExamQuery.execute({ id });
 }
