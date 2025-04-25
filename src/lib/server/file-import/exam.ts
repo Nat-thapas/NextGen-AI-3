@@ -103,7 +103,8 @@ export async function importExam(
 			const data = sheet.data;
 			for (const [rowNumber, row] of data.entries()) {
 				if (row.length === 0) continue;
-				if (!(row[0] instanceof String) || !row[0].startsWith('$')) continue;
+				if (!(row[0] instanceof String || typeof row[0] === 'string') || !row[0].startsWith('$'))
+					continue;
 
 				if (row[0].toLowerCase() === '$question') {
 					if (row[1] === undefined) {
@@ -197,7 +198,8 @@ export async function importExam(
 					const markdown = updateAssets(String(row[1]), assets);
 
 					const isCorrect =
-						String(row[2]).toLowerCase() === 'true' || (row[2] instanceof Number && row[2] !== 0);
+						String(row[2]).toLowerCase() === 'true' ||
+						((row[2] instanceof Number || typeof row[2] === 'number') && row[2] !== 0);
 
 					choiceNumber++;
 
@@ -212,7 +214,7 @@ export async function importExam(
 				}
 			}
 		}
-	} finally {
+	} catch (err) {
 		await Promise.allSettled(
 			assetIds.map(async (id) => {
 				const file = await deleteFileReturning(id);
@@ -231,5 +233,7 @@ export async function importExam(
 			console.error(`Failed to delete exam id: '${exam.id}' after import failure`);
 			console.error(err);
 		}
+
+		throw err;
 	}
 }

@@ -89,3 +89,97 @@ export function isTimeZoneValid(timeZone: string): boolean {
 		return false;
 	}
 }
+
+const us_re = /(\d+).(\d+).(\d+),?\s+(\d+).(\d+)(.(\d+))?/;
+
+const format = {
+	timeZone: 'UTC',
+	hour12: false,
+	year: 'numeric',
+	month: 'numeric',
+	day: 'numeric',
+	hour: 'numeric',
+	minute: 'numeric'
+} as const;
+
+const utc_f = new Intl.DateTimeFormat('en-US', {
+	timeZone: 'UTC',
+	hour12: false,
+	year: 'numeric',
+	month: 'numeric',
+	day: 'numeric',
+	hour: 'numeric',
+	minute: 'numeric'
+});
+
+/*
+	Modified from: https://github.com/mobz/get-timezone-offset
+	License: CC0 1.0 (No Copyright)
+*/
+export function getTimezoneOffset(timeZone: string): number {
+	function diffMinutes(d1: number[], d2: number[]): number {
+		const d1h = d1[3] === 24 ? 0 : d1[3];
+		const d2h = d2[3] === 24 ? 0 : d2[3];
+		let day = d1[1] - d2[1];
+		const hour = d1h - d2h;
+		const min = d1[4] - d2[4];
+
+		if (day > 15) day = -1;
+		if (day < -15) day = 1;
+
+		return 60 * (24 * day + hour) + min;
+	}
+
+	function parseDate(date_str: string): number[] {
+		date_str = date_str.replace(/[\u200E\u200F]/g, '');
+		return [].slice.call(us_re.exec(date_str), 1).map(Math.floor);
+	}
+
+	const utcFormat = new Intl.DateTimeFormat('en-US', {
+		timeZone: 'UTC',
+		hour12: false,
+		year: 'numeric',
+		month: 'numeric',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: 'numeric'
+	});
+
+	const localFormat = new Intl.DateTimeFormat('en-US', {
+		timeZone,
+		hour12: false,
+		year: 'numeric',
+		month: 'numeric',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: 'numeric'
+	});
+
+	const now = new Date();
+
+	return diffMinutes(parseDate(utcFormat.format(now)), parseDate(localFormat.format(now)));
+}
+
+export function parseDateAsUtc(dateString: string): Date {
+	const date = new Date(dateString);
+	if (isNaN(date.getTime())) {
+		throw new Error('Invalid date string');
+	}
+	return new Date(
+		Date.UTC(
+			date.getFullYear(),
+			date.getMonth(),
+			date.getDate(),
+			date.getHours(),
+			date.getMinutes(),
+			date.getSeconds(),
+			date.getMilliseconds()
+		)
+	);
+}
+
+export function parseDateWithTimeZone(dateString: string, timeZone: string): Date {
+	const date = parseDateAsUtc(dateString);
+	const offset = getTimezoneOffset(timeZone);
+	return new Date(date.getTime() + offset * 60 * 1000);
+}

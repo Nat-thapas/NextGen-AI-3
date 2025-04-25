@@ -56,7 +56,7 @@ export async function importAnnouncement(
 		if (!markdown) {
 			throw Error('No markdown file found');
 		}
-	} finally {
+	} catch (err) {
 		await Promise.allSettled(
 			assetIds.map(async (id) => {
 				const file = await deleteFileReturning(id);
@@ -67,6 +67,8 @@ export async function importAnnouncement(
 				}
 			})
 		);
+
+		throw err;
 	}
 
 	markdown = updateAssets(markdown, assets);

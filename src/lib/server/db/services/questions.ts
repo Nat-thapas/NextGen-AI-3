@@ -17,7 +17,7 @@ const createQuestionReturningQuery = db
 		questionType: sql.placeholder('questionType'),
 		maxScore: sql.placeholder('maxScore'),
 		minScore: sql.placeholder('minScore'),
-		scoringType: sql.placeholder('scroingType'),
+		scoringType: sql.placeholder('scoringType'),
 		textLengthLimit: sql.placeholder('textLengthLimit'),
 		textCorrect: sql.placeholder('textCorrect'),
 		fileTypes: sql.placeholder('fileTypes'),

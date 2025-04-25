@@ -23,7 +23,6 @@
 		resetForm: false,
 		delayMs: configConstants.forms.delay,
 		timeoutMs: configConstants.forms.longTimeout,
-		multipleSubmits: 'prevent',
 		onUpdated({ form }) {
 			if (form.message) {
 				switch (form.message.type) {

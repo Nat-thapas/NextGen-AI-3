@@ -14,8 +14,8 @@
 	import { formatDate, formatDateTime } from '$lib/datetime';
 	import { roles } from '$lib/enums';
 	import { getErrorMessage } from '$lib/error';
-	import { setSearchParams } from '$lib/fetch-json';
 	import { isRoleAtLeast } from '$lib/roles';
+	import { setSearchParams } from '$lib/url';
 
 	import { createAnnouncementFormSchema } from './schema';
 
@@ -54,24 +54,23 @@
 		setSearchParams(page.url, { 'announcements-count': data.announcements.length + 5 }).toString()
 	);
 
-	let isFormDialogOpen = $state(false);
+	let isCreateAnnouncementFormDialogOpen = $state(false);
 
 	const createAnnouncementForm = superForm(data.createAnnouncementForm, {
 		validators: zodClient(createAnnouncementFormSchema),
 		resetForm: false,
 		delayMs: configConstants.forms.delay,
 		timeoutMs: configConstants.forms.longTimeout,
-		multipleSubmits: 'prevent',
 		onUpdated({ form }) {
 			if (form.message) {
 				switch (form.message.type) {
 					case 'success':
 						toast.success(form.message.text);
-						isFormDialogOpen = false;
+						isCreateAnnouncementFormDialogOpen = false;
 						break;
 					case 'info':
 						toast.info(form.message.text);
-						isFormDialogOpen = false;
+						isCreateAnnouncementFormDialogOpen = false;
 						break;
 					case 'warning':
 						toast.warning(form.message.text);
@@ -96,7 +95,7 @@
 		delayed: createAnnouncementDelayed
 	} = createAnnouncementForm;
 
-	let file = fileProxy(createAnnouncementForm, 'file');
+	let announcementFile = fileProxy(createAnnouncementForm, 'file');
 </script>
 
 <svelte:head>
@@ -216,11 +215,13 @@
 				class="absolute -top-8 right-16 h-16 w-fit" />
 			{#each agendas as agenda (agenda[0])}
 				<div class="flex">
-					<span class="block w-28 text-lg text-primary-foreground">{formatDate(agenda[1])}</span>
+					<span class="block w-28 text-lg text-primary-foreground">
+						{formatDate(agenda[1], { timeZone: 'UTC' })}
+					</span>
 					{#if agenda[2] !== null}
 						<span class="mx-2 block w-4 text-center text-lg text-primary-foreground">-</span>
 						<span class="mr-16 block w-28 text-lg text-primary-foreground">
-							{formatDate(agenda[2])}
+							{formatDate(agenda[2], { timeZone: 'UTC' })}
 						</span>
 					{:else}
 						<span class="mr-16 w-36"></span>
@@ -280,10 +281,10 @@
 		<div class="flex w-0 flex-grow flex-col items-center">
 			<div class="mb-4 flex items-center justify-center gap-4">
 				{#if isRoleAtLeast(data.user?.role, roles.teacher)}
-					<Dialog.Root bind:open={isFormDialogOpen}>
+					<Dialog.Root bind:open={isCreateAnnouncementFormDialogOpen}>
 						<Dialog.Trigger
 							class="flex h-12 w-12 items-center justify-center rounded-full bg-secondary-foreground text-white transition-colors hover:bg-primary-foreground">
-							<Plus />
+							<Plus size={28} />
 						</Dialog.Trigger>
 						<Dialog.Content>
 							<Dialog.Header>
@@ -321,7 +322,7 @@
 											</div>
 											<input
 												{...props}
-												bind:files={$file}
+												bind:files={$announcementFile}
 												type="file"
 												accept="application/zip, application/zip-compressed, application/x-zip-compressed, multipart/x-zip"
 												class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-secondary-foreground file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
@@ -392,16 +393,18 @@
 			</span>
 			<div class="flex items-center space-x-8">
 				<div class="space-y-6">
-					<div class="flex items-center gap-2">
+					<a
+						href="https://www.facebook.com/profile.php?id=61559737934327"
+						class="flex items-center gap-2">
 						<Facebook color="#b47bfe" />
 						<span class="text-base font-medium text-primary-foreground">CE Next Gen AI</span>
-					</div>
-					<div class="flex items-center gap-2">
+					</a>
+					<a href="https://www.instagram.com/nextgen.ai.camp/" class="flex items-center gap-2">
 						<Instagram color="#b47bfe" />
 						<span class="text-base font-medium text-primary-foreground">CE Next Gen AI</span>
-					</div>
+					</a>
 				</div>
-				<div class="flex items-center gap-2">
+				<a href="https://maps.app.goo.gl/5MFUS5E8khvjwVFP6" class="flex items-center gap-2">
 					<Pin color="#b47bfe" />
 					<span class="text-base font-medium text-primary-foreground">
 						อาคารปฏิบัติการรวมวิศวกรรมศาสตร์ 2 (ECC)
@@ -410,12 +413,16 @@
 						<br />
 						กรุงเทพมหานคร 10520
 					</span>
-				</div>
+				</a>
 			</div>
 		</div>
 		<div class="flex items-center gap-4">
-			<img src={kmitl} width="256" height="257" alt="KMITL logo" class="h-32 w-32" />
-			<img src={ce} width="256" height="257" alt="CE-KMITL logo" class="h-32 w-32" />
+			<a href="https://kmitl.ac.th/" class="h-32 w-32">
+				<img src={kmitl} width="256" height="257" alt="KMITL logo" class="h-32 w-32" />
+			</a>
+			<a href="https://ce.kmitl.ac.th/" class="h-32 w-32">
+				<img src={ce} width="256" height="257" alt="CE-KMITL logo" class="h-32 w-32" />
+			</a>
 		</div>
 	</div>
 </footer>

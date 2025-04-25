@@ -1,6 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { and, asc, desc, eq, exists, gt, lte, notExists, sql } from 'drizzle-orm';
+import {
+	and,
+	asc,
+	desc,
+	eq,
+	getTableColumns,
+	gt,
+	isNotNull,
+	isNull,
+	lte,
+	or,
+	sql
+} from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { exams, submissions } from '$lib/server/db/schema';
@@ -20,72 +32,70 @@ const createExamReturningQuery = db
 	.returning()
 	.prepare('create_exam_returning');
 
-const getExamsAvailableQuery = db.query.exams
-	.findMany({
-		where: and(
+const getExamsAvailableQuery = db
+	.select({
+		...getTableColumns(exams),
+		attempted: sql<boolean>`${isNotNull(submissions.id)}`
+	})
+	.from(exams)
+	.leftJoin(
+		submissions,
+		and(eq(submissions.examId, exams.id), eq(submissions.userId, sql.placeholder('userId')))
+	)
+	.where(
+		and(
 			lte(exams.openAt, sql`now()`),
 			gt(exams.closeAt, sql`now()`),
-			notExists(
-				db
-					.select()
-					.from(submissions)
-					.where(
-						and(
-							eq(submissions.examId, exams.id),
-							eq(submissions.userId, sql.placeholder('userId')),
-							eq(submissions.submitted, true)
-						)
-					)
-			)
-		),
-		orderBy: [asc(exams.closeAt)]
-	})
+			or(isNull(submissions.id), eq(submissions.submitted, false))
+		)
+	)
+	.orderBy(asc(exams.closeAt))
 	.prepare('get_exams_available');
 
-const getExamsUpcomingQuery = db.query.exams
-	.findMany({
-		where: gt(exams.openAt, sql`now()`),
-		orderBy: [asc(exams.openAt)]
+const getExamsUpcomingQuery = db
+	.select({
+		...getTableColumns(exams)
 	})
+	.from(exams)
+	.leftJoin(
+		submissions,
+		and(eq(submissions.examId, exams.id), eq(submissions.userId, sql.placeholder('userId')))
+	)
+	.where(
+		and(gt(exams.openAt, sql`now()`), or(isNull(submissions.id), eq(submissions.submitted, false)))
+	)
+	.orderBy(asc(exams.openAt))
 	.prepare('get_exams_upcoming');
 
-const getExamsCompletedQuery = db.query.exams
-	.findMany({
-		where: exists(
-			db
-				.select()
-				.from(submissions)
-				.where(
-					and(
-						eq(submissions.examId, exams.id),
-						eq(submissions.userId, sql.placeholder('userId')),
-						eq(submissions.submitted, true)
-					)
-				)
-		),
-		orderBy: [desc(exams.closeAt)]
+const getExamsCompletedQuery = db
+	.select({
+		...getTableColumns(exams)
 	})
+	.from(exams)
+	.leftJoin(
+		submissions,
+		and(eq(submissions.examId, exams.id), eq(submissions.userId, sql.placeholder('userId')))
+	)
+	.where(
+		and(
+			isNotNull(submissions.id),
+			or(eq(submissions.submitted, true), lte(exams.closeAt, sql`now()`))
+		)
+	)
+	.orderBy(desc(exams.closeAt))
 	.prepare('get_exams_completed');
 
-const getExamsExpiredQuery = db.query.exams
-	.findMany({
-		where: and(
-			lte(exams.closeAt, sql`now()`),
-			notExists(
-				db
-					.select()
-					.from(submissions)
-					.where(
-						and(
-							eq(submissions.examId, exams.id),
-							eq(submissions.userId, sql.placeholder('userId')),
-							eq(submissions.submitted, true)
-						)
-					)
-			)
-		),
-		orderBy: [desc(exams.closeAt)]
+const getExamsExpiredQuery = db
+	.select({
+		...getTableColumns(exams)
 	})
+	.from(exams)
+	.leftJoin(
+		submissions,
+		and(eq(submissions.examId, exams.id), eq(submissions.userId, sql.placeholder('userId')))
+	)
+	.where(and(isNull(submissions.id), lte(exams.closeAt, sql`now()`)))
+	.orderBy(desc(exams.closeAt))
 	.prepare('get_exams_expired');
 
 const deleteExamQuery = db
@@ -110,8 +120,8 @@ export async function getExamsAvailable(userId: string) {
 	return getExamsAvailableQuery.execute({ userId });
 }
 
-export async function getExamsUpcoming() {
-	return getExamsUpcomingQuery.execute();
+export async function getExamsUpcoming(userId: string) {
+	return getExamsUpcomingQuery.execute({ userId });
 }
 
 export async function getExamsCompleted(userId: string) {

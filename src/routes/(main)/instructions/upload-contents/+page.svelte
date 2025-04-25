@@ -8,7 +8,7 @@
 	<title>CE Next Gen AI - Uploading Contents</title>
 </svelte:head>
 
-<div class="mx-auto mt-4 max-w-7xl px-16">
+<div class="mx-auto mt-6 max-w-7xl px-16">
 	<h1 class="mb-4 text-4xl font-semibold">Uploading Contents</h1>
 	<ol class="ml-8 list-decimal space-y-8 text-lg">
 		<li>

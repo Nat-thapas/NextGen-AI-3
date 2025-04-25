@@ -21,7 +21,6 @@
 		resetForm: false,
 		delayMs: configConstants.forms.delay,
 		timeoutMs: configConstants.forms.timeout,
-		multipleSubmits: 'prevent',
 		onUpdated({ form }) {
 			if (form.message) {
 				switch (form.message.type) {
@@ -58,7 +57,6 @@
 		validators: zodClient(changePasswordFormSchema),
 		delayMs: configConstants.forms.delay,
 		timeoutMs: configConstants.forms.timeout,
-		multipleSubmits: 'prevent',
 		onUpdated({ form }) {
 			if (form.message) {
 				switch (form.message.type) {
