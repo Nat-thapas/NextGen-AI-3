@@ -6,6 +6,7 @@
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
 
+	import { roles } from '$lib/enums.js';
 	import { isRoleAtLeast } from '$lib/roles';
 
 	import banner from '$lib/images/banner/banner-512.avif';
@@ -38,7 +39,7 @@
 				class="text-lg font-semibold transition-colors hover:text-primary-foreground">
 				Home
 			</a>
-			{#if isRoleAtLeast(data.user.role, 'student')}
+			{#if isRoleAtLeast(data.user.role, roles.student)}
 				{#each navs as nav (nav[0])}
 					<a
 						href={nav[0]}
@@ -49,7 +50,7 @@
 					</a>
 				{/each}
 			{/if}
-			{#if isRoleAtLeast(data.user.role, 'staff')}
+			{#if isRoleAtLeast(data.user.role, roles.staff)}
 				<a
 					href={`${base}/markdown-preview`}
 					class:text-secondary-foreground={!pathname.startsWith(`${base}/markdown-preview`)}

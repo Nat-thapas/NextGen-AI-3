@@ -3,6 +3,7 @@ import { type } from 'arktype';
 import { fail, message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
+import { roles } from '$lib/enums';
 import { getErrorMessage } from '$lib/error';
 import type { Announcement } from '$lib/interfaces/announcement';
 import { isRoleAtLeast } from '$lib/roles';
@@ -53,7 +54,7 @@ export const actions: Actions = {
 			});
 		}
 
-		if (!isRoleAtLeast(user.role, 'teacher')) {
+		if (!isRoleAtLeast(user.role, roles.teacher)) {
 			error(403, {
 				message: 'You do not have access to this page'
 			});

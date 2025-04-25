@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 
+import { roles } from '$lib/enums';
 import { isRoleAtLeast } from '$lib/roles';
 import {
 	getExamsAvailable,
@@ -18,7 +19,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			message: 'You have to be logged in to access this page'
 		});
 	}
-	if (!isRoleAtLeast(user.role, 'student')) {
+	if (!isRoleAtLeast(user.role, roles.student)) {
 		error(403, {
 			message: 'You do not have access to this page'
 		});

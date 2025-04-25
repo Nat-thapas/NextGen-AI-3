@@ -12,6 +12,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { configConstants } from '$lib/config-constants';
 	import { formatDate, formatDateTime } from '$lib/datetime';
+	import { roles } from '$lib/enums';
 	import { getErrorMessage } from '$lib/error';
 	import { setSearchParams } from '$lib/fetch-json';
 	import { isRoleAtLeast } from '$lib/roles';
@@ -278,7 +279,7 @@
 			class="-mt-16 h-fit w-56" />
 		<div class="flex w-0 flex-grow flex-col items-center">
 			<div class="mb-4 flex items-center justify-center gap-4">
-				{#if isRoleAtLeast(data.user?.role, 'teacher')}
+				{#if isRoleAtLeast(data.user?.role, roles.teacher)}
 					<Dialog.Root bind:open={isFormDialogOpen}>
 						<Dialog.Trigger
 							class="flex h-12 w-12 items-center justify-center rounded-full bg-secondary-foreground text-white transition-colors hover:bg-primary-foreground">

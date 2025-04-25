@@ -12,7 +12,7 @@ export const questionTypes = {
 	checkboxes: 'checkboxes',
 	text: 'text',
 	file: 'file'
-};
+} as const;
 
 export const scoringTypes = {
 	exact: 'exact',
@@ -20,7 +20,7 @@ export const scoringTypes = {
 	and: 'and',
 	or: 'or',
 	scale: 'scale'
-};
+} as const;
 
 export enum HttpMethod {
 	GET = 'GET',
