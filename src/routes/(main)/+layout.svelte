@@ -16,7 +16,7 @@
 	let pathname = $derived(page.url.pathname);
 
 	const navs: [string, string][] = [
-		[`${base}/exercise`, 'Exercise'],
+		[`${base}/exercises`, 'Exercises'],
 		[`${base}/challenge`, 'Challenge'],
 		[`${base}/leaderboard`, 'Leaderboard']
 	];

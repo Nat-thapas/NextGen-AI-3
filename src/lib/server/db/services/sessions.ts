@@ -8,8 +8,8 @@ import { generateToken } from '$lib/token';
 
 const createSessionQuery = db.insert(sessions).values({
 	token: sql.placeholder('token'),
-	userId: sql.placeholder('usersId'),
-	firstLoginIp: sql.placeholder('fisrtLoginIp'),
+	userId: sql.placeholder('userId'),
+	firstLoginIp: sql.placeholder('firstLoginIp'),
 	firstLoginUserAgent: sql.placeholder('firstLoginUserAgent'),
 	lastUseIp: sql.placeholder('lastUseIp'),
 	lastUseUserAgent: sql.placeholder('lastUseUserAgent')
@@ -17,9 +17,21 @@ const createSessionQuery = db.insert(sessions).values({
 
 const getSessionWithUserQuery = db.query.sessions
 	.findFirst({
+		columns: {
+			token: true,
+			updatedAt: true
+		},
 		where: eq(sessions.token, sql.placeholder<string>('token')),
 		with: {
-			user: true
+			user: {
+				columns: {
+					id: true,
+					role: true,
+					email: true,
+					hashedPassword: true,
+					transcriptId: true
+				}
+			}
 		}
 	})
 	.prepare('get_session_with_user');

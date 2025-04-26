@@ -14,7 +14,7 @@ import { renderMarkdown } from '$lib/markdown';
 import { createChoice } from '$lib/server/db/services/choices';
 import { createExamReturning, deleteExam } from '$lib/server/db/services/exams';
 import {
-	createFileWithReferenceReturning,
+	createFileReturning,
 	deleteFilesByReferenceReturning
 } from '$lib/server/db/services/files';
 import { createQuestion } from '$lib/server/db/services/questions';
@@ -75,7 +75,7 @@ export async function importExam(
 			} else {
 				const mimeType = mimeTypes.lookup(compressed.path) || 'application/octet-stream';
 				const extension = getExtension(compressed.path, mimeType);
-				const file = await createFileWithReferenceReturning({
+				const file = await createFileReturning({
 					size: compressed.uncompressedSize,
 					mimeType,
 					extension,

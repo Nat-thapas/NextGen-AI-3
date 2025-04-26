@@ -11,6 +11,7 @@ import { env } from '$env/dynamic/private';
 import { getExtension } from '$lib/files';
 import { createFileReturning, deleteFile, getFile } from '$lib/server/db/services/files';
 import {
+	getUser,
 	updateUserPassword,
 	updateUserProfile,
 	updateUserProfileWithTranscript
@@ -20,8 +21,14 @@ import type { Actions, PageServerLoad } from './$types';
 import { changePasswordFormSchema, updateProfileFormSchema } from './schema';
 
 export const load: PageServerLoad = async (event) => {
-	const user = event.locals.user;
+	const eventUser = event.locals.user;
+	if (!eventUser) {
+		error(401, {
+			message: 'You have to be logged in to access this page'
+		});
+	}
 
+	const user = await getUser(eventUser.id);
 	if (!user) {
 		error(401, {
 			message: 'You have to be logged in to access this page'
@@ -69,7 +76,8 @@ export const actions: Actions = {
 			const transcript = await createFileReturning({
 				size: form.data.transcript.size,
 				mimeType: form.data.transcript.type,
-				extension: getExtension(form.data.transcript.name, form.data.transcript.type)
+				extension: getExtension(form.data.transcript.name, form.data.transcript.type),
+				referenceId: user.id
 			});
 
 			await fs.writeFile(

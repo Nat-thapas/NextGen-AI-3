@@ -12,33 +12,12 @@ const createFileQuery = db
 		id: sql.placeholder('id'),
 		size: sql.placeholder('size'),
 		mimeType: sql.placeholder('mimeType'),
-		extension: sql.placeholder('extension')
-	})
-	.prepare('create_file');
-
-const createFileWithReferenceQuery = db
-	.insert(files)
-	.values({
-		id: sql.placeholder('id'),
-		size: sql.placeholder('size'),
-		mimeType: sql.placeholder('mimeType'),
 		extension: sql.placeholder('extension'),
 		referenceId: sql.placeholder('referenceId')
 	})
 	.prepare('create_file_with_reference');
 
 const createFileReturningQuery = db
-	.insert(files)
-	.values({
-		id: sql.placeholder('id'),
-		size: sql.placeholder('size'),
-		mimeType: sql.placeholder('mimeType'),
-		extension: sql.placeholder('extension')
-	})
-	.returning()
-	.prepare('create_file_returning');
-
-const createFileWithReferenceReturningQuery = db
 	.insert(files)
 	.values({
 		id: sql.placeholder('id'),
@@ -78,20 +57,10 @@ export async function createFile(data: {
 	size: number;
 	mimeType: string;
 	extension: string;
-}) {
-	data.id ??= generateId();
-	return createFileQuery.execute(data);
-}
-
-export async function createFileWithReference(data: {
-	id?: string;
-	size: number;
-	mimeType: string;
-	extension: string;
 	referenceId: string;
 }) {
 	data.id ??= generateId();
-	return createFileWithReferenceQuery.execute(data);
+	return createFileQuery.execute(data);
 }
 
 export async function createFileReturning(data: {
@@ -99,20 +68,10 @@ export async function createFileReturning(data: {
 	size: number;
 	mimeType: string;
 	extension: string;
-}) {
-	data.id ??= generateId();
-	return (await createFileReturningQuery.execute(data))[0];
-}
-
-export async function createFileWithReferenceReturning(data: {
-	id?: string;
-	size: number;
-	mimeType: string;
-	extension: string;
 	referenceId: string;
 }) {
 	data.id ??= generateId();
-	return (await createFileWithReferenceReturningQuery.execute(data))[0];
+	return (await createFileReturningQuery.execute(data))[0];
 }
 
 export async function getFile(id: string) {

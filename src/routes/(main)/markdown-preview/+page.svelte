@@ -153,11 +153,11 @@
 				<span class="text-lg">Throttle rendering</span>
 			</div>
 		</div>
-		<article
+		<div
 			bind:this={previewElement}
 			class="prose prose-lg prose-neutral w-full max-w-none flex-grow overflow-scroll rounded-lg border border-gray-300 p-4 py-1 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 			{@html html}
-		</article>
+		</div>
 	</div>
 </div>

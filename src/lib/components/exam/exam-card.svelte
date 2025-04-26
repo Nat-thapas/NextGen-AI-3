@@ -53,7 +53,7 @@
 	<div class="mr-4 flex h-28 w-16 items-center justify-center">
 		{#if isExamAvailable}
 			<a
-				href={`${base}/exams/${exam.id}`}
+				href={`${base}/exercises/${exam.id}`}
 				class="flex h-10 w-10 items-center justify-center rounded-full bg-accent-foreground">
 				<ArrowRight size={28} class="text-white" />
 			</a>

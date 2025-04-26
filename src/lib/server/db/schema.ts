@@ -55,9 +55,9 @@ export const users = pgTable(
 	'users',
 	{
 		id: char({ length: idLength }).primaryKey(),
+		role: roles().notNull(),
 		email: varchar({ length: configConstants.users.maxEmailLength }).unique().notNull(),
 		hashedPassword: varchar({ length: 1023 }),
-		role: roles().notNull(),
 		registrationComplete: boolean().default(false).notNull(),
 		verificationToken: varchar({ length: 255 }),
 		verificationTokenGeneratedAt: timestamp({ precision: 6, withTimezone: true })
@@ -148,7 +148,9 @@ export const examsRelation = relations(exams, ({ one, many }) => ({
 		fields: [exams.ownerId],
 		references: [users.id]
 	}),
-	questions: many(questions)
+	questions: many(questions),
+	choices: many(choices),
+	submissions: many(submissions)
 }));
 
 export const questions = pgTable(
@@ -239,7 +241,7 @@ export const submissions = pgTable(
 	(table) => [primaryKey({ columns: [table.examId, table.userId] })]
 );
 
-export const submissionsRelation = relations(submissions, ({ one }) => ({
+export const submissionsRelation = relations(submissions, ({ one, many }) => ({
 	exam: one(exams, {
 		fields: [submissions.examId],
 		references: [exams.id]
@@ -247,7 +249,8 @@ export const submissionsRelation = relations(submissions, ({ one }) => ({
 	user: one(users, {
 		fields: [submissions.userId],
 		references: [users.id]
-	})
+	}),
+	answers: many(answers)
 }));
 
 export const answers = pgTable(

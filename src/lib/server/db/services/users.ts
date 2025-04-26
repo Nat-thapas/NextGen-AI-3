@@ -10,13 +10,17 @@ const createUserQuery = db
 	.insert(users)
 	.values({
 		id: sql.placeholder('id'),
-		email: sql.placeholder('email'),
 		role: sql.placeholder('role'),
+		email: sql.placeholder('email'),
 		verificationToken: sql.placeholder('verificationToken'),
 		verificationTokenGeneratedAt: sql`now()`,
 		lastEmailSentAt: sql`now()`
 	})
 	.prepare('create_user');
+
+const getUserQuery = db.query.users
+	.findFirst({ where: eq(users.id, sql.placeholder('id')) })
+	.prepare('get_user');
 
 const getUserByEmailQuery = db.query.users
 	.findFirst({
@@ -113,8 +117,8 @@ const updateUserPasswordQuery = db
 
 export async function createUser(data: {
 	id?: string;
-	email: string;
 	role: string;
+	email: string;
 	verificationToken: string;
 }) {
 	data.id ??= generateId();
@@ -123,6 +127,10 @@ export async function createUser(data: {
 
 export async function updateUserVerificationToken(data: { id: string; verificationToken: string }) {
 	return updateUserVerificationTokenQuery.execute(data);
+}
+
+export async function getUser(id: string) {
+	return getUserQuery.execute({ id });
 }
 
 export async function getUserByEmail(email: string) {

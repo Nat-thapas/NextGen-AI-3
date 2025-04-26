@@ -47,17 +47,6 @@ export const load: PageServerLoad = async ({ url }) => {
 			)
 		);
 	}
-	if (user.registrationComplete) {
-		redirect(
-			303,
-			setToastParams(
-				`${base}/auth/login`,
-				'You have already registered',
-				'Your account have already been registered, please login instead.',
-				'info'
-			)
-		);
-	}
 	if (
 		getSecondsSince(user.verificationTokenGeneratedAt) >
 		configConstants.users.registrationSetPasswordTimeout
@@ -71,6 +60,20 @@ export const load: PageServerLoad = async ({ url }) => {
 				'error'
 			)
 		);
+	}
+	if (user.registrationComplete) {
+		redirect(
+			303,
+			setToastParams(
+				`${base}/auth/login`,
+				'You have already registered',
+				'Your account have already been registered, please login instead.',
+				'info'
+			)
+		);
+	}
+	if (!user.hashedPassword) {
+		redirect(303, `${base}/auth/register/continue?token=${token}`);
 	}
 
 	return {
@@ -107,17 +110,6 @@ export const actions: Actions = {
 				)
 			);
 		}
-		if (user.registrationComplete) {
-			redirect(
-				303,
-				setToastParams(
-					`${base}/auth/login`,
-					'You have already registered',
-					'Your account have already been registered, please login instead.',
-					'info'
-				)
-			);
-		}
 		if (
 			getSecondsSince(user.verificationTokenGeneratedAt) >
 			configConstants.users.registrationUpdateProfileTimeout
@@ -132,11 +124,26 @@ export const actions: Actions = {
 				)
 			);
 		}
+		if (user.registrationComplete) {
+			redirect(
+				303,
+				setToastParams(
+					`${base}/auth/login`,
+					'You have already registered',
+					'Your account have already been registered, please login instead.',
+					'info'
+				)
+			);
+		}
+		if (!user.hashedPassword) {
+			redirect(303, `${base}/auth/register/continue?token=${form.data.token}`);
+		}
 
 		const transcript = await createFileReturning({
 			size: form.data.transcript.size,
 			mimeType: form.data.transcript.type,
-			extension: getExtension(form.data.transcript.name, form.data.transcript.type)
+			extension: getExtension(form.data.transcript.name, form.data.transcript.type),
+			referenceId: user.id
 		});
 
 		await fs.writeFile(

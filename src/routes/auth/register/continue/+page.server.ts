@@ -40,17 +40,6 @@ export const load: PageServerLoad = async ({ url }) => {
 			)
 		);
 	}
-	if (user.registrationComplete) {
-		redirect(
-			303,
-			setToastParams(
-				`${base}/auth/login`,
-				'You have already registered',
-				'Your account have already been registered, please login instead.',
-				'info'
-			)
-		);
-	}
 	if (
 		getSecondsSince(user.verificationTokenGeneratedAt) >
 		configConstants.users.registrationLinkTimeout
@@ -64,6 +53,20 @@ export const load: PageServerLoad = async ({ url }) => {
 				'error'
 			)
 		);
+	}
+	if (user.registrationComplete) {
+		redirect(
+			303,
+			setToastParams(
+				`${base}/auth/login`,
+				'You have already registered',
+				'Your account have already been registered, please login instead.',
+				'info'
+			)
+		);
+	}
+	if (user.hashedPassword) {
+		redirect(303, `${base}/auth/register/profile?token=${token}`);
 	}
 
 	return {
@@ -100,17 +103,6 @@ export const actions: Actions = {
 				)
 			);
 		}
-		if (user.registrationComplete) {
-			redirect(
-				303,
-				setToastParams(
-					`${base}/auth/login`,
-					'You have already registered',
-					'Your account have already been registered, please login instead.',
-					'info'
-				)
-			);
-		}
 		if (
 			getSecondsSince(user.verificationTokenGeneratedAt) >
 			configConstants.users.registrationSetPasswordTimeout
@@ -124,6 +116,20 @@ export const actions: Actions = {
 					'error'
 				)
 			);
+		}
+		if (user.registrationComplete) {
+			redirect(
+				303,
+				setToastParams(
+					`${base}/auth/login`,
+					'You have already registered',
+					'Your account have already been registered, please login instead.',
+					'info'
+				)
+			);
+		}
+		if (user.hashedPassword) {
+			redirect(303, `${base}/auth/register/profile?token=${form.data.token}`);
 		}
 
 		const hashedPassword = await argon2.hash(form.data.password);

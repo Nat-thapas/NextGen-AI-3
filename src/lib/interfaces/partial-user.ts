@@ -2,8 +2,8 @@ import type { Role } from '$lib/roles';
 
 export interface OwnUser {
 	id: string;
-	email: string;
 	role: Role;
+	email: string;
 	prefix: string | null;
 	name: string | null;
 	nickname: string | null;
@@ -20,11 +20,17 @@ export interface OwnUser {
 	updatedAt: Date;
 }
 
+export interface OwnUserPartial {
+	id: string;
+	role: Role;
+	email: string;
+}
+
 export function convertOwnUser(user: OwnUser): OwnUser {
 	return {
 		id: user.id,
-		email: user.email,
 		role: user.role,
+		email: user.email,
 		prefix: user.prefix,
 		name: user.name,
 		nickname: user.nickname,
@@ -39,6 +45,14 @@ export function convertOwnUser(user: OwnUser): OwnUser {
 		addressDetail: user.addressDetail,
 		createdAt: user.createdAt,
 		updatedAt: user.updatedAt
+	};
+}
+
+export function convertOwnUserPartial(user: OwnUserPartial): OwnUserPartial {
+	return {
+		id: user.id,
+		role: user.role,
+		email: user.email
 	};
 }
 

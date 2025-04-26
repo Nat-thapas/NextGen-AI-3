@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	const announcement = await getAnnouncement(params.id);
 
 	if (!announcement) {
-		return error(404, { message: 'Not found' });
+		return error(404, { message: 'Not Found' });
 	}
 
 	return { announcement };

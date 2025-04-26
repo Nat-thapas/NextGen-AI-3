@@ -77,8 +77,8 @@ export const actions: Actions = {
 
 		if (user === undefined) {
 			await createUser({
-				email: form.data.email,
 				role: roles.registrant,
+				email: form.data.email,
 				verificationToken: token
 			});
 		} else {

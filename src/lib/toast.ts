@@ -18,19 +18,10 @@ export function setToastParams(
 	description?: string,
 	type?: 'success' | 'info' | 'warning' | 'error'
 ): string | URL {
-	// Yes, it does the same thing in both cases.
-	// It's to make the types work
-	if (urlOrUrlString instanceof URL) {
-		return setSearchParams(urlOrUrlString, {
-			'toast-message': message,
-			'toast-description': description,
-			'toast-type': type
-		});
-	} else {
-		return setSearchParams(urlOrUrlString, {
-			'toast-message': message,
-			'toast-description': description,
-			'toast-type': type
-		});
-	}
+	// @ts-expect-error TypeScript is not smart enough to know that the call signature all work out
+	return setSearchParams(urlOrUrlString, {
+		'toast-message': message,
+		'toast-description': description,
+		'toast-type': type
+	});
 }

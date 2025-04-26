@@ -11,7 +11,7 @@ import { getExtension } from '$lib/files';
 import { renderMarkdown } from '$lib/markdown';
 import { createAnnouncement } from '$lib/server/db/services/announcements';
 import {
-	createFileWithReferenceReturning,
+	createFileReturning,
 	deleteFilesByReferenceReturning
 } from '$lib/server/db/services/files';
 import { updateAssets } from '$lib/server/file-import/update-assets';
@@ -40,7 +40,7 @@ export async function importAnnouncement(
 			} else {
 				const mimeType = mimeTypes.lookup(compressed.path) || 'application/octet-stream';
 				const extension = getExtension(compressed.path, mimeType);
-				const file = await createFileWithReferenceReturning({
+				const file = await createFileReturning({
 					size: compressed.uncompressedSize,
 					mimeType,
 					extension,

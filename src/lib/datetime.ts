@@ -52,10 +52,13 @@ export function formatDateTime(
  * @returns A string representing the duration in natural language
  */
 export function formatDuration(duration: number): string {
-	const days = Math.floor(duration / (24 * 60 * 60));
-	const hours = Math.floor((duration % (24 * 60 * 60)) / (60 * 60));
-	const minutes = Math.floor((duration % (60 * 60)) / 60);
-	const seconds = duration % 60;
+	const negative = duration < 0 ? -1 : 1;
+	duration *= negative;
+
+	const days = Math.floor(duration / (24 * 60 * 60)) * negative;
+	const hours = Math.floor((duration % (24 * 60 * 60)) / (60 * 60)) * negative;
+	const minutes = Math.floor((duration % (60 * 60)) / 60) * negative;
+	const seconds = Math.floor(duration % 60) * negative;
 
 	const parts: string[] = [];
 	if (days) parts.push(`${days} day${days > 1 ? 's' : ''}`);
@@ -77,8 +80,14 @@ export function utcNow(): Date {
 	return new Date(Date.now());
 }
 
-export function getSecondsSince(date: Date): number {
-	return (Date.now() - date.getTime()) / 1000;
+export function getSecondsSince(date: Date, now?: number): number {
+	now ??= Date.now();
+	return (now - date.getTime()) / 1000;
+}
+
+export function getSecondsUntil(date: Date, now?: number): number {
+	now ??= Date.now();
+	return (date.getTime() - now) / 1000;
 }
 
 export function isTimeZoneValid(timeZone: string): boolean {
@@ -89,28 +98,6 @@ export function isTimeZoneValid(timeZone: string): boolean {
 		return false;
 	}
 }
-
-const us_re = /(\d+).(\d+).(\d+),?\s+(\d+).(\d+)(.(\d+))?/;
-
-const format = {
-	timeZone: 'UTC',
-	hour12: false,
-	year: 'numeric',
-	month: 'numeric',
-	day: 'numeric',
-	hour: 'numeric',
-	minute: 'numeric'
-} as const;
-
-const utc_f = new Intl.DateTimeFormat('en-US', {
-	timeZone: 'UTC',
-	hour12: false,
-	year: 'numeric',
-	month: 'numeric',
-	day: 'numeric',
-	hour: 'numeric',
-	minute: 'numeric'
-});
 
 /*
 	Modified from: https://github.com/mobz/get-timezone-offset
@@ -132,7 +119,9 @@ export function getTimezoneOffset(timeZone: string): number {
 
 	function parseDate(date_str: string): number[] {
 		date_str = date_str.replace(/[\u200E\u200F]/g, '');
-		return [].slice.call(us_re.exec(date_str), 1).map(Math.floor);
+		return [].slice
+			.call(/(\d+).(\d+).(\d+),?\s+(\d+).(\d+)(.(\d+))?/.exec(date_str), 1)
+			.map(Math.floor);
 	}
 
 	const utcFormat = new Intl.DateTimeFormat('en-US', {
