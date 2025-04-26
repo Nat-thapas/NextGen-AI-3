@@ -1,1 +1,0 @@
-ALTER TABLE "users" RENAME COLUMN "registration_completed" TO "registration_complete";

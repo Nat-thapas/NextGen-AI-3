@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { questions } from '$lib/server/db/schema';
-import { generateId } from '$lib/token';
 
-const createQuestionReturningQuery = db
+const createQuestionQuery = db
 	.insert(questions)
 	.values({
-		id: sql.placeholder('id'),
 		examId: sql.placeholder('examId'),
 		number: sql.placeholder('number'),
 		markdown: sql.placeholder('markdown'),
@@ -23,16 +21,9 @@ const createQuestionReturningQuery = db
 		fileTypes: sql.placeholder('fileTypes'),
 		fileSizeLimit: sql.placeholder('fileSizeLimit')
 	})
-	.returning()
-	.prepare('create_question_returning');
+	.prepare('create_question');
 
-const deleteQuestionQuery = db
-	.delete(questions)
-	.where(eq(questions.id, sql.placeholder('id')))
-	.prepare('delete_question');
-
-export async function createQuestionReturning(data: {
-	id?: string;
+export async function createQuestion(data: {
 	examId: string;
 	number: number;
 	markdown: string;
@@ -46,10 +37,5 @@ export async function createQuestionReturning(data: {
 	fileTypes: string | null;
 	fileSizeLimit: number | null;
 }) {
-	data.id ??= generateId();
-	return (await createQuestionReturningQuery.execute(data))[0];
-}
-
-export async function deleteQuestion(id: string) {
-	return deleteQuestionQuery.execute({ id });
+	return createQuestionQuery.execute(data);
 }

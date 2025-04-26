@@ -17,9 +17,8 @@ import {
 	createFileWithReferenceReturning,
 	deleteFilesByReferenceReturning
 } from '$lib/server/db/services/files';
-import { createQuestionReturning } from '$lib/server/db/services/questions';
+import { createQuestion } from '$lib/server/db/services/questions';
 import { updateAssets } from '$lib/server/file-import/update-assets';
-import type { Question } from '$lib/server/interfaces/quesion';
 
 function parseFileTypes(fileTypes: string | null): string | null {
 	if (fileTypes === null || fileTypes === undefined) {
@@ -91,7 +90,6 @@ export async function importExam(
 			throw Error('No excel (.xlsx) file found');
 		}
 
-		let question: Question | undefined = undefined;
 		let questionNumber = 0;
 		let choiceNumber = 0;
 		for (const sheet of sheets) {
@@ -164,7 +162,7 @@ export async function importExam(
 					questionNumber++;
 					choiceNumber = 0;
 
-					question = await createQuestionReturning({
+					await createQuestion({
 						examId: exam.id,
 						number: questionNumber,
 						markdown,
@@ -181,7 +179,7 @@ export async function importExam(
 				}
 
 				if (row[0].toLowerCase() === '$choice') {
-					if (question === undefined) {
+					if (questionNumber === 0) {
 						throw Error(
 							`Sheet '${name}' Cell A${rowNumber + 1} Choice is defined before a question`
 						);
@@ -199,7 +197,8 @@ export async function importExam(
 					choiceNumber++;
 
 					await createChoice({
-						questionId: question.id,
+						examId: exam.id,
+						questionNumber: questionNumber,
 						number: choiceNumber,
 						markdown,
 						html: renderMarkdown(markdown),

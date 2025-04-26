@@ -1,14 +1,15 @@
-import { relations, sql, type SQL } from 'drizzle-orm';
+import { isNotNull, relations, sql, type SQL } from 'drizzle-orm';
 import {
 	boolean,
 	char,
+	foreignKey,
 	index,
 	integer,
 	pgEnum,
 	pgTable,
+	primaryKey,
 	text,
 	timestamp,
-	unique,
 	varchar
 } from 'drizzle-orm/pg-core';
 
@@ -50,38 +51,45 @@ export const questionTypes = pgEnum('question_types', ['choices', 'checkboxes', 
 //   - scale: perform sequence matching to estimate how correct the answer is (warning: this is not very accurate) and give score based on that
 export const scoringTypes = pgEnum('scoring_types', ['exact', 'regex', 'and', 'or', 'scale']);
 
-export const users = pgTable('users', {
-	id: char({ length: idLength }).primaryKey(),
-	email: varchar({ length: configConstants.users.maxEmailLength }).unique().notNull(),
-	hashedPassword: varchar({ length: 1023 }),
-	role: roles().notNull(),
-	registrationComplete: boolean().default(false).notNull(),
-	verificationToken: varchar({ length: 255 }),
-	verificationTokenGeneratedAt: timestamp({ precision: 6, withTimezone: true })
-		.default(new Date(0))
-		.notNull(),
-	passwordResetToken: varchar({ length: 255 }),
-	passwordResetTokenGeneratedAt: timestamp({ precision: 6, withTimezone: true })
-		.default(new Date(0))
-		.notNull(),
-	lastEmailSentAt: timestamp({ precision: 6, withTimezone: true }).default(new Date(0)).notNull(),
-	prefix: varchar({ length: configConstants.users.maxPrefixLength }),
-	name: varchar({ length: configConstants.users.maxNameLength }),
-	nickname: varchar({ length: configConstants.users.maxNicknameLength }),
-	phoneNumber: char({ length: configConstants.users.phoneNumberLength }),
-	schoolName: varchar({ length: configConstants.users.maxSchoolNameLength }),
-	grade: integer(),
-	transcriptId: char({ length: idLength }).references(() => files.id, {
-		onUpdate: 'cascade',
-		onDelete: 'set null'
-	}),
-	addressProvince: varchar({ length: configConstants.users.maxAddressProvinceLength }),
-	addressDistrict: varchar({ length: configConstants.users.maxAddressDistrictLength }),
-	addressSubDistrict: varchar({ length: configConstants.users.maxAddressSubDistrictLength }),
-	addressPostcode: char({ length: configConstants.users.postcodeLength }),
-	addressDetail: varchar({ length: configConstants.users.maxAddressDetailLength }),
-	...timeStamps
-});
+export const users = pgTable(
+	'users',
+	{
+		id: char({ length: idLength }).primaryKey(),
+		email: varchar({ length: configConstants.users.maxEmailLength }).unique().notNull(),
+		hashedPassword: varchar({ length: 1023 }),
+		role: roles().notNull(),
+		registrationComplete: boolean().default(false).notNull(),
+		verificationToken: varchar({ length: 255 }),
+		verificationTokenGeneratedAt: timestamp({ precision: 6, withTimezone: true })
+			.default(new Date(0))
+			.notNull(),
+		passwordResetToken: varchar({ length: 255 }),
+		passwordResetTokenGeneratedAt: timestamp({ precision: 6, withTimezone: true })
+			.default(new Date(0))
+			.notNull(),
+		lastEmailSentAt: timestamp({ precision: 6, withTimezone: true }).default(new Date(0)).notNull(),
+		prefix: varchar({ length: configConstants.users.maxPrefixLength }),
+		name: varchar({ length: configConstants.users.maxNameLength }),
+		nickname: varchar({ length: configConstants.users.maxNicknameLength }),
+		phoneNumber: char({ length: configConstants.users.phoneNumberLength }),
+		schoolName: varchar({ length: configConstants.users.maxSchoolNameLength }),
+		grade: integer(),
+		transcriptId: char({ length: idLength }).references(() => files.id, {
+			onUpdate: 'cascade',
+			onDelete: 'set null'
+		}),
+		addressProvince: varchar({ length: configConstants.users.maxAddressProvinceLength }),
+		addressDistrict: varchar({ length: configConstants.users.maxAddressDistrictLength }),
+		addressSubDistrict: varchar({ length: configConstants.users.maxAddressSubDistrictLength }),
+		addressPostcode: char({ length: configConstants.users.postcodeLength }),
+		addressDetail: varchar({ length: configConstants.users.maxAddressDetailLength }),
+		...timeStamps
+	},
+	(table) => [
+		index().on(table.verificationToken).where(isNotNull(table.verificationToken)),
+		index().on(table.passwordResetToken).where(isNotNull(table.passwordResetToken))
+	]
+);
 
 export const usersRelation = relations(users, ({ one }) => ({
 	transcript: one(files, {
@@ -106,7 +114,7 @@ export const sessions = pgTable(
 		lastUseUserAgent: varchar({ length: 1023 }).notNull(),
 		...timeStamps
 	},
-	(table) => [index('sessions_user').on(table.userId)]
+	(table) => [index().on(table.userId)]
 );
 
 export const sessionsRelation = relations(sessions, ({ one }) => ({
@@ -132,10 +140,7 @@ export const exams = pgTable(
 		scoreConfirmed: boolean().default(false).notNull(),
 		...timeStamps
 	},
-	(table) => [
-		index('exams_open_at_close_at').on(table.openAt, table.closeAt),
-		index('exams_close_at').on(table.closeAt)
-	]
+	(table) => [index().on(table.openAt, table.closeAt), index().on(table.closeAt)]
 );
 
 export const examsRelation = relations(exams, ({ one, many }) => ({
@@ -149,7 +154,6 @@ export const examsRelation = relations(exams, ({ one, many }) => ({
 export const questions = pgTable(
 	'questions',
 	{
-		id: char({ length: idLength }).primaryKey(),
 		examId: char({ length: idLength })
 			.references(() => exams.id, {
 				onUpdate: 'cascade',
@@ -169,7 +173,7 @@ export const questions = pgTable(
 		fileSizeLimit: integer().default(configConstants.questions.defaultFileSizeLimit), // type=file: upload size limit (kB)
 		...timeStamps
 	},
-	(table) => [index('questions_exam').on(table.examId)]
+	(table) => [primaryKey({ columns: [table.examId, table.number] })]
 );
 
 export const questionsRelation = relations(questions, ({ one, many }) => ({
@@ -183,33 +187,39 @@ export const questionsRelation = relations(questions, ({ one, many }) => ({
 export const choices = pgTable(
 	'choices',
 	{
-		id: char({ length: idLength }).primaryKey(),
-		questionId: char({ length: idLength })
-			.references(() => questions.id, {
-				onUpdate: 'cascade',
-				onDelete: 'cascade'
-			})
-			.notNull(),
+		examId: char({ length: idLength }).notNull(),
+		questionNumber: integer().notNull(),
 		number: integer().notNull(),
 		markdown: text().notNull(),
 		html: text().notNull(),
 		isCorrect: boolean().notNull(),
 		...timeStamps
 	},
-	(table) => [index('choices_question').on(table.questionId)]
+	(table) => [
+		primaryKey({ columns: [table.examId, table.questionNumber, table.number] }),
+		foreignKey({
+			columns: [table.examId, table.questionNumber],
+			foreignColumns: [questions.examId, questions.number]
+		})
+			.onUpdate('cascade')
+			.onDelete('cascade')
+	]
 );
 
 export const choicesRelation = relations(choices, ({ one }) => ({
+	exam: one(exams, {
+		fields: [choices.examId],
+		references: [exams.id]
+	}),
 	question: one(questions, {
-		fields: [choices.questionId],
-		references: [questions.id]
+		fields: [choices.examId, choices.questionNumber],
+		references: [questions.examId, questions.number]
 	})
 }));
 
 export const submissions = pgTable(
 	'submissions',
 	{
-		id: char({ length: idLength }).primaryKey(),
 		examId: char({ length: idLength })
 			.references(() => exams.id, {
 				onUpdate: 'cascade',
@@ -226,10 +236,7 @@ export const submissions = pgTable(
 		score: integer(),
 		...timeStamps
 	},
-	(table) => [
-		unique('submissions_user_exam_unique').on(table.userId, table.examId),
-		index('submissions_exam').on(table.examId)
-	]
+	(table) => [primaryKey({ columns: [table.examId, table.userId] })]
 );
 
 export const submissionsRelation = relations(submissions, ({ one }) => ({
@@ -246,35 +253,36 @@ export const submissionsRelation = relations(submissions, ({ one }) => ({
 export const answers = pgTable(
 	'answers',
 	{
-		id: char({ length: idLength }).primaryKey(),
-		submissionId: char({ length: idLength })
-			.references(() => submissions.id, {
-				onUpdate: 'cascade',
-				onDelete: 'cascade'
-			})
-			.notNull(),
-		questionId: char({ length: idLength })
-			.references(() => questions.id, {
-				onUpdate: 'cascade',
-				onDelete: 'cascade'
-			})
-			.notNull(),
+		examId: char({ length: idLength }).notNull(),
+		userId: char({ length: idLength }).notNull(),
+		questionNumber: integer().notNull(),
 		answer: text().notNull()
 	},
 	(table) => [
-		unique('answers_question_submission_unique').on(table.questionId, table.submissionId),
-		index('answers_submission').on(table.submissionId)
+		primaryKey({ columns: [table.examId, table.userId, table.questionNumber] }),
+		foreignKey({
+			columns: [table.examId, table.userId],
+			foreignColumns: [submissions.examId, submissions.userId]
+		})
+			.onUpdate('cascade')
+			.onDelete('cascade'),
+		foreignKey({
+			columns: [table.examId, table.questionNumber],
+			foreignColumns: [questions.examId, questions.number]
+		})
+			.onUpdate('cascade')
+			.onDelete('cascade')
 	]
 );
 
 export const answersRelation = relations(answers, ({ one }) => ({
 	submission: one(submissions, {
-		fields: [answers.submissionId],
-		references: [submissions.id]
+		fields: [answers.examId, answers.userId],
+		references: [submissions.examId, submissions.userId]
 	}),
 	question: one(questions, {
-		fields: [answers.questionId],
-		references: [questions.id]
+		fields: [answers.examId, answers.questionNumber],
+		references: [questions.examId, questions.number]
 	})
 }));
 
@@ -291,7 +299,7 @@ export const announcements = pgTable(
 		html: text().notNull(),
 		...timeStamps
 	},
-	(table) => [index('announcements_author').on(table.authorId)]
+	(table) => [index().on(table.authorId)]
 );
 
 export const announcementsRelation = relations(announcements, ({ one }) => ({
@@ -314,5 +322,5 @@ export const files = pgTable(
 		referenceId: char({ length: idLength }),
 		...timeStamps
 	},
-	(table) => [index('files_reference').on(table.referenceId)]
+	(table) => [index().on(table.referenceId)]
 );

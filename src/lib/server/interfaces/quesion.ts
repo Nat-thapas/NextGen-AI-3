@@ -1,9 +1,9 @@
 import type { Exam } from '$lib/server/interfaces/exam';
 
 export interface Question {
-	id: string;
 	examId: string;
 	exam?: Exam;
+	number: number;
 	markdown: string;
 	html: string;
 	questionType: 'choices' | 'checkboxes' | 'text' | 'file';

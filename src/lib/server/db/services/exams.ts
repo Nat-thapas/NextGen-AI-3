@@ -35,7 +35,7 @@ const createExamReturningQuery = db
 const getExamsAvailableQuery = db
 	.select({
 		...getTableColumns(exams),
-		attempted: sql<boolean>`${isNotNull(submissions.id)}`
+		attempted: sql<boolean>`${isNotNull(submissions.examId)}`
 	})
 	.from(exams)
 	.leftJoin(
@@ -46,7 +46,7 @@ const getExamsAvailableQuery = db
 		and(
 			lte(exams.openAt, sql`now()`),
 			gt(exams.closeAt, sql`now()`),
-			or(isNull(submissions.id), eq(submissions.submitted, false))
+			or(isNull(submissions.examId), eq(submissions.submitted, false))
 		)
 	)
 	.orderBy(asc(exams.closeAt))
@@ -62,7 +62,10 @@ const getExamsUpcomingQuery = db
 		and(eq(submissions.examId, exams.id), eq(submissions.userId, sql.placeholder('userId')))
 	)
 	.where(
-		and(gt(exams.openAt, sql`now()`), or(isNull(submissions.id), eq(submissions.submitted, false)))
+		and(
+			gt(exams.openAt, sql`now()`),
+			or(isNull(submissions.examId), eq(submissions.submitted, false))
+		)
 	)
 	.orderBy(asc(exams.openAt))
 	.prepare('get_exams_upcoming');
@@ -78,7 +81,7 @@ const getExamsCompletedQuery = db
 	)
 	.where(
 		and(
-			isNotNull(submissions.id),
+			isNotNull(submissions.examId),
 			or(eq(submissions.submitted, true), lte(exams.closeAt, sql`now()`))
 		)
 	)
@@ -94,7 +97,7 @@ const getExamsExpiredQuery = db
 		submissions,
 		and(eq(submissions.examId, exams.id), eq(submissions.userId, sql.placeholder('userId')))
 	)
-	.where(and(isNull(submissions.id), lte(exams.closeAt, sql`now()`)))
+	.where(and(isNull(submissions.examId), lte(exams.closeAt, sql`now()`)))
 	.orderBy(desc(exams.closeAt))
 	.prepare('get_exams_expired');
 
