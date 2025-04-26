@@ -5,7 +5,6 @@ import { zod } from 'sveltekit-superforms/adapters';
 
 import { roles } from '$lib/enums';
 import { getErrorMessage } from '$lib/error';
-import type { Announcement } from '$lib/interfaces/announcement';
 import { isRoleAtLeast } from '$lib/roles';
 import { getAnnouncements } from '$lib/server/db/services/announcements';
 import { importAnnouncement } from '$lib/server/file-import/announcement';
@@ -14,17 +13,6 @@ import type { Actions, PageServerLoad } from './$types';
 import { createAnnouncementFormSchema, Options } from './schema';
 
 export const load: PageServerLoad = async ({ url }) => {
-	async function getAnnouncementsData(announcementsCount: number): Promise<{
-		announcements: Announcement[];
-		moreAnnouncementsAvailable: boolean;
-	}> {
-		announcementsCount++;
-		const announcements = await getAnnouncements(announcementsCount);
-		const moreAnnouncementsAvailable = announcements.length === announcementsCount;
-		if (moreAnnouncementsAvailable) announcements.pop();
-		return { announcements, moreAnnouncementsAvailable };
-	}
-
 	const options = Options({
 		announcementsCount: url.searchParams.get('announcements-count')
 	});
@@ -35,9 +23,15 @@ export const load: PageServerLoad = async ({ url }) => {
 		});
 	}
 
+	options.announcementsCount++;
+	const announcements = await getAnnouncements(options.announcementsCount);
+	const moreAnnouncementsAvailable = announcements.length === options.announcementsCount;
+	if (moreAnnouncementsAvailable) announcements.pop();
+
 	return {
-		...(await getAnnouncementsData(options.announcementsCount)),
-		createAnnouncementForm: await superValidate(zod(createAnnouncementFormSchema))
+		createAnnouncementForm: await superValidate(zod(createAnnouncementFormSchema)),
+		announcements,
+		moreAnnouncementsAvailable
 	};
 };
 

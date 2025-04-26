@@ -4,7 +4,6 @@
 	import { fileProxy, superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
-	import ExamCard from '$lib/components/exam/exam-card.svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
@@ -13,6 +12,7 @@
 	import { getErrorMessage } from '$lib/error';
 	import { isRoleAtLeast } from '$lib/roles';
 
+	import ExamCard from './exam-card.svelte';
 	import { formSchema } from './schema';
 
 	let { data } = $props();

@@ -53,8 +53,8 @@ export const load: PageServerLoad = async (event) => {
 			zod(updateProfileFormSchema),
 			{ errors: false }
 		),
-		transcript: user.transcriptId ? await getFile(user.transcriptId) : undefined,
-		changePasswordForm: await superValidate(zod(changePasswordFormSchema))
+		changePasswordForm: await superValidate(zod(changePasswordFormSchema)),
+		transcript: user.transcriptId ? await getFile(user.transcriptId) : undefined
 	};
 };
 

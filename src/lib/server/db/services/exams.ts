@@ -15,7 +15,7 @@ import {
 } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
-import { choices, exams, questions, submissions } from '$lib/server/db/schema';
+import { answers, exams, questions, submissions } from '$lib/server/db/schema';
 import { generateId } from '$lib/token';
 
 const createExamReturningQuery = db
@@ -38,10 +38,10 @@ const getExamQuery = db.query.exams
 	})
 	.prepare('get_exam');
 
-const getExamStartedAtQuery = db
+const getExamSubmissionQuery = db
 	.select({
 		...getTableColumns(exams),
-		startedAt: submissions.createdAt
+		submission: { createdAt: submissions.createdAt }
 	})
 	.from(exams)
 	.leftJoin(
@@ -49,9 +49,9 @@ const getExamStartedAtQuery = db
 		and(eq(submissions.examId, exams.id), eq(submissions.userId, sql.placeholder('userId')))
 	)
 	.where(eq(exams.id, sql.placeholder('id')))
-	.prepare('get_exam_and_submission');
+	.prepare('get_exam_submission');
 
-const getExamQuestionChoicesSubmissionQuery = db.query.exams
+const getExamQuestionAnswerSubmissionQuery = db.query.exams
 	.findFirst({
 		columns: {
 			id: true,
@@ -62,23 +62,17 @@ const getExamQuestionChoicesSubmissionQuery = db.query.exams
 		with: {
 			questions: {
 				columns: {
-					number: true,
-					html: true,
-					questionType: true,
-					textLengthLimit: true,
-					fileTypes: true,
-					fileSizeLimit: true
+					number: true
 				},
 				with: {
-					choices: {
+					answers: {
 						columns: {
-							number: true,
-							html: true
+							questionNumber: true
 						},
-						orderBy: [asc(choices.number)]
+						where: eq(answers.userId, sql.placeholder('userId'))
 					}
 				},
-				where: eq(questions.number, sql.placeholder('number'))
+				orderBy: [asc(questions.number)]
 			},
 			submissions: {
 				columns: {
@@ -89,7 +83,7 @@ const getExamQuestionChoicesSubmissionQuery = db.query.exams
 		},
 		where: eq(exams.id, sql.placeholder('id'))
 	})
-	.prepare('get_exam_submission_question_choice');
+	.prepare('get_exam_question_answer_submission');
 
 const getExamsAvailableQuery = db
 	.select({
@@ -152,8 +146,8 @@ const getExamsCompletedQuery = db
 	)
 	.where(
 		or(
-			eq(submissions.submitted, true),
 			lte(exams.closeAt, sql`now()`),
+			eq(submissions.submitted, true),
 			sql`${submissions.createdAt} <= now() - (${exams.timeLimit} || ' seconds')::INTERVAL`
 		)
 	)
@@ -169,7 +163,7 @@ const getExamsExpiredQuery = db
 		submissions,
 		and(eq(submissions.examId, exams.id), eq(submissions.userId, sql.placeholder('userId')))
 	)
-	.where(and(isNull(submissions.examId), lte(exams.closeAt, sql`now()`)))
+	.where(and(lte(exams.closeAt, sql`now()`), isNull(submissions.examId)))
 	.orderBy(desc(exams.closeAt))
 	.prepare('get_exams_expired');
 
@@ -195,12 +189,12 @@ export async function getExam(id: string) {
 	return getExamQuery.execute({ id });
 }
 
-export async function getExamStartedAt(id: string, userId: string) {
-	return (await getExamStartedAtQuery.execute({ id, userId }))[0];
+export async function getExamSubmission(id: string, userId: string) {
+	return (await getExamSubmissionQuery.execute({ id, userId }))[0];
 }
 
-export async function getExamQuestionChoicesSubmission(id: string, number: number, userId: string) {
-	return getExamQuestionChoicesSubmissionQuery.execute({ id, number, userId });
+export async function getExamQuestionAnswerSubmission(id: string, userId: string) {
+	return getExamQuestionAnswerSubmissionQuery.execute({ id, userId });
 }
 
 export async function getExamsAvailable(userId: string) {

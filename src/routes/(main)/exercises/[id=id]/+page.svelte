@@ -1,11 +1,7 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-
 	import { enhance } from '$app/forms';
-	import { base } from '$app/paths';
 
 	import {
-		formatDate,
 		formatDateTime,
 		formatDuration,
 		getSecondsSince,
@@ -15,21 +11,6 @@
 	import exams from '$lib/images/exams.avif';
 
 	let { data } = $props();
-
-	let timeLimit = $derived(formatDuration(data.exam.timeLimit));
-	let closeAt = $derived(
-		formatDateTime(data.exam.closeAt, { locale: 'en-GB', timeZone: data.timeZone })
-	);
-	let timeRemaining = $derived(
-		formatDuration(
-			data.exam.startedAt
-				? Math.min(
-						data.exam.timeLimit - getSecondsSince(data.exam.startedAt),
-						getSecondsUntil(data.exam.closeAt)
-					)
-				: Math.min(data.exam.timeLimit, getSecondsUntil(data.exam.closeAt))
-		)
-	);
 </script>
 
 <svelte:head>
@@ -56,25 +37,31 @@
 			<p class="w-28 text-xl text-primary-foreground">Time limit</p>
 			<p class="w-1 text-xl text-primary-foreground">:</p>
 			<p class="w-0 flex-grow text-xl text-primary-foreground">
-				{timeLimit}
+				{formatDuration(data.exam.timeLimit)}
 			</p>
 		</div>
 		<div class="mb-4 flex gap-4">
 			<p class="w-28 text-xl text-primary-foreground">Due at</p>
 			<p class="w-1 text-xl text-primary-foreground">:</p>
 			<p class="w-0 flex-grow text-xl text-primary-foreground">
-				{closeAt}
+				{formatDateTime(data.exam.closeAt, { locale: 'en-GB', timeZone: data.timeZone })}
 			</p>
 		</div>
 		<div class="mb-4 flex gap-4">
 			<p class="w-28 text-xl text-primary-foreground">Status</p>
 			<p class="w-1 text-xl text-primary-foreground">:</p>
 			<p class="w-0 flex-grow text-xl text-primary-foreground">
-				{#if data.exam.startedAt}
-					You have already started this exam. You have {timeRemaining} left to complete the exam.
+				{#if data.exam.submission}
+					You have already started this exam. You have {formatDuration(
+						Math.min(
+							data.exam.timeLimit - getSecondsSince(data.exam.submission.createdAt),
+							getSecondsUntil(data.exam.closeAt)
+						)
+					)} left to complete the exam.
 				{:else}
-					You have not started this exam. If you start now you'll have {timeRemaining} to complete the
-					exam.
+					You have not started this exam. If you start now you'll have {formatDuration(
+						Math.min(data.exam.timeLimit, getSecondsUntil(data.exam.closeAt))
+					)} to complete the exam.
 				{/if}
 			</p>
 		</div>

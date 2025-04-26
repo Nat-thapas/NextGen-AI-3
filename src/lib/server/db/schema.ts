@@ -149,7 +149,6 @@ export const examsRelation = relations(exams, ({ one, many }) => ({
 		references: [users.id]
 	}),
 	questions: many(questions),
-	choices: many(choices),
 	submissions: many(submissions)
 }));
 
@@ -183,7 +182,8 @@ export const questionsRelation = relations(questions, ({ one, many }) => ({
 		fields: [questions.examId],
 		references: [exams.id]
 	}),
-	choices: many(choices)
+	choices: many(choices),
+	answers: many(answers)
 }));
 
 export const choices = pgTable(
@@ -209,10 +209,6 @@ export const choices = pgTable(
 );
 
 export const choicesRelation = relations(choices, ({ one }) => ({
-	exam: one(exams, {
-		fields: [choices.examId],
-		references: [exams.id]
-	}),
 	question: one(questions, {
 		fields: [choices.examId, choices.questionNumber],
 		references: [questions.examId, questions.number]
@@ -257,21 +253,21 @@ export const answers = pgTable(
 	'answers',
 	{
 		examId: char({ length: idLength }).notNull(),
-		userId: char({ length: idLength }).notNull(),
 		questionNumber: integer().notNull(),
+		userId: char({ length: idLength }).notNull(),
 		answer: text().notNull()
 	},
 	(table) => [
-		primaryKey({ columns: [table.examId, table.userId, table.questionNumber] }),
+		primaryKey({ columns: [table.examId, table.questionNumber, table.userId] }),
 		foreignKey({
-			columns: [table.examId, table.userId],
-			foreignColumns: [submissions.examId, submissions.userId]
+			columns: [table.examId, table.questionNumber],
+			foreignColumns: [questions.examId, questions.number]
 		})
 			.onUpdate('cascade')
 			.onDelete('cascade'),
 		foreignKey({
-			columns: [table.examId, table.questionNumber],
-			foreignColumns: [questions.examId, questions.number]
+			columns: [table.examId, table.userId],
+			foreignColumns: [submissions.examId, submissions.userId]
 		})
 			.onUpdate('cascade')
 			.onDelete('cascade')

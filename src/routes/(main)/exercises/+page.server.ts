@@ -31,12 +31,20 @@ export const load: PageServerLoad = async ({ locals }) => {
 		});
 	}
 
+	const [form, availableExams, upcomingExams, completedExams, expiredExams] = await Promise.all([
+		superValidate(zod(formSchema)),
+		getExamsAvailable(user.id),
+		getExamsUpcoming(user.id),
+		getExamsCompleted(user.id),
+		getExamsExpired(user.id)
+	]);
+
 	return {
-		form: await superValidate(zod(formSchema)),
-		availableExams: await getExamsAvailable(user.id),
-		upcomingExams: await getExamsUpcoming(user.id),
-		completedExams: await getExamsCompleted(user.id),
-		expiredExams: await getExamsExpired(user.id)
+		form,
+		availableExams,
+		upcomingExams,
+		completedExams,
+		expiredExams
 	};
 };
 

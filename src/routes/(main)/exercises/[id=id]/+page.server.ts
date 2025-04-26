@@ -5,7 +5,7 @@ import { base } from '$app/paths';
 import { getSecondsSince, utcNow } from '$lib/datetime';
 import { roles } from '$lib/enums';
 import { isRoleAtLeast } from '$lib/roles';
-import { getExamStartedAt } from '$lib/server/db/services/exams';
+import { getExamSubmission } from '$lib/server/db/services/exams';
 import { createSubmission } from '$lib/server/db/services/submissions';
 import { setToastParams } from '$lib/toast';
 
@@ -25,7 +25,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		});
 	}
 
-	const exam = await getExamStartedAt(params.id, user.id);
+	const exam = await getExamSubmission(params.id, user.id);
 
 	if (!exam) {
 		error(404, {
@@ -44,7 +44,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			setToastParams(`${base}/exercises`, 'Exam is already closed', undefined, 'error')
 		);
 	}
-	if (exam.startedAt && getSecondsSince(exam.startedAt) > exam.timeLimit) {
+	if (exam.submission && getSecondsSince(exam.submission.createdAt) > exam.timeLimit) {
 		return redirect(
 			303,
 			setToastParams(`${base}/exercises`, "You've ran out of time on this exam", undefined, 'error')
@@ -69,7 +69,7 @@ export const actions: Actions = {
 			});
 		}
 
-		const exam = await getExamStartedAt(params.id, user.id);
+		const exam = await getExamSubmission(params.id, user.id);
 
 		if (!exam) {
 			error(404, {
@@ -88,7 +88,18 @@ export const actions: Actions = {
 				setToastParams(`${base}/exercises`, 'Exam is already closed', undefined, 'error')
 			);
 		}
-		if (exam.startedAt) {
+		if (exam.submission && getSecondsSince(exam.submission.createdAt) > exam.timeLimit) {
+			return redirect(
+				303,
+				setToastParams(
+					`${base}/exercises`,
+					"You've ran out of time on this exam",
+					undefined,
+					'error'
+				)
+			);
+		}
+		if (exam.submission) {
 			return redirect(303, `${base}/exercises/${exam.id}/1`);
 		}
 

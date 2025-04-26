@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { sql } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
-import { questions } from '$lib/server/db/schema';
+import { choices, questions } from '$lib/server/db/schema';
 
 const createQuestionQuery = db
 	.insert(questions)
@@ -23,6 +23,32 @@ const createQuestionQuery = db
 	})
 	.prepare('create_question');
 
+const getQuestionChoicesQuery = db.query.questions
+	.findFirst({
+		columns: {
+			number: true,
+			html: true,
+			questionType: true,
+			textLengthLimit: true,
+			fileTypes: true,
+			fileSizeLimit: true
+		},
+		with: {
+			choices: {
+				columns: {
+					number: true,
+					html: true
+				},
+				orderBy: [asc(choices.number)]
+			}
+		},
+		where: and(
+			eq(questions.examId, sql.placeholder('examId')),
+			eq(questions.number, sql.placeholder('number'))
+		)
+	})
+	.prepare('get_question_choices');
+
 export async function createQuestion(data: {
 	examId: string;
 	number: number;
@@ -38,4 +64,8 @@ export async function createQuestion(data: {
 	fileSizeLimit: number | null;
 }) {
 	return createQuestionQuery.execute(data);
+}
+
+export async function getQuestionChoices(examId: string, number: number) {
+	return getQuestionChoicesQuery.execute({ examId, number });
 }
