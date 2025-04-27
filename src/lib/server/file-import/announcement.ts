@@ -9,13 +9,13 @@ import { env } from '$env/dynamic/private';
 
 import { getExtension } from '$lib/files';
 import { renderMarkdown } from '$lib/markdown';
-import { createAnnouncement } from '$lib/server/db/services/announcements';
+import { createAnnouncementWithId } from '$lib/server/db/services/announcements';
 import {
 	createFileReturning,
 	deleteFilesByReferenceReturning
 } from '$lib/server/db/services/files';
+import { generateSuid } from '$lib/server/db/suid';
 import { updateAssets } from '$lib/server/file-import/update-assets';
-import { generateId } from '$lib/token';
 
 export async function importAnnouncement(
 	authorId: string,
@@ -24,7 +24,7 @@ export async function importAnnouncement(
 ): Promise<void> {
 	const archive = await unzipper.Open.buffer(Buffer.from(await file.arrayBuffer()));
 
-	const id = generateId();
+	const id = generateSuid();
 	let markdown = '';
 	const assets: Record<string, string> = {};
 
@@ -65,7 +65,7 @@ export async function importAnnouncement(
 
 	markdown = updateAssets(markdown, assets);
 
-	await createAnnouncement({
+	await createAnnouncementWithId({
 		id,
 		authorId,
 		title,

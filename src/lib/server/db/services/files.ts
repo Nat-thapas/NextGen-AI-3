@@ -4,12 +4,12 @@ import { eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { files } from '$lib/server/db/schema';
-import { generateId } from '$lib/token';
+
+import { suidTouuid } from '../suid';
 
 const createFileQuery = db
 	.insert(files)
 	.values({
-		id: sql.placeholder('id'),
 		size: sql.placeholder('size'),
 		mimeType: sql.placeholder('mimeType'),
 		extension: sql.placeholder('extension'),
@@ -20,7 +20,6 @@ const createFileQuery = db
 const createFileReturningQuery = db
 	.insert(files)
 	.values({
-		id: sql.placeholder('id'),
 		size: sql.placeholder('size'),
 		mimeType: sql.placeholder('mimeType'),
 		extension: sql.placeholder('extension'),
@@ -53,24 +52,20 @@ const deleteFilesByReferenceReturningQuery = db
 	.prepare('delete_file_reference_returning');
 
 export async function createFile(data: {
-	id?: string;
 	size: number;
 	mimeType: string;
 	extension: string;
 	referenceId: string;
 }) {
-	data.id ??= generateId();
 	return createFileQuery.execute(data);
 }
 
 export async function createFileReturning(data: {
-	id?: string;
 	size: number;
 	mimeType: string;
 	extension: string;
 	referenceId: string;
 }) {
-	data.id ??= generateId();
 	return (await createFileReturningQuery.execute(data))[0];
 }
 
@@ -79,13 +74,16 @@ export async function getFile(id: string) {
 }
 
 export async function deleteFile(id: string) {
+	id = suidTouuid(id);
 	return deleteFileQuery.execute({ id });
 }
 
 export async function deleteFileReturning(id: string) {
+	id = suidTouuid(id);
 	return (await deleteFileReturningQuery.execute({ id }))[0];
 }
 
 export async function deleteFilesByReferenceReturning(referenceId: string) {
+	referenceId = suidTouuid(referenceId);
 	return deleteFilesByReferenceReturningQuery.execute({ referenceId });
 }

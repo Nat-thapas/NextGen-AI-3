@@ -1,5 +1,5 @@
 {
-  "id": "ab207cff-1dda-465a-8073-83d5695efcc5",
+  "id": "c09531d5-0d7a-4594-ae6d-410215220596",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -10,19 +10,20 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "author_id": {
           "name": "author_id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
         "title": {
           "name": "title",
-          "type": "varchar(1023)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -97,19 +98,19 @@
       "columns": {
         "exam_id": {
           "name": "exam_id",
-          "type": "char(20)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "question_number": {
           "name": "question_number",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -122,21 +123,6 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "answers_exam_id_user_id_submissions_exam_id_user_id_fk": {
-          "name": "answers_exam_id_user_id_submissions_exam_id_user_id_fk",
-          "tableFrom": "answers",
-          "tableTo": "submissions",
-          "columnsFrom": [
-            "exam_id",
-            "user_id"
-          ],
-          "columnsTo": [
-            "exam_id",
-            "user_id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
         "answers_exam_id_question_number_questions_exam_id_number_fk": {
           "name": "answers_exam_id_question_number_questions_exam_id_number_fk",
           "tableFrom": "answers",
@@ -151,15 +137,30 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "cascade"
+        },
+        "answers_exam_id_user_id_submissions_exam_id_user_id_fk": {
+          "name": "answers_exam_id_user_id_submissions_exam_id_user_id_fk",
+          "tableFrom": "answers",
+          "tableTo": "submissions",
+          "columnsFrom": [
+            "exam_id",
+            "user_id"
+          ],
+          "columnsTo": [
+            "exam_id",
+            "user_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {
-        "answers_exam_id_user_id_question_number_pk": {
-          "name": "answers_exam_id_user_id_question_number_pk",
+        "answers_exam_id_question_number_user_id_pk": {
+          "name": "answers_exam_id_question_number_user_id_pk",
           "columns": [
             "exam_id",
-            "user_id",
-            "question_number"
+            "question_number",
+            "user_id"
           ]
         }
       },
@@ -174,7 +175,7 @@
       "columns": {
         "exam_id": {
           "name": "exam_id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -262,25 +263,26 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "owner_id": {
           "name": "owner_id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
         "title": {
           "name": "title",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
         "description": {
           "name": "description",
-          "type": "varchar(65535)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -389,9 +391,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "size": {
           "name": "size",
@@ -401,19 +404,19 @@
         },
         "mime_type": {
           "name": "mime_type",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
         "extension": {
           "name": "extension",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
         "stored_name": {
           "name": "stored_name",
-          "type": "varchar(1023)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "generated": {
@@ -423,7 +426,7 @@
         },
         "reference_id": {
           "name": "reference_id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -472,7 +475,7 @@
       "columns": {
         "exam_id": {
           "name": "exam_id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -531,13 +534,13 @@
         },
         "text_correct": {
           "name": "text_correct",
-          "type": "varchar(1024)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
         "file_types": {
           "name": "file_types",
-          "type": "varchar(1023)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -599,37 +602,37 @@
       "columns": {
         "token": {
           "name": "token",
-          "type": "char(80)",
+          "type": "text",
           "primaryKey": true,
           "notNull": true
         },
         "user_id": {
           "name": "user_id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "first_login_ip": {
           "name": "first_login_ip",
-          "type": "varchar(63)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
         "first_login_user_agent": {
           "name": "first_login_user_agent",
-          "type": "varchar(1023)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
         "last_use_ip": {
           "name": "last_use_ip",
-          "type": "varchar(63)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
         "last_use_user_agent": {
           "name": "last_use_user_agent",
-          "type": "varchar(1023)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -692,13 +695,13 @@
       "columns": {
         "exam_id": {
           "name": "exam_id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "user_id": {
           "name": "user_id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -779,21 +782,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
-        },
-        "email": {
-          "name": "email",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "hashed_password": {
-          "name": "hashed_password",
-          "type": "varchar(1023)",
-          "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "role": {
           "name": "role",
@@ -801,6 +793,18 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hashed_password": {
+          "name": "hashed_password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "registration_complete": {
           "name": "registration_complete",
@@ -811,7 +815,7 @@
         },
         "verification_token": {
           "name": "verification_token",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -824,7 +828,7 @@
         },
         "password_reset_token": {
           "name": "password_reset_token",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -844,31 +848,31 @@
         },
         "prefix": {
           "name": "prefix",
-          "type": "varchar(63)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
         "name": {
           "name": "name",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
         "nickname": {
           "name": "nickname",
-          "type": "varchar(63)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
         "phone_number": {
           "name": "phone_number",
-          "type": "char(10)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
         "school_name": {
           "name": "school_name",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -880,37 +884,37 @@
         },
         "transcript_id": {
           "name": "transcript_id",
-          "type": "char(20)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
         "address_province": {
           "name": "address_province",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
         "address_district": {
           "name": "address_district",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
         "address_sub_district": {
           "name": "address_sub_district",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
         "address_postcode": {
           "name": "address_postcode",
-          "type": "char(5)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
         "address_detail": {
           "name": "address_detail",
-          "type": "varchar(1023)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },

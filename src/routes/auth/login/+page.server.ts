@@ -7,8 +7,8 @@ import { base } from '$app/paths';
 
 import { createSession } from '$lib/server/db/services/sessions';
 import { getUserByEmail, updateUserPassword } from '$lib/server/db/services/users';
+import { generateToken } from '$lib/server/db/token';
 import { setToastParams } from '$lib/toast';
-import { generateToken } from '$lib/token';
 
 import type { Actions, PageServerLoad } from './$types';
 import { formSchema } from './schema';
@@ -45,10 +45,7 @@ export const actions: Actions = {
 
 		if (argon2.needsRehash(user.hashedPassword!)) {
 			const hashedPassword = await argon2.hash(form.data.password);
-			await updateUserPassword({
-				id: user.id,
-				hashedPassword
-			});
+			await updateUserPassword(user.id, hashedPassword);
 		}
 
 		const token = generateToken();

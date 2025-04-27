@@ -1,7 +1,6 @@
 import { isNotNull, relations, sql, type SQL } from 'drizzle-orm';
 import {
 	boolean,
-	char,
 	foreignKey,
 	index,
 	integer,
@@ -9,14 +8,11 @@ import {
 	pgTable,
 	primaryKey,
 	text,
-	timestamp,
-	varchar
+	timestamp
 } from 'drizzle-orm/pg-core';
 
 import { configConstants } from '../../config-constants';
-
-const idLength = Math.ceil((Math.ceil(configConstants.entropy.id / 8) * 4) / 3);
-const tokenLength = Math.ceil((Math.ceil(configConstants.entropy.token / 8) * 4) / 3);
+import { suid } from './suid';
 
 const timeStamps = {
 	createdAt: timestamp({ precision: 6, withTimezone: true }).defaultNow().notNull(),
@@ -54,35 +50,37 @@ export const scoringTypes = pgEnum('scoring_types', ['exact', 'regex', 'and', 'o
 export const users = pgTable(
 	'users',
 	{
-		id: char({ length: idLength }).primaryKey(),
+		id: suid()
+			.default(sql`gen_random_uuid()`)
+			.primaryKey(),
 		role: roles().notNull(),
-		email: varchar({ length: configConstants.users.maxEmailLength }).unique().notNull(),
-		hashedPassword: varchar({ length: 1023 }),
+		email: text().unique().notNull(),
+		hashedPassword: text(),
 		registrationComplete: boolean().default(false).notNull(),
-		verificationToken: varchar({ length: 255 }),
+		verificationToken: text(),
 		verificationTokenGeneratedAt: timestamp({ precision: 6, withTimezone: true })
 			.default(new Date(0))
 			.notNull(),
-		passwordResetToken: varchar({ length: 255 }),
+		passwordResetToken: text(),
 		passwordResetTokenGeneratedAt: timestamp({ precision: 6, withTimezone: true })
 			.default(new Date(0))
 			.notNull(),
 		lastEmailSentAt: timestamp({ precision: 6, withTimezone: true }).default(new Date(0)).notNull(),
-		prefix: varchar({ length: configConstants.users.maxPrefixLength }),
-		name: varchar({ length: configConstants.users.maxNameLength }),
-		nickname: varchar({ length: configConstants.users.maxNicknameLength }),
-		phoneNumber: char({ length: configConstants.users.phoneNumberLength }),
-		schoolName: varchar({ length: configConstants.users.maxSchoolNameLength }),
+		prefix: text(),
+		name: text(),
+		nickname: text(),
+		phoneNumber: text(),
+		schoolName: text(),
 		grade: integer(),
-		transcriptId: char({ length: idLength }).references(() => files.id, {
+		transcriptId: suid().references(() => files.id, {
 			onUpdate: 'cascade',
 			onDelete: 'set null'
 		}),
-		addressProvince: varchar({ length: configConstants.users.maxAddressProvinceLength }),
-		addressDistrict: varchar({ length: configConstants.users.maxAddressDistrictLength }),
-		addressSubDistrict: varchar({ length: configConstants.users.maxAddressSubDistrictLength }),
-		addressPostcode: char({ length: configConstants.users.postcodeLength }),
-		addressDetail: varchar({ length: configConstants.users.maxAddressDetailLength }),
+		addressProvince: text(),
+		addressDistrict: text(),
+		addressSubDistrict: text(),
+		addressPostcode: text(),
+		addressDetail: text(),
 		...timeStamps
 	},
 	(table) => [
@@ -101,17 +99,17 @@ export const usersRelation = relations(users, ({ one }) => ({
 export const sessions = pgTable(
 	'sessions',
 	{
-		token: char({ length: tokenLength }).primaryKey(),
-		userId: char({ length: idLength })
+		token: text().primaryKey(),
+		userId: suid()
 			.references(() => users.id, {
 				onUpdate: 'cascade',
 				onDelete: 'cascade'
 			})
 			.notNull(),
-		firstLoginIp: varchar({ length: 63 }).notNull(),
-		firstLoginUserAgent: varchar({ length: 1023 }).notNull(),
-		lastUseIp: varchar({ length: 63 }).notNull(),
-		lastUseUserAgent: varchar({ length: 1023 }).notNull(),
+		firstLoginIp: text().notNull(),
+		firstLoginUserAgent: text().notNull(),
+		lastUseIp: text().notNull(),
+		lastUseUserAgent: text().notNull(),
 		...timeStamps
 	},
 	(table) => [index().on(table.userId)]
@@ -127,13 +125,15 @@ export const sessionsRelation = relations(sessions, ({ one }) => ({
 export const exams = pgTable(
 	'exams',
 	{
-		id: char({ length: idLength }).primaryKey(),
-		ownerId: char({ length: idLength }).references(() => users.id, {
+		id: suid()
+			.default(sql`gen_random_uuid()`)
+			.primaryKey(),
+		ownerId: suid().references(() => users.id, {
 			onUpdate: 'cascade',
 			onDelete: 'set null'
 		}),
-		title: varchar({ length: configConstants.exams.maxTitleLength }).notNull(),
-		description: varchar({ length: configConstants.exams.maxDescriptionLength }).notNull(),
+		title: text().notNull(),
+		description: text().notNull(),
 		openAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
 		closeAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
 		timeLimit: integer().notNull(), // seconds
@@ -155,7 +155,7 @@ export const examsRelation = relations(exams, ({ one, many }) => ({
 export const questions = pgTable(
 	'questions',
 	{
-		examId: char({ length: idLength })
+		examId: suid()
 			.references(() => exams.id, {
 				onUpdate: 'cascade',
 				onDelete: 'cascade'
@@ -169,8 +169,8 @@ export const questions = pgTable(
 		minScore: integer().default(configConstants.questions.defaultMinScore).notNull(),
 		scoringType: scoringTypes(),
 		textLengthLimit: integer().default(configConstants.questions.defaultTextAnswerLengthLimit), // type=text: lenght limit
-		textCorrect: varchar({ length: configConstants.questions.defaultTextAnswerLengthLimit }), // type=text: correct answer to score against, can be regex
-		fileTypes: varchar({ length: 1023 }), // type=file: MIME types for supported file (comma separated)
+		textCorrect: text(), // type=text: correct answer to score against, can be regex
+		fileTypes: text(), // type=file: MIME types for supported file (comma separated)
 		fileSizeLimit: integer().default(configConstants.questions.defaultFileSizeLimit), // type=file: upload size limit (kB)
 		...timeStamps
 	},
@@ -189,7 +189,7 @@ export const questionsRelation = relations(questions, ({ one, many }) => ({
 export const choices = pgTable(
 	'choices',
 	{
-		examId: char({ length: idLength }).notNull(),
+		examId: suid().notNull(),
 		questionNumber: integer().notNull(),
 		number: integer().notNull(),
 		markdown: text().notNull(),
@@ -218,13 +218,13 @@ export const choicesRelation = relations(choices, ({ one }) => ({
 export const submissions = pgTable(
 	'submissions',
 	{
-		examId: char({ length: idLength })
+		examId: suid()
 			.references(() => exams.id, {
 				onUpdate: 'cascade',
 				onDelete: 'cascade'
 			})
 			.notNull(),
-		userId: char({ length: idLength })
+		userId: suid()
 			.references(() => users.id, {
 				onUpdate: 'cascade',
 				onDelete: 'cascade'
@@ -252,9 +252,9 @@ export const submissionsRelation = relations(submissions, ({ one, many }) => ({
 export const answers = pgTable(
 	'answers',
 	{
-		examId: char({ length: idLength }).notNull(),
+		examId: suid().notNull(),
 		questionNumber: integer().notNull(),
-		userId: char({ length: idLength }).notNull(),
+		userId: suid().notNull(),
 		answer: text().notNull()
 	},
 	(table) => [
@@ -288,12 +288,14 @@ export const answersRelation = relations(answers, ({ one }) => ({
 export const announcements = pgTable(
 	'announcements',
 	{
-		id: char({ length: idLength }).primaryKey(),
-		authorId: char({ length: idLength }).references(() => users.id, {
+		id: suid()
+			.default(sql`gen_random_uuid()`)
+			.primaryKey(),
+		authorId: suid().references(() => users.id, {
 			onUpdate: 'cascade',
 			onDelete: 'set null'
 		}),
-		title: varchar({ length: configConstants.announcements.maxTitleLength }).notNull(),
+		title: text().notNull(),
 		markdown: text().notNull(),
 		html: text().notNull(),
 		...timeStamps
@@ -311,14 +313,16 @@ export const announcementsRelation = relations(announcements, ({ one }) => ({
 export const files = pgTable(
 	'files',
 	{
-		id: char({ length: idLength }).primaryKey(),
+		id: suid()
+			.default(sql`gen_random_uuid()`)
+			.primaryKey(),
 		size: integer().notNull(),
-		mimeType: varchar({ length: 255 }).notNull(),
-		extension: varchar({ length: 255 }).notNull(),
-		storedName: varchar({ length: 1023 })
+		mimeType: text().notNull(),
+		extension: text().notNull(),
+		storedName: text()
 			.generatedAlwaysAs((): SQL => sql`${files.id} || ${files.extension}`)
 			.notNull(),
-		referenceId: char({ length: idLength }),
+		referenceId: suid(),
 		...timeStamps
 	},
 	(table) => [index().on(table.referenceId)]

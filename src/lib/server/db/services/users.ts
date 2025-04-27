@@ -4,12 +4,12 @@ import { eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
-import { generateId } from '$lib/token';
+
+import { suidTouuid } from '../suid';
 
 const createUserQuery = db
 	.insert(users)
 	.values({
-		id: sql.placeholder('id'),
 		role: sql.placeholder('role'),
 		email: sql.placeholder('email'),
 		verificationToken: sql.placeholder('verificationToken'),
@@ -115,21 +115,17 @@ const updateUserPasswordQuery = db
 	.where(eq(users.id, sql.placeholder('id')))
 	.prepare('update_user_password');
 
-export async function createUser(data: {
-	id?: string;
-	role: string;
-	email: string;
-	verificationToken: string;
-}) {
-	data.id ??= generateId();
-	return createUserQuery.execute(data);
+export async function createUser(role: string, email: string, verificationToken: string) {
+	return createUserQuery.execute({ role, email, verificationToken });
 }
 
-export async function updateUserVerificationToken(data: { id: string; verificationToken: string }) {
-	return updateUserVerificationTokenQuery.execute(data);
+export async function updateUserVerificationToken(id: string, verificationToken: string) {
+	id = suidTouuid(id);
+	return updateUserVerificationTokenQuery.execute({ id, verificationToken });
 }
 
 export async function getUser(id: string) {
+	id = suidTouuid(id);
 	return getUserQuery.execute({ id });
 }
 
@@ -155,6 +151,7 @@ export async function updateUserProfile(data: {
 	addressPostcode: string;
 	addressDetail: string;
 }) {
+	data.id = suidTouuid(data.id);
 	return updateUserProfileQuery.execute(data);
 }
 
@@ -173,6 +170,7 @@ export async function updateUserProfileWithTranscript(data: {
 	addressPostcode: string;
 	addressDetail: string;
 }) {
+	data.id = suidTouuid(data.id);
 	return updateUserProfileWithTranscriptQuery.execute(data);
 }
 
@@ -191,9 +189,11 @@ export async function updateUserProfileRegistrationComplete(data: {
 	addressPostcode: string;
 	addressDetail: string;
 }) {
+	data.id = suidTouuid(data.id);
 	return updateUserProfileRegistrationCompleteQuery.execute(data);
 }
 
-export async function updateUserPassword(data: { id: string; hashedPassword: string }) {
-	return updateUserPasswordQuery.execute(data);
+export async function updateUserPassword(id: string, hashedPassword: string) {
+	id = suidTouuid(id);
+	return updateUserPasswordQuery.execute({ id, hashedPassword });
 }

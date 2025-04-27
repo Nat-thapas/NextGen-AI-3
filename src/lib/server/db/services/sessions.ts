@@ -4,7 +4,7 @@ import { eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { sessions } from '$lib/server/db/schema';
-import { generateToken } from '$lib/token';
+import { generateToken } from '$lib/server/db/token';
 
 const createSessionQuery = db.insert(sessions).values({
 	token: sql.placeholder('token'),

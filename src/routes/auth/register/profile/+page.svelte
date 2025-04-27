@@ -56,7 +56,7 @@
 
 <div class="mx-auto mt-8 max-w-6xl rounded-2xl bg-white p-8 px-16 drop-shadow-xl">
 	<h1 class="mb-4 text-center text-4xl font-semibold">Profile</h1>
-	<form method="POST" enctype="multipart/form-data" use:enhance class="mb-8">
+	<form method="POST" enctype="multipart/form-data" use:enhance>
 		<Form.Field {form} name="token">
 			<Form.Control>
 				{#snippet children({ props })}

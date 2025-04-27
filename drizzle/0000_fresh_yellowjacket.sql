@@ -2,9 +2,9 @@ CREATE TYPE "public"."question_types" AS ENUM('choices', 'checkboxes', 'text', '
 CREATE TYPE "public"."role" AS ENUM('registrant', 'student', 'staff', 'teacher', 'admin', 'superadmin');--> statement-breakpoint
 CREATE TYPE "public"."scoring_types" AS ENUM('exact', 'regex', 'and', 'or', 'scale');--> statement-breakpoint
 CREATE TABLE "announcements" (
-	"id" char(20) PRIMARY KEY NOT NULL,
-	"author_id" char(20),
-	"title" varchar(1023) NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"author_id" uuid,
+	"title" text NOT NULL,
 	"markdown" text NOT NULL,
 	"html" text NOT NULL,
 	"created_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
@@ -12,15 +12,15 @@ CREATE TABLE "announcements" (
 );
 --> statement-breakpoint
 CREATE TABLE "answers" (
-	"exam_id" char(20) NOT NULL,
-	"user_id" char(20) NOT NULL,
+	"exam_id" uuid NOT NULL,
 	"question_number" integer NOT NULL,
+	"user_id" uuid NOT NULL,
 	"answer" text NOT NULL,
-	CONSTRAINT "answers_exam_id_user_id_question_number_pk" PRIMARY KEY("exam_id","user_id","question_number")
+	CONSTRAINT "answers_exam_id_question_number_user_id_pk" PRIMARY KEY("exam_id","question_number","user_id")
 );
 --> statement-breakpoint
 CREATE TABLE "choices" (
-	"exam_id" char(20) NOT NULL,
+	"exam_id" uuid NOT NULL,
 	"question_number" integer NOT NULL,
 	"number" integer NOT NULL,
 	"markdown" text NOT NULL,
@@ -32,10 +32,10 @@ CREATE TABLE "choices" (
 );
 --> statement-breakpoint
 CREATE TABLE "exams" (
-	"id" char(20) PRIMARY KEY NOT NULL,
-	"owner_id" char(20),
-	"title" varchar(255) NOT NULL,
-	"description" varchar(65535) NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"owner_id" uuid,
+	"title" text NOT NULL,
+	"description" text NOT NULL,
 	"open_at" timestamp (6) with time zone NOT NULL,
 	"close_at" timestamp (6) with time zone NOT NULL,
 	"time_limit" integer NOT NULL,
@@ -45,18 +45,18 @@ CREATE TABLE "exams" (
 );
 --> statement-breakpoint
 CREATE TABLE "files" (
-	"id" char(20) PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"size" integer NOT NULL,
-	"mime_type" varchar(255) NOT NULL,
-	"extension" varchar(255) NOT NULL,
-	"stored_name" varchar(1023) GENERATED ALWAYS AS ("files"."id" || "files"."extension") STORED NOT NULL,
-	"reference_id" char(20),
+	"mime_type" text NOT NULL,
+	"extension" text NOT NULL,
+	"stored_name" text GENERATED ALWAYS AS ("files"."id" || "files"."extension") STORED NOT NULL,
+	"reference_id" uuid,
 	"created_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp (6) with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "questions" (
-	"exam_id" char(20) NOT NULL,
+	"exam_id" uuid NOT NULL,
 	"number" integer NOT NULL,
 	"markdown" text NOT NULL,
 	"html" text NOT NULL,
@@ -65,8 +65,8 @@ CREATE TABLE "questions" (
 	"min_score" integer DEFAULT 0 NOT NULL,
 	"scoring_type" "scoring_types",
 	"text_length_limit" integer DEFAULT 1024,
-	"text_correct" varchar(1024),
-	"file_types" varchar(1023),
+	"text_correct" text,
+	"file_types" text,
 	"file_size_limit" integer DEFAULT 25,
 	"created_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
@@ -74,19 +74,19 @@ CREATE TABLE "questions" (
 );
 --> statement-breakpoint
 CREATE TABLE "sessions" (
-	"token" char(80) PRIMARY KEY NOT NULL,
-	"user_id" char(20) NOT NULL,
-	"first_login_ip" varchar(63) NOT NULL,
-	"first_login_user_agent" varchar(1023) NOT NULL,
-	"last_use_ip" varchar(63) NOT NULL,
-	"last_use_user_agent" varchar(1023) NOT NULL,
+	"token" text PRIMARY KEY NOT NULL,
+	"user_id" uuid NOT NULL,
+	"first_login_ip" text NOT NULL,
+	"first_login_user_agent" text NOT NULL,
+	"last_use_ip" text NOT NULL,
+	"last_use_user_agent" text NOT NULL,
 	"created_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp (6) with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "submissions" (
-	"exam_id" char(20) NOT NULL,
-	"user_id" char(20) NOT NULL,
+	"exam_id" uuid NOT NULL,
+	"user_id" uuid NOT NULL,
 	"submitted" boolean DEFAULT false NOT NULL,
 	"score" integer,
 	"created_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
@@ -95,36 +95,36 @@ CREATE TABLE "submissions" (
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
-	"id" char(20) PRIMARY KEY NOT NULL,
-	"email" varchar(255) NOT NULL,
-	"hashed_password" varchar(1023),
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"role" "role" NOT NULL,
+	"email" text NOT NULL,
+	"hashed_password" text,
 	"registration_complete" boolean DEFAULT false NOT NULL,
-	"verification_token" varchar(255),
+	"verification_token" text,
 	"verification_token_generated_at" timestamp (6) with time zone DEFAULT '1970-01-01T00:00:00.000Z' NOT NULL,
-	"password_reset_token" varchar(255),
+	"password_reset_token" text,
 	"password_reset_token_generated_at" timestamp (6) with time zone DEFAULT '1970-01-01T00:00:00.000Z' NOT NULL,
 	"last_email_sent_at" timestamp (6) with time zone DEFAULT '1970-01-01T00:00:00.000Z' NOT NULL,
-	"prefix" varchar(63),
-	"name" varchar(255),
-	"nickname" varchar(63),
-	"phone_number" char(10),
-	"school_name" varchar(255),
+	"prefix" text,
+	"name" text,
+	"nickname" text,
+	"phone_number" text,
+	"school_name" text,
 	"grade" integer,
-	"transcript_id" char(20),
-	"address_province" varchar(255),
-	"address_district" varchar(255),
-	"address_sub_district" varchar(255),
-	"address_postcode" char(5),
-	"address_detail" varchar(1023),
+	"transcript_id" uuid,
+	"address_province" text,
+	"address_district" text,
+	"address_sub_district" text,
+	"address_postcode" text,
+	"address_detail" text,
 	"created_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
 ALTER TABLE "announcements" ADD CONSTRAINT "announcements_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "answers" ADD CONSTRAINT "answers_exam_id_user_id_submissions_exam_id_user_id_fk" FOREIGN KEY ("exam_id","user_id") REFERENCES "public"."submissions"("exam_id","user_id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "answers" ADD CONSTRAINT "answers_exam_id_question_number_questions_exam_id_number_fk" FOREIGN KEY ("exam_id","question_number") REFERENCES "public"."questions"("exam_id","number") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "answers" ADD CONSTRAINT "answers_exam_id_user_id_submissions_exam_id_user_id_fk" FOREIGN KEY ("exam_id","user_id") REFERENCES "public"."submissions"("exam_id","user_id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "choices" ADD CONSTRAINT "choices_exam_id_question_number_questions_exam_id_number_fk" FOREIGN KEY ("exam_id","question_number") REFERENCES "public"."questions"("exam_id","number") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "exams" ADD CONSTRAINT "exams_owner_id_users_id_fk" FOREIGN KEY ("owner_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "questions" ADD CONSTRAINT "questions_exam_id_exams_id_fk" FOREIGN KEY ("exam_id") REFERENCES "public"."exams"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint

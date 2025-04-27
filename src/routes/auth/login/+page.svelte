@@ -118,7 +118,12 @@
 		</span>
 	</form>
 	<div class="-ml-8 flex w-64 max-w-3xl flex-shrink flex-grow-[999] flex-col items-center">
-		<img src={banner} alt="Banner" class="-mr-[20%] mb-[5%] h-fit w-1/3" />
-		<img src={robots_phones} alt="Robots using a phone decoration" class="-mt-[25%] h-fit w-full" />
+		<img src={banner} alt="Banner" width="512" height="133" class="-mr-[20%] mb-[5%] h-fit w-1/3" />
+		<img
+			src={robots_phones}
+			alt="Robots using a phone decoration"
+			width="1024"
+			height="1058"
+			class="-mt-[25%] h-fit w-full" />
 	</div>
 </div>

@@ -16,12 +16,12 @@ import {
 
 import { db } from '$lib/server/db';
 import { answers, exams, questions, submissions } from '$lib/server/db/schema';
-import { generateId } from '$lib/token';
+
+import { suidTouuid } from '../suid';
 
 const createExamReturningQuery = db
 	.insert(exams)
 	.values({
-		id: sql.placeholder('id'),
 		ownerId: sql.placeholder('ownerId'),
 		title: sql.placeholder('title'),
 		description: sql.placeholder('description'),
@@ -173,7 +173,6 @@ const deleteExamQuery = db
 	.prepare('delete_exam');
 
 export async function createExamReturning(data: {
-	id?: string;
 	ownerId: string;
 	title: string;
 	description: string;
@@ -181,38 +180,47 @@ export async function createExamReturning(data: {
 	closeAt: Date;
 	timeLimit: number;
 }) {
-	data.id ??= generateId();
 	return (await createExamReturningQuery.execute(data))[0];
 }
 
 export async function getExam(id: string) {
+	id = suidTouuid(id);
 	return getExamQuery.execute({ id });
 }
 
 export async function getExamSubmission(id: string, userId: string) {
+	id = suidTouuid(id);
+	userId = suidTouuid(userId);
 	return (await getExamSubmissionQuery.execute({ id, userId }))[0];
 }
 
 export async function getExamQuestionAnswerSubmission(id: string, userId: string) {
+	id = suidTouuid(id);
+	userId = suidTouuid(userId);
 	return getExamQuestionAnswerSubmissionQuery.execute({ id, userId });
 }
 
 export async function getExamsAvailable(userId: string) {
+	userId = suidTouuid(userId);
 	return getExamsAvailableQuery.execute({ userId });
 }
 
 export async function getExamsUpcoming(userId: string) {
+	userId = suidTouuid(userId);
 	return getExamsUpcomingQuery.execute({ userId });
 }
 
 export async function getExamsCompleted(userId: string) {
+	userId = suidTouuid(userId);
 	return getExamsCompletedQuery.execute({ userId });
 }
 
 export async function getExamsExpired(userId: string) {
+	userId = suidTouuid(userId);
 	return getExamsExpiredQuery.execute({ userId });
 }
 
 export async function deleteExam(id: string) {
+	id = suidTouuid(id);
 	return deleteExamQuery.execute({ id });
 }

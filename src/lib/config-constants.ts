@@ -1,8 +1,4 @@
 export const configConstants = {
-	entropy: {
-		id: 120,
-		token: 480
-	},
 	forms: {
 		delay: 100, // milliseconds
 		timeout: 5000, // milliseconds
@@ -27,6 +23,9 @@ export const configConstants = {
 		registrationLinkTimeout: 900, // seconds: from email sent to clicking button
 		registrationSetPasswordTimeout: 1200, // seconds: from email sent to password submit
 		registrationUpdateProfileTimeout: 3600 // seconds: from email sent to profile update
+	},
+	sessions: {
+		tokenEntropy: 512
 	},
 	exams: {
 		maxTitleLength: 255,

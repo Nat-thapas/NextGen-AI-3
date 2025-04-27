@@ -13,8 +13,8 @@ import {
 	getUserByEmail,
 	updateUserVerificationToken
 } from '$lib/server/db/services/users';
+import { generateToken } from '$lib/server/db/token';
 import { sendVerifyEmail } from '$lib/server/email';
-import { generateToken } from '$lib/token';
 
 import type { Actions, PageServerLoad } from './$types';
 import { formSchema } from './schema';
@@ -76,16 +76,9 @@ export const actions: Actions = {
 		}
 
 		if (user === undefined) {
-			await createUser({
-				role: roles.registrant,
-				email: form.data.email,
-				verificationToken: token
-			});
+			await createUser(roles.registrant, form.data.email, token);
 		} else {
-			await updateUserVerificationToken({
-				id: user.id,
-				verificationToken: token
-			});
+			await updateUserVerificationToken(user.id, token);
 		}
 
 		return redirect(303, `${base}/auth/register/email-sent`);

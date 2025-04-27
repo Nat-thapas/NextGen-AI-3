@@ -5,6 +5,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 
 import { submissions } from '../schema';
+import { suidTouuid } from '../suid';
 
 const createSubmissionQuery = db
 	.insert(submissions)
@@ -28,5 +29,7 @@ export async function createSubmission(examId: string, userId: string) {
 }
 
 export async function getSubmission(examId: string, userId: string) {
+	examId = suidTouuid(examId);
+	userId = suidTouuid(userId);
 	return getSubmissionQuery.execute({ examId, userId });
 }

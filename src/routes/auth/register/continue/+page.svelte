@@ -56,8 +56,13 @@
 
 <div class="mt-8 flex items-center">
 	<div class="-mr-8 flex w-64 max-w-3xl flex-shrink flex-grow-[999] flex-col items-center">
-		<img src={banner} alt="Banner" class="-ml-[20%] mb-[5%] h-fit w-1/3" />
-		<img src={robots_phone} alt="Robots using a phone decoration" class="-mt-[25%] h-fit w-full" />
+		<img src={banner} alt="Banner" width="512" height="133" class="-ml-[20%] mb-[5%] h-fit w-1/3" />
+		<img
+			src={robots_phone}
+			alt="Robots using a phone decoration"
+			width="1024"
+			height="1058"
+			class="-mt-[25%] h-fit w-full" />
 	</div>
 	<form method="POST" use:enhance class="mx-16 mr-16 flex w-fit flex-grow flex-col items-center">
 		<h1 class="mb-8 text-5xl font-semibold text-black">Create Account</h1>

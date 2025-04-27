@@ -4,9 +4,20 @@ import { desc, eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { announcements } from '$lib/server/db/schema';
-import { generateId } from '$lib/token';
+
+import { suidTouuid } from '../suid';
 
 const createAnnouncementQuery = db
+	.insert(announcements)
+	.values({
+		authorId: sql.placeholder('authorId'),
+		title: sql.placeholder('title'),
+		markdown: sql.placeholder('markdown'),
+		html: sql.placeholder('html')
+	})
+	.prepare('create_announcement');
+
+const createAnnouncementWithIdQuery = db
 	.insert(announcements)
 	.values({
 		id: sql.placeholder('id'),
@@ -15,7 +26,7 @@ const createAnnouncementQuery = db
 		markdown: sql.placeholder('markdown'),
 		html: sql.placeholder('html')
 	})
-	.prepare('create_announcement');
+	.prepare('create_announcement_id');
 
 const getAnnouncementQuery = db.query.announcements
 	.findFirst({
@@ -40,17 +51,26 @@ const getAnnouncementsQuery = db.query.announcements
 	.prepare('get_announcements');
 
 export async function createAnnouncement(data: {
-	id?: string;
 	authorId: string;
 	title: string;
 	markdown: string;
 	html: string;
 }) {
-	data.id ??= generateId();
 	return createAnnouncementQuery.execute(data);
 }
 
+export async function createAnnouncementWithId(data: {
+	id: string;
+	authorId: string;
+	title: string;
+	markdown: string;
+	html: string;
+}) {
+	return createAnnouncementWithIdQuery.execute(data);
+}
+
 export async function getAnnouncement(id: string) {
+	id = suidTouuid(id);
 	return getAnnouncementQuery.execute({ id });
 }
 

@@ -153,7 +153,7 @@ export const actions: Actions = {
 
 		const hashedPassword = await argon2.hash(form.data.newPassword);
 
-		await updateUserPassword({ id: user.id, hashedPassword });
+		await updateUserPassword(user.id, hashedPassword);
 
 		return message(form, {
 			type: 'success',

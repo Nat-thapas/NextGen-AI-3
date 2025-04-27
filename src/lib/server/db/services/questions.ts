@@ -5,6 +5,8 @@ import { and, asc, eq, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { choices, questions } from '$lib/server/db/schema';
 
+import { suidTouuid } from '../suid';
+
 const createQuestionQuery = db
 	.insert(questions)
 	.values({
@@ -67,5 +69,6 @@ export async function createQuestion(data: {
 }
 
 export async function getQuestionChoices(examId: string, number: number) {
+	examId = suidTouuid(examId);
 	return getQuestionChoicesQuery.execute({ examId, number });
 }
