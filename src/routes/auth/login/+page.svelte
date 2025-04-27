@@ -117,8 +117,10 @@
 			</a>
 		</span>
 	</form>
-	<div class="-ml-8 flex w-64 max-w-3xl flex-shrink flex-grow-[999] flex-col items-center">
-		<img src={banner} alt="Banner" width="512" height="133" class="-mr-[20%] mb-[5%] h-fit w-1/3" />
+	<div class="-ml-16 flex w-96 max-w-4xl flex-shrink flex-grow-[999] flex-col items-center">
+		<a href={`${base}/`} class="z-10 -mr-[20%] mb-[5%] h-fit w-[29%]">
+			<img src={banner} alt="Banner" width="512" height="133" class="h-fit w-full" />
+		</a>
 		<img
 			src={robots_phones}
 			alt="Robots using a phone decoration"

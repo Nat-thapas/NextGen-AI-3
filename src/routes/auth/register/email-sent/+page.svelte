@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { base } from '$app/paths';
+
 	import banner from '$lib/images/banner/banner-512.avif';
 	import email from '$lib/images/email.avif';
 	import robots_phone from '$lib/images/robots-phone.avif';
@@ -10,7 +12,9 @@
 
 <div class="mt-8 flex items-center">
 	<div class="-mr-8 flex w-64 max-w-3xl flex-shrink flex-grow-[999] flex-col items-center">
-		<img src={banner} alt="Banner" width="512" height="133" class="-ml-[20%] mb-[5%] h-fit w-1/3" />
+		<a href={`${base}/`} class="z-10 -ml-[20%] mb-[5%] w-1/3">
+			<img src={banner} alt="Banner" width="512" height="133" class="h-fit w-full" />
+		</a>
 		<img
 			src={robots_phone}
 			alt="Robots using a phone decoration"

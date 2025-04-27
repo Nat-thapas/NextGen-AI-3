@@ -7,8 +7,8 @@ export function uuidToSuid(uuid: string): string {
 	return base64UrlEncode(uuidParse(uuid));
 }
 
-export function suidTouuid(b64: string): string {
-	return uuidStringify(new Uint8Array(base64UrlDecode(b64)));
+export function suidTouuid(suid: string): string {
+	return uuidStringify(new Uint8Array(base64UrlDecode(suid)));
 }
 
 export function generateSuid(): string {
