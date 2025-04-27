@@ -1,5 +1,5 @@
 diff --git a/node-postgres/session.cjs b/node-postgres/session.cjs
-index 863d5762b3cd48b2045952c370d1217f84481fdb..910df2f835f47143646127c6fdba46c722a647e8 100644
+index 863d5762b3cd48b2045952c370d1217f84481fdb..dcbb5e40907c4676246af08cf912faf1244cb7b3 100644
 --- a/node-postgres/session.cjs
 +++ b/node-postgres/session.cjs
 @@ -41,7 +41,8 @@ var import_session = require("../pg-core/session.cjs");
@@ -18,7 +18,7 @@ index 863d5762b3cd48b2045952c370d1217f84481fdb..910df2f835f47143646127c6fdba46c7
    async transaction(transaction, config) {
 -    const session = this.client instanceof Pool ? new NodePgSession(await this.client.connect(), this.dialect, this.schema, this.options) : this;
 +    const session = (this.client instanceof Pool || (NativePool && this.client instanceof NativePool))
-+      ? new NodePgSession(await this.client.connect(), this.dialect, this.schema, this.options) 
++      ? new NodePgSession(await this.client.connect(), this.dialect, this.schema, this.options)
 +      : this;
      const tx = new NodePgTransaction(this.dialect, session, this.schema);
      await tx.execute(import_sql.sql`begin${config ? import_sql.sql` ${tx.getTransactionConfigSQL(config)}` : void 0}`);

@@ -13,7 +13,7 @@ export function getExtension(name: string, mimeType: string): string {
 		}
 	}
 
-	return mimeTypes.extension(mimeType) || 'application/octet-stream';
+	return '.' + mimeTypes.extension(mimeType) || '.dat';
 }
 
 export function shouldDispositionInline(mimeType: string): boolean {
