@@ -83,10 +83,10 @@ export async function createQuestion(data: {
 	maxScore: number;
 	minScore: number;
 	scoringType: 'exact' | 'regex' | 'and' | 'or' | 'scale' | null;
-	textLengthLimit: number | null;
+	textLengthLimit: number;
 	textCorrect: string | null;
 	fileTypes: string | null;
-	fileSizeLimit: number | null;
+	fileSizeLimit: number;
 }) {
 	return createQuestionQuery.execute(data);
 }

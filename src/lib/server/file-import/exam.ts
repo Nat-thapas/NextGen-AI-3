@@ -101,7 +101,7 @@ export async function importExam(
 				if (!(row[0] instanceof String || typeof row[0] === 'string') || !row[0].startsWith('$'))
 					continue;
 
-				if (row[0].toLowerCase() === '$question') {
+				if (row[0].toLowerCase().startsWith('$q')) {
 					if (row[1] === undefined) {
 						throw Error(`Sheet '${name}' Cell B${rowNumber + 1} (Question text) is empty`);
 					}
@@ -140,8 +140,9 @@ export async function importExam(
 						throw Error(`Sheet '${name}' Cell F${rowNumber + 1} (Scoring type) is invalid`);
 					}
 
-					const textLengthLimit =
-						questionType === questionTypes.text ? Number(row[6] ?? 1000) : null;
+					const textLengthLimit = Number(
+						row[6] ?? configConstants.questions.defaultTextAnswerLengthLimit
+					);
 					const textCorrect =
 						questionType === questionTypes.text
 							? row[7] === undefined
@@ -155,8 +156,7 @@ export async function importExam(
 								? null
 								: String(row[8])
 							: null;
-					const fileSizeLimit =
-						questionType === questionTypes.file ? Number(row[9] ?? 10_000) : null;
+					const fileSizeLimit = Number(row[9] ?? configConstants.questions.defaultFileSizeLimit);
 
 					const fileTypes = parseFileTypes(rawFileTypes);
 
@@ -177,7 +177,7 @@ export async function importExam(
 						fileTypes,
 						fileSizeLimit
 					});
-				} else if (row[0].toLowerCase() === '$choice') {
+				} else if (row[0].toLowerCase().startsWith('$c')) {
 					if (questionNumber === 0) {
 						throw Error(
 							`Sheet '${name}' Cell A${rowNumber + 1} Choice is defined before a question`
@@ -204,7 +204,7 @@ export async function importExam(
 						isCorrect
 					});
 				} else {
-					throw Error(`Sheet '${name}' Cell A${rowNumber + 1} contains invalid $directive`);
+					throw Error(`Sheet '${name}' Cell A${rowNumber + 1} contains invalid $ directive`);
 				}
 			}
 		}
