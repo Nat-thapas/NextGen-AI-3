@@ -25,7 +25,7 @@ export const configConstants = {
 		registrationUpdateProfileTimeout: 3600 // seconds: from email sent to profile update
 	},
 	sessions: {
-		tokenEntropy: 512
+		tokenEntropy: 256
 	},
 	exams: {
 		maxTitleLength: 255,
