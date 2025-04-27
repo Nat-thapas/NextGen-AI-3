@@ -5,7 +5,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 
 import { submissions } from '../schema';
-import { suidTouuid } from '../suid';
+import { suidToUuid } from '../suid';
 
 const createSubmissionQuery = db
 	.insert(submissions)
@@ -24,12 +24,36 @@ const getSubmissionQuery = db.query.submissions
 	})
 	.prepare('get_submission');
 
+const updateSubmissionSubmittedQuery = db
+	.update(submissions)
+	.set({
+		submitted: sql.placeholder('submitted'),
+		updatedAt: sql`now()`
+	})
+	.where(
+		and(
+			eq(submissions.examId, sql.placeholder('examId')),
+			eq(submissions.userId, sql.placeholder('userId'))
+		)
+	)
+	.prepare('update_submission_submitted');
+
 export async function createSubmission(examId: string, userId: string) {
 	return createSubmissionQuery.execute({ examId, userId });
 }
 
 export async function getSubmission(examId: string, userId: string) {
-	examId = suidTouuid(examId);
-	userId = suidTouuid(userId);
+	examId = suidToUuid(examId);
+	userId = suidToUuid(userId);
 	return getSubmissionQuery.execute({ examId, userId });
+}
+
+export async function updateSubmissionSubmitted(
+	examId: string,
+	userId: string,
+	submitted: boolean
+) {
+	examId = suidToUuid(examId);
+	userId = suidToUuid(userId);
+	return updateSubmissionSubmittedQuery.execute({ examId, userId, submitted });
 }

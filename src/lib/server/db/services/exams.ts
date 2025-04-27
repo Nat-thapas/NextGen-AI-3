@@ -17,7 +17,7 @@ import {
 import { db } from '$lib/server/db';
 import { answers, exams, questions, submissions } from '$lib/server/db/schema';
 
-import { suidTouuid } from '../suid';
+import { suidToUuid } from '../suid';
 
 const createExamReturningQuery = db
 	.insert(exams)
@@ -41,7 +41,7 @@ const getExamQuery = db.query.exams
 const getExamSubmissionQuery = db
 	.select({
 		...getTableColumns(exams),
-		submission: { createdAt: submissions.createdAt }
+		submission: { submitted: submissions.submitted, createdAt: submissions.createdAt }
 	})
 	.from(exams)
 	.leftJoin(
@@ -55,6 +55,7 @@ const getExamQuestionAnswerSubmissionQuery = db.query.exams
 	.findFirst({
 		columns: {
 			id: true,
+			title: true,
 			openAt: true,
 			closeAt: true,
 			timeLimit: true
@@ -76,6 +77,7 @@ const getExamQuestionAnswerSubmissionQuery = db.query.exams
 			},
 			submissions: {
 				columns: {
+					submitted: true,
 					createdAt: true
 				},
 				where: eq(submissions.userId, sql.placeholder('userId'))
@@ -184,43 +186,43 @@ export async function createExamReturning(data: {
 }
 
 export async function getExam(id: string) {
-	id = suidTouuid(id);
+	id = suidToUuid(id);
 	return getExamQuery.execute({ id });
 }
 
 export async function getExamSubmission(id: string, userId: string) {
-	id = suidTouuid(id);
-	userId = suidTouuid(userId);
+	id = suidToUuid(id);
+	userId = suidToUuid(userId);
 	return (await getExamSubmissionQuery.execute({ id, userId }))[0];
 }
 
 export async function getExamQuestionAnswerSubmission(id: string, userId: string) {
-	id = suidTouuid(id);
-	userId = suidTouuid(userId);
+	id = suidToUuid(id);
+	userId = suidToUuid(userId);
 	return getExamQuestionAnswerSubmissionQuery.execute({ id, userId });
 }
 
 export async function getExamsAvailable(userId: string) {
-	userId = suidTouuid(userId);
+	userId = suidToUuid(userId);
 	return getExamsAvailableQuery.execute({ userId });
 }
 
 export async function getExamsUpcoming(userId: string) {
-	userId = suidTouuid(userId);
+	userId = suidToUuid(userId);
 	return getExamsUpcomingQuery.execute({ userId });
 }
 
 export async function getExamsCompleted(userId: string) {
-	userId = suidTouuid(userId);
+	userId = suidToUuid(userId);
 	return getExamsCompletedQuery.execute({ userId });
 }
 
 export async function getExamsExpired(userId: string) {
-	userId = suidTouuid(userId);
+	userId = suidToUuid(userId);
 	return getExamsExpiredQuery.execute({ userId });
 }
 
 export async function deleteExam(id: string) {
-	id = suidTouuid(id);
+	id = suidToUuid(id);
 	return deleteExamQuery.execute({ id });
 }

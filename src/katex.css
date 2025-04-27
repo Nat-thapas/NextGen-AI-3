@@ -224,6 +224,9 @@
 	position: absolute;
 	width: 1px;
 }
+.katex .katex-html {
+	padding: 0.25rem;
+}
 .katex .katex-html > .newline {
 	display: block;
 }

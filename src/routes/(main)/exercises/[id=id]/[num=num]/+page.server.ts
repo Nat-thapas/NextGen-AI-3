@@ -1,15 +1,28 @@
+import fs from 'node:fs/promises';
+import { join } from 'node:path';
+
 import { error, redirect } from '@sveltejs/kit';
+import mimeTypes from 'mime-types';
+import { fail, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { z } from 'zod';
 
 import { base } from '$app/paths';
+import { env } from '$env/dynamic/private';
 
 import { getSecondsSince, utcNow } from '$lib/datetime';
-import { roles } from '$lib/enums';
+import { questionTypes, roles } from '$lib/enums';
+import { getExtension } from '$lib/files';
+import { formatNumber } from '$lib/format-number';
 import { isRoleAtLeast } from '$lib/roles';
-import { getExamQuestionAnswerSubmission } from '$lib/server/db/services/exams';
-import { getQuestionChoices } from '$lib/server/db/services/questions';
+import { getAnswer, upsertAnswer } from '$lib/server/db/services/answers';
+import { getExamQuestionAnswerSubmission, getExamSubmission } from '$lib/server/db/services/exams';
+import { createFileReturning, deleteFileReturning } from '$lib/server/db/services/files';
+import { getQuestionChoiceNumbers, getQuestionChoices } from '$lib/server/db/services/questions';
+import { updateSubmissionSubmitted } from '$lib/server/db/services/submissions';
 import { setToastParams } from '$lib/toast';
 
-import type { PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	const user = locals.user;
@@ -66,16 +79,327 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			setToastParams(`${base}/exercises`, "You've ran out of time on this exam", undefined, 'error')
 		);
 	}
+	if (exam.submissions[0].submitted) {
+		return redirect(
+			303,
+			setToastParams(`${base}/exercises`, "You've already submitted this exam", undefined, 'error')
+		);
+	}
+
+	let formSchema;
+
+	switch (question.questionType) {
+		case questionTypes.choices:
+			formSchema = z.object({
+				next: z.string(),
+				answer: z
+					.string()
+					.refine((v) => /[0-9]{1,15}/.test(v), 'Choice must be a valid number')
+					.optional()
+			});
+			break;
+		case questionTypes.checkboxes:
+			formSchema = z.object({
+				next: z.string(),
+				answer: z
+					.string()
+					.refine((v) => /[0-9]{1,15}/.test(v), 'Choice must be a valid number')
+					.array()
+					.optional()
+			});
+			break;
+		case questionTypes.text:
+			formSchema = z.object({
+				next: z.string(),
+				answer: z
+					.string()
+					.max(
+						question.textLengthLimit,
+						`Answer must be at most ${question.textLengthLimit} characters long`
+					)
+					.optional()
+			});
+			break;
+		case questionTypes.file:
+			formSchema = z.object({
+				next: z.string(),
+				answer: z
+					.instanceof(File, { message: 'Please upload a file' })
+					.refine(
+						(f) => (question.fileTypes ? question.fileTypes.split(',').includes(f.type) : true),
+						`File must be a supported file type (${(question.fileTypes ?? '')
+							.split(',')
+							.map((mimeType) => '.' + mimeTypes.lookup(mimeType) || '.dat')
+							.join(', ')})`
+					)
+					.refine(
+						(f) => f.size < question.fileSizeLimit * 1000,
+						`File size must be at most ${formatNumber(question.fileSizeLimit * 1000)}B`
+					)
+					.optional()
+			});
+			break;
+	}
 
 	return {
 		exam: {
 			id: exam.id,
+			title: exam.title,
 			openAt: exam.openAt,
 			closeAt: exam.closeAt,
 			timeLimit: exam.timeLimit
 		},
 		questions: exam.questions,
 		submission: exam.submissions[0],
-		question
+		question,
+		form: await superValidate(zod(formSchema))
 	};
+};
+
+export const actions: Actions = {
+	default: async (event) => {
+		const user = event.locals.user;
+		const examId = event.params.id;
+		const questionNumber = Number(event.params.num);
+
+		if (!user) {
+			error(401, {
+				message: 'You have to be logged in to access this page'
+			});
+		}
+		if (!isRoleAtLeast(user.role, roles.student)) {
+			error(403, {
+				message: 'You do not have access to this page'
+			});
+		}
+
+		const [exam, question] = await Promise.all([
+			getExamSubmission(examId, user.id),
+			getQuestionChoiceNumbers(examId, questionNumber)
+		]);
+
+		if (!exam || !question) {
+			error(404, {
+				message: 'Not Found'
+			});
+		}
+		if (exam.openAt > utcNow()) {
+			return redirect(
+				303,
+				setToastParams(`${base}/exercises`, 'Exam is not open yet', undefined, 'error')
+			);
+		}
+		if (exam.closeAt <= utcNow()) {
+			return redirect(
+				303,
+				setToastParams(`${base}/exercises`, 'Exam is already closed', undefined, 'error')
+			);
+		}
+		if (!exam.submission) {
+			return redirect(
+				303,
+				setToastParams(
+					`${base}/exercises/${exam.id}`,
+					"You've not started this exam yet",
+					undefined,
+					'error'
+				)
+			);
+		}
+		if (getSecondsSince(exam.submission.createdAt) > exam.timeLimit) {
+			return redirect(
+				303,
+				setToastParams(
+					`${base}/exercises`,
+					"You've ran out of time on this exam",
+					undefined,
+					'error'
+				)
+			);
+		}
+		if (exam.submission.submitted) {
+			return redirect(
+				303,
+				setToastParams(
+					`${base}/exercises`,
+					"You've already submitted this exam",
+					undefined,
+					'error'
+				)
+			);
+		}
+
+		let next: string;
+
+		switch (question.questionType) {
+			case questionTypes.choices: {
+				const formSchema = z.object({
+					next: z.string(),
+					answer: z
+						.string()
+						.refine((v) => /[0-9]{1,15}/.test(v), 'Choice must be a valid number')
+						.optional()
+				});
+
+				const form = await superValidate(event.request, zod(formSchema));
+				if (!form.valid) return fail(400, { form });
+
+				if (form.data.answer) {
+					const choice = Math.floor(Number(form.data.answer));
+					if (choice > question.choices.length) {
+						form.errors.answer = ['Choice must be a valid choice for the question'];
+						return fail(400, { form });
+					}
+					await upsertAnswer(exam.id, question.number, user.id, choice.toString());
+				}
+
+				next = form.data.next;
+
+				break;
+			}
+			case questionTypes.checkboxes: {
+				const formSchema = z.object({
+					next: z.string(),
+					answer: z
+						.string()
+						.refine((v) => /[0-9]{1,15}/.test(v), 'Choice must be a valid number')
+						.array()
+						.optional()
+				});
+
+				const form = await superValidate(event.request, zod(formSchema));
+				if (!form.valid) return fail(400, { form });
+
+				if (form.data.answer) {
+					const checks: number[] = [];
+					for (const [index, answer] of form.data.answer.entries()) {
+						const choice = Math.floor(Number(answer));
+						if (choice > question.choices.length) {
+							form.errors.answer = form.errors.answer ?? ({} as Record<string | number, string[]>);
+							form.errors.answer[index] = ['Choice must be a valid choice for the question'];
+							return fail(400, { form });
+						}
+						checks.push(choice);
+					}
+					await upsertAnswer(exam.id, question.number, user.id, checks.join(';'));
+				}
+
+				next = form.data.next;
+
+				break;
+			}
+			case questionTypes.text: {
+				const formSchema = z.object({
+					next: z.string(),
+					answer: z
+						.string()
+						.max(
+							question.textLengthLimit,
+							`Answer must be at most ${question.textLengthLimit} characters long`
+						)
+						.optional()
+				});
+
+				const form = await superValidate(event.request, zod(formSchema));
+				if (!form.valid) return fail(400, { form });
+
+				if (form.data.answer) {
+					await upsertAnswer(exam.id, question.number, user.id, form.data.answer);
+				}
+
+				next = form.data.next;
+
+				break;
+			}
+			case questionTypes.file: {
+				const formSchema = z.object({
+					next: z.string(),
+					answer: z
+						.instanceof(File, { message: 'Please upload a file' })
+						.refine(
+							(f) => (question.fileTypes ? question.fileTypes.split(',').includes(f.type) : true),
+							`File must be a supported file type (${(question.fileTypes ?? '')
+								.split(',')
+								.map((mimeType) => '.' + mimeTypes.lookup(mimeType) || '.dat')
+								.join(', ')})`
+						)
+						.refine(
+							(f) => f.size < question.fileSizeLimit * 1000,
+							`File size must be at most ${formatNumber(question.fileSizeLimit * 1000)}B`
+						)
+						.optional()
+				});
+
+				const form = await superValidate(event.request, zod(formSchema));
+				if (!form.valid) return fail(400, { form });
+
+				if (form.data.answer) {
+					const file = await createFileReturning({
+						size: form.data.answer.size,
+						mimeType: form.data.answer.type,
+						extension: getExtension(form.data.answer.name, form.data.answer.type),
+						referenceId: user.id
+					});
+					await fs.writeFile(
+						join(env.FILE_STORAGE_PATH, file.storedName),
+						await form.data.answer.bytes()
+					);
+
+					const oldAnswer = await getAnswer(exam.id, question.number, user.id);
+
+					await upsertAnswer(exam.id, question.number, user.id, file.id);
+
+					if (oldAnswer) {
+						const oldFile = await deleteFileReturning(oldAnswer.answer);
+						if (oldFile) {
+							try {
+								await fs.unlink(join(env.FILE_STORAGE_PATH, oldFile.storedName));
+							} catch (err) {
+								console.error(`Cannot delete file '${file.storedName}'`);
+								console.error(err);
+							}
+						}
+					}
+				}
+
+				next = form.data.next;
+
+				break;
+			}
+		}
+
+		if (/^[0-9]{1,15}$/.test(next)) {
+			redirect(303, `${base}/exercises/${exam.id}/${next}`);
+		}
+
+		if (next === 'submit') {
+			await updateSubmissionSubmitted(exam.id, user.id, true);
+			redirect(
+				303,
+				setToastParams(`${base}/exercises`, 'Exam submitted successfully', undefined, 'success')
+			);
+		}
+
+		if (next === 'exit') {
+			redirect(
+				303,
+				setToastParams(
+					`${base}/exercises`,
+					'Exam will be automatically submitted when the time runs out',
+					undefined,
+					'info'
+				)
+			);
+		}
+
+		redirect(
+			303,
+			setToastParams(
+				`${base}/exercises/${exam.id}/${question.number}`,
+				'Unknown next action',
+				'If you did not intentionally do this, please contact administrator',
+				'error'
+			)
+		);
+	}
 };

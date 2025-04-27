@@ -168,10 +168,12 @@ export const questions = pgTable(
 		maxScore: integer().default(configConstants.questions.defaultMaxScore).notNull(),
 		minScore: integer().default(configConstants.questions.defaultMinScore).notNull(),
 		scoringType: scoringTypes(),
-		textLengthLimit: integer().default(configConstants.questions.defaultTextAnswerLengthLimit), // type=text: lenght limit
+		textLengthLimit: integer()
+			.default(configConstants.questions.defaultTextAnswerLengthLimit)
+			.notNull(), // type=text: lenght limit
 		textCorrect: text(), // type=text: correct answer to score against, can be regex
 		fileTypes: text(), // type=file: MIME types for supported file (comma separated)
-		fileSizeLimit: integer().default(configConstants.questions.defaultFileSizeLimit), // type=file: upload size limit (kB)
+		fileSizeLimit: integer().default(configConstants.questions.defaultFileSizeLimit).notNull(), // type=file: upload size limit (kB)
 		...timeStamps
 	},
 	(table) => [primaryKey({ columns: [table.examId, table.number] })]

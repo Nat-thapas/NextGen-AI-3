@@ -9,3 +9,11 @@ export interface Exam {
 	createdAt: Date;
 	updatedAt: Date;
 }
+
+export interface PartialExam {
+	id: string;
+	title: string;
+	openAt: Date;
+	closeAt: Date;
+	timeLimit: number;
+}

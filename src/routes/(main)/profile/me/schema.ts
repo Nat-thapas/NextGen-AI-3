@@ -41,7 +41,7 @@ export const updateProfileFormSchema = z.object({
 	grade: z.string().length(1, 'Grade is required'),
 	transcript: z
 		.instanceof(File, { message: 'Please upload a file' })
-		.refine((f) => f.size < 10_000_000, 'File must be smaller than 10 MB')
+		.refine((f) => f.size < 10_000_000, 'File size must be at most 10 MB')
 		.refine((f) => f.type === 'application/pdf', 'File must be a pdf file')
 		.optional(),
 	addressProvince: z

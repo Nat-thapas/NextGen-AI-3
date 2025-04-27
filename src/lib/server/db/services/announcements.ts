@@ -5,7 +5,7 @@ import { desc, eq, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { announcements } from '$lib/server/db/schema';
 
-import { suidTouuid } from '../suid';
+import { suidToUuid } from '../suid';
 
 const createAnnouncementQuery = db
 	.insert(announcements)
@@ -70,7 +70,7 @@ export async function createAnnouncementWithId(data: {
 }
 
 export async function getAnnouncement(id: string) {
-	id = suidTouuid(id);
+	id = suidToUuid(id);
 	return getAnnouncementQuery.execute({ id });
 }
 

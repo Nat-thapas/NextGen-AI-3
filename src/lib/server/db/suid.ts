@@ -7,7 +7,7 @@ export function uuidToSuid(uuid: string): string {
 	return base64UrlEncode(uuidParse(uuid));
 }
 
-export function suidTouuid(suid: string): string {
+export function suidToUuid(suid: string): string {
 	return uuidStringify(new Uint8Array(base64UrlDecode(suid)));
 }
 
@@ -23,6 +23,6 @@ export const suid = customType<{ data: string; driverData: string }>({
 		return uuidToSuid(uuid);
 	},
 	toDriver(suid: string): string {
-		return suidTouuid(suid);
+		return suidToUuid(suid);
 	}
 });

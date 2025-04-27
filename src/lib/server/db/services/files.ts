@@ -5,7 +5,7 @@ import { eq, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { files } from '$lib/server/db/schema';
 
-import { suidTouuid } from '../suid';
+import { suidToUuid } from '../suid';
 
 const createFileQuery = db
 	.insert(files)
@@ -74,16 +74,16 @@ export async function getFile(id: string) {
 }
 
 export async function deleteFile(id: string) {
-	id = suidTouuid(id);
+	id = suidToUuid(id);
 	return deleteFileQuery.execute({ id });
 }
 
 export async function deleteFileReturning(id: string) {
-	id = suidTouuid(id);
+	id = suidToUuid(id);
 	return (await deleteFileReturningQuery.execute({ id }))[0];
 }
 
 export async function deleteFilesByReferenceReturning(referenceId: string) {
-	referenceId = suidTouuid(referenceId);
+	referenceId = suidToUuid(referenceId);
 	return deleteFilesByReferenceReturningQuery.execute({ referenceId });
 }

@@ -50,6 +50,12 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			setToastParams(`${base}/exercises`, "You've ran out of time on this exam", undefined, 'error')
 		);
 	}
+	if (exam.submission && exam.submission.submitted) {
+		return redirect(
+			303,
+			setToastParams(`${base}/exercises`, "You've already submitted this exam", undefined, 'error')
+		);
+	}
 
 	return { exam };
 };
@@ -94,6 +100,17 @@ export const actions: Actions = {
 				setToastParams(
 					`${base}/exercises`,
 					"You've ran out of time on this exam",
+					undefined,
+					'error'
+				)
+			);
+		}
+		if (exam.submission && exam.submission.submitted) {
+			return redirect(
+				303,
+				setToastParams(
+					`${base}/exercises`,
+					"You've already submitted this exam",
 					undefined,
 					'error'
 				)

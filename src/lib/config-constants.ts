@@ -5,20 +5,20 @@ export const configConstants = {
 		longTimeout: 10000 // milliseconds
 	},
 	users: {
-		maxEmailLength: 255,
+		maxEmailLength: 256,
 		minPasswordLength: 8,
-		maxPrefixLength: 63,
-		maxNameLength: 255,
-		maxFirstNameLength: 127,
-		maxLastNameLength: 127,
-		maxNicknameLength: 63,
+		maxPrefixLength: 64,
+		maxNameLength: 256,
+		maxFirstNameLength: 128,
+		maxLastNameLength: 128,
+		maxNicknameLength: 64,
 		phoneNumberLength: 10,
-		maxSchoolNameLength: 255,
-		maxAddressProvinceLength: 255,
-		maxAddressDistrictLength: 255,
-		maxAddressSubDistrictLength: 255,
+		maxSchoolNameLength: 256,
+		maxAddressProvinceLength: 256,
+		maxAddressDistrictLength: 256,
+		maxAddressSubDistrictLength: 256,
 		postcodeLength: 5,
-		maxAddressDetailLength: 1023,
+		maxAddressDetailLength: 1024,
 		emailCooldown: 900, // seconds
 		registrationLinkTimeout: 900, // seconds: from email sent to clicking button
 		registrationSetPasswordTimeout: 1200, // seconds: from email sent to password submit
@@ -28,16 +28,16 @@ export const configConstants = {
 		tokenEntropy: 256
 	},
 	exams: {
-		maxTitleLength: 255,
-		maxDescriptionLength: 65535
+		maxTitleLength: 1024,
+		maxDescriptionLength: 65536
 	},
 	questions: {
-		defaultTextAnswerLengthLimit: 1024,
-		defaultFileSizeLimit: 25, // MB
+		defaultTextAnswerLengthLimit: 65536,
+		defaultFileSizeLimit: 100_000, // kB
 		defaultMaxScore: 1,
 		defaultMinScore: 0
 	},
 	announcements: {
-		maxTitleLength: 1023
+		maxTitleLength: 1024
 	}
 } as const;

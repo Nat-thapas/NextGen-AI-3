@@ -8,6 +8,7 @@ import unzipper from 'unzipper';
 import { base } from '$app/paths';
 import { env } from '$env/dynamic/private';
 
+import { configConstants } from '$lib/config-constants';
 import { questionTypes } from '$lib/enums';
 import { getExtension } from '$lib/files';
 import { renderMarkdown } from '$lib/markdown';
@@ -118,8 +119,8 @@ export async function importExam(
 						throw Error(`Sheet '${name}' Cell C${rowNumber + 1} (Question type) is invalid`);
 					}
 
-					const maxScore = Number(row[3] ?? 1);
-					const minScore = Number(row[4] ?? 0);
+					const maxScore = Number(row[3] ?? configConstants.questions.defaultMaxScore);
+					const minScore = Number(row[4] ?? configConstants.questions.defaultMinScore);
 
 					if (
 						(questionType === questionTypes.checkboxes || questionType === questionTypes.text) &&
@@ -176,9 +177,7 @@ export async function importExam(
 						fileTypes,
 						fileSizeLimit
 					});
-				}
-
-				if (row[0].toLowerCase() === '$choice') {
+				} else if (row[0].toLowerCase() === '$choice') {
 					if (questionNumber === 0) {
 						throw Error(
 							`Sheet '${name}' Cell A${rowNumber + 1} Choice is defined before a question`
@@ -204,6 +203,8 @@ export async function importExam(
 						html: renderMarkdown(markdown),
 						isCorrect
 					});
+				} else {
+					throw Error(`Sheet '${name}' Cell A${rowNumber + 1} contains invalid $directive`);
 				}
 			}
 		}

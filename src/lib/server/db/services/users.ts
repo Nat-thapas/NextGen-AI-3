@@ -5,7 +5,7 @@ import { eq, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
 
-import { suidTouuid } from '../suid';
+import { suidToUuid } from '../suid';
 
 const createUserQuery = db
 	.insert(users)
@@ -120,12 +120,12 @@ export async function createUser(role: string, email: string, verificationToken:
 }
 
 export async function updateUserVerificationToken(id: string, verificationToken: string) {
-	id = suidTouuid(id);
+	id = suidToUuid(id);
 	return updateUserVerificationTokenQuery.execute({ id, verificationToken });
 }
 
 export async function getUser(id: string) {
-	id = suidTouuid(id);
+	id = suidToUuid(id);
 	return getUserQuery.execute({ id });
 }
 
@@ -151,7 +151,7 @@ export async function updateUserProfile(data: {
 	addressPostcode: string;
 	addressDetail: string;
 }) {
-	data.id = suidTouuid(data.id);
+	data.id = suidToUuid(data.id);
 	return updateUserProfileQuery.execute(data);
 }
 
@@ -170,7 +170,7 @@ export async function updateUserProfileWithTranscript(data: {
 	addressPostcode: string;
 	addressDetail: string;
 }) {
-	data.id = suidTouuid(data.id);
+	data.id = suidToUuid(data.id);
 	return updateUserProfileWithTranscriptQuery.execute(data);
 }
 
@@ -189,11 +189,11 @@ export async function updateUserProfileRegistrationComplete(data: {
 	addressPostcode: string;
 	addressDetail: string;
 }) {
-	data.id = suidTouuid(data.id);
+	data.id = suidToUuid(data.id);
 	return updateUserProfileRegistrationCompleteQuery.execute(data);
 }
 
 export async function updateUserPassword(id: string, hashedPassword: string) {
-	id = suidTouuid(id);
+	id = suidToUuid(id);
 	return updateUserPasswordQuery.execute({ id, hashedPassword });
 }

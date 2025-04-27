@@ -5,7 +5,7 @@ import { and, asc, eq, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { choices, questions } from '$lib/server/db/schema';
 
-import { suidTouuid } from '../suid';
+import { suidToUuid } from '../suid';
 
 const createQuestionQuery = db
 	.insert(questions)
@@ -51,6 +51,29 @@ const getQuestionChoicesQuery = db.query.questions
 	})
 	.prepare('get_question_choices');
 
+const getQuestionChoiceNumbersQuery = db.query.questions
+	.findFirst({
+		columns: {
+			number: true,
+			questionType: true,
+			textLengthLimit: true,
+			fileTypes: true,
+			fileSizeLimit: true
+		},
+		with: {
+			choices: {
+				columns: {
+					number: true
+				}
+			}
+		},
+		where: and(
+			eq(questions.examId, sql.placeholder('examId')),
+			eq(questions.number, sql.placeholder('number'))
+		)
+	})
+	.prepare('get_question_choice_numbers');
+
 export async function createQuestion(data: {
 	examId: string;
 	number: number;
@@ -69,6 +92,11 @@ export async function createQuestion(data: {
 }
 
 export async function getQuestionChoices(examId: string, number: number) {
-	examId = suidTouuid(examId);
+	examId = suidToUuid(examId);
 	return getQuestionChoicesQuery.execute({ examId, number });
+}
+
+export async function getQuestionChoiceNumbers(examId: string, number: number) {
+	examId = suidToUuid(examId);
+	return getQuestionChoiceNumbersQuery.execute({ examId, number });
 }
