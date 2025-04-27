@@ -16,6 +16,8 @@
 	import type { PartialQuestionAnswer, Question } from '$lib/interfaces/question';
 	import type { PartialSubmission } from '$lib/interfaces/submission';
 
+	import { checkboxesSchema, choicesSchema } from './schema';
+
 	let {
 		data
 	}: {
@@ -57,23 +59,10 @@
 
 	switch (data.question.questionType) {
 		case questionTypes.choices:
-			formSchema = z.object({
-				next: z.string(),
-				answer: z
-					.string()
-					.refine((v) => /[0-9]{1,15}/.test(v), 'Choice must be a valid number')
-					.optional()
-			});
+			formSchema = choicesSchema;
 			break;
 		case questionTypes.checkboxes:
-			formSchema = z.object({
-				next: z.string(),
-				answer: z
-					.string()
-					.refine((v) => /[0-9]{1,15}/.test(v), 'Choice must be a valid number')
-					.array()
-					.optional()
-			});
+			formSchema = checkboxesSchema;
 			break;
 		case questionTypes.text:
 			formSchema = z.object({

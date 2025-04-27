@@ -1,5 +1,4 @@
 import { error } from '@sveltejs/kit';
-import { type } from 'arktype';
 import { fail, message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
@@ -10,22 +9,22 @@ import { getAnnouncements } from '$lib/server/db/services/announcements';
 import { importAnnouncement } from '$lib/server/file-import/announcement';
 
 import type { Actions, PageServerLoad } from './$types';
-import { createAnnouncementFormSchema, Options } from './schema';
+import { createAnnouncementFormSchema } from './schema';
 
 export const load: PageServerLoad = async ({ url }) => {
-	const options = Options({
-		announcementsCount: url.searchParams.get('announcements-count')
-	});
+	let announcementsCount: number | string = url.searchParams.get('announcements-count') ?? '3';
 
-	if (options instanceof type.errors) {
+	if (!/[0-9]{1,15}/.test(announcementsCount)) {
 		error(400, {
-			message: options.summary
+			message: 'Invalid announcements-count'
 		});
 	}
 
-	options.announcementsCount++;
-	const announcements = await getAnnouncements(options.announcementsCount);
-	const moreAnnouncementsAvailable = announcements.length === options.announcementsCount;
+	announcementsCount = Number(announcementsCount);
+
+	announcementsCount++;
+	const announcements = await getAnnouncements(announcementsCount);
+	const moreAnnouncementsAvailable = announcements.length === announcementsCount;
 	if (moreAnnouncementsAvailable) announcements.pop();
 
 	return {

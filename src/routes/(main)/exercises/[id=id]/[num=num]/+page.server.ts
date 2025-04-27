@@ -23,6 +23,7 @@ import { updateSubmissionSubmitted } from '$lib/server/db/services/submissions';
 import { setToastParams } from '$lib/toast';
 
 import type { Actions, PageServerLoad } from './$types';
+import { checkboxesSchema, choicesSchema } from './schema';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	const user = locals.user;
@@ -90,23 +91,10 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
 	switch (question.questionType) {
 		case questionTypes.choices:
-			formSchema = z.object({
-				next: z.string(),
-				answer: z
-					.string()
-					.refine((v) => /[0-9]{1,15}/.test(v), 'Choice must be a valid number')
-					.optional()
-			});
+			formSchema = choicesSchema;
 			break;
 		case questionTypes.checkboxes:
-			formSchema = z.object({
-				next: z.string(),
-				answer: z
-					.string()
-					.refine((v) => /[0-9]{1,15}/.test(v), 'Choice must be a valid number')
-					.array()
-					.optional()
-			});
+			formSchema = checkboxesSchema;
 			break;
 		case questionTypes.text:
 			formSchema = z.object({
@@ -233,13 +221,7 @@ export const actions: Actions = {
 
 		switch (question.questionType) {
 			case questionTypes.choices: {
-				const formSchema = z.object({
-					next: z.string(),
-					answer: z
-						.string()
-						.refine((v) => /[0-9]{1,15}/.test(v), 'Choice must be a valid number')
-						.optional()
-				});
+				const formSchema = choicesSchema;
 
 				const form = await superValidate(event.request, zod(formSchema));
 				if (!form.valid) return fail(400, { form });
@@ -258,14 +240,7 @@ export const actions: Actions = {
 				break;
 			}
 			case questionTypes.checkboxes: {
-				const formSchema = z.object({
-					next: z.string(),
-					answer: z
-						.string()
-						.refine((v) => /[0-9]{1,15}/.test(v), 'Choice must be a valid number')
-						.array()
-						.optional()
-				});
+				const formSchema = checkboxesSchema;
 
 				const form = await superValidate(event.request, zod(formSchema));
 				if (!form.valid) return fail(400, { form });
