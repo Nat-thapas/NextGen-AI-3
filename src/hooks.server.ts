@@ -37,7 +37,7 @@ function isRouteProtected(route: string | null): boolean {
 
 function isRouteBypassed(route: string | null): boolean {
 	if (route === null) return true;
-	if (route.startsWith('/api/public')) return true;
+	if (route.startsWith('/api/(public)')) return true;
 	return false;
 }
 

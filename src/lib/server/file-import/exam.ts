@@ -32,8 +32,11 @@ function parseFileTypes(fileTypes: string | null): string | null {
 		const contentType = mimeTypes.contentType(fileType);
 		if (!contentType) continue;
 		const semicolonIndex = contentType.indexOf(';');
-		if (semicolonIndex === -1) continue;
-		parsedFileTypesArray.push(contentType.slice(0, semicolonIndex));
+		if (semicolonIndex === -1) {
+			parsedFileTypesArray.push(contentType);
+		} else {
+			parsedFileTypesArray.push(contentType.slice(0, semicolonIndex));
+		}
 	}
 	if (parsedFileTypesArray.length > 0) {
 		return parsedFileTypesArray.join(', ');
@@ -82,8 +85,11 @@ export async function importExam(
 					extension,
 					referenceId: exam.id
 				});
-				await fs.writeFile(join(env.FILE_STORAGE_PATH, file.storedName), compressed.stream());
-				assets[compressed.path] = `${base}/api/public/files/${file.storedName}`;
+				await fs.writeFile(
+					join(env.FILE_STORAGE_PATH, file.id + file.extension),
+					compressed.stream()
+				);
+				assets[compressed.path] = `${base}/api/files/${file.id + file.extension}`;
 			}
 		}
 
@@ -158,7 +164,9 @@ export async function importExam(
 							: null;
 					const fileSizeLimit = Number(row[9] ?? configConstants.questions.defaultFileSizeLimit);
 
+					console.log(rawFileTypes);
 					const fileTypes = parseFileTypes(rawFileTypes);
+					console.log(fileTypes);
 
 					questionNumber++;
 					choiceNumber = 0;
@@ -211,7 +219,7 @@ export async function importExam(
 	} catch (err) {
 		const assets = await deleteFilesByReferenceReturning(exam.id);
 		await Promise.allSettled(
-			assets.map((file) => fs.unlink(join(env.FILE_STORAGE_PATH, file.storedName)))
+			assets.map((file) => fs.unlink(join(env.FILE_STORAGE_PATH, file.id + file.extension)))
 		);
 		try {
 			await deleteExam(exam.id);

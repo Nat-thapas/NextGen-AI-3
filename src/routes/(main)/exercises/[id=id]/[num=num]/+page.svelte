@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChevronLeft, ChevronRight, Clock } from '@lucide/svelte';
+	import { ChevronLeft, ChevronRight, CircleX, Clock, Download, File } from '@lucide/svelte';
 	import mimeTypes from 'mime-types';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
@@ -8,6 +8,7 @@
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { z } from 'zod';
 
+	import { enhance } from '$app/forms';
 	import { base } from '$app/paths';
 	import { env } from '$env/dynamic/public';
 
@@ -23,10 +24,13 @@
 	import type { PartialQuestionAnswer, Question } from '$lib/interfaces/question';
 	import type { PartialSubmission } from '$lib/interfaces/submission';
 
-	import { checkboxesSchema, choicesSchema } from './schema';
+	import type { ActionData } from './$types';
+
+	import fileIcon from '$lib/images/file.avif';
 
 	let {
-		data
+		data,
+		form
 	}: {
 		data: {
 			timeZone: string;
@@ -36,8 +40,10 @@
 			questions: PartialQuestionAnswer[];
 			submission: PartialSubmission;
 			question: Question;
-			form: SuperValidated<any>;
+			answer: string | string[] | undefined;
+			acceptedFileTypes: string | undefined;
 		};
+		form: ActionData | undefined;
 	} = $props();
 
 	const isLaptop = new MediaQuery('(min-width: 40rem)', false);
@@ -65,82 +71,12 @@
 		return data.questions.slice(start - 1, end);
 	});
 
-	let formSchema;
+	let answer = $state(data.answer);
 
-	switch (data.question.questionType) {
-		case questionTypes.choices:
-			formSchema = choicesSchema;
-			break;
-		case questionTypes.checkboxes:
-			formSchema = checkboxesSchema;
-			break;
-		case questionTypes.text:
-			formSchema = z.object({
-				next: z.string(),
-				answer: z
-					.string()
-					.max(
-						data.question.textLengthLimit,
-						`Answer must be at most ${data.question.textLengthLimit} characters long`
-					)
-					.optional()
-			});
-			break;
-		case questionTypes.file:
-			formSchema = z.object({
-				next: z.string(),
-				answer: z
-					.instanceof(File, { message: 'Please upload a file' })
-					.refine(
-						(f) =>
-							data.question.fileTypes ? data.question.fileTypes.split(',').includes(f.type) : true,
-						`File must be a supported file type (${(data.question.fileTypes ?? '')
-							.split(',')
-							.map((mimeType) => '.' + mimeTypes.lookup(mimeType) || '.dat')
-							.join(', ')})`
-					)
-					.refine(
-						(f) => f.size < data.question.fileSizeLimit * 1000,
-						`File size must be at most ${formatNumber(data.question.fileSizeLimit * 1000)}B`
-					)
-					.optional()
-			});
-			break;
-	}
-
-	const form = superForm(data.form, {
-		validators: zodClient(formSchema!),
-		resetForm: false,
-		delayMs: configConstants.forms.delay,
-		timeoutMs: configConstants.forms.longTimeout,
-		taintedMessage: true,
-		onUpdated({ form }) {
-			if (form.message) {
-				switch (form.message.type) {
-					case 'success':
-						toast.success(form.message.text);
-						break;
-					case 'info':
-						toast.info(form.message.text);
-						break;
-					case 'warning':
-						toast.warning(form.message.text);
-						break;
-					case 'error':
-						toast.error(form.message.text);
-						break;
-					default:
-						toast(form.message.text);
-						break;
-				}
-			}
-		},
-		onError({ result }) {
-			toast.error(getErrorMessage(result.error));
-		}
+	$effect(() => {
+		answer = data.answer;
+		console.log($inspect(answer));
 	});
-
-	const { form: formData, enhance, delayed } = form;
 
 	const fetchJson = new FetchJson(fetch, base);
 
@@ -162,15 +98,13 @@
 		syncing = true;
 		try {
 			const start = performance.now();
-			const response = await fetchJson.get<{ now: number }>('/api/public/now');
+			const response = await fetchJson.get<{ now: number }>('/api/now');
 			const end = performance.now();
 
 			let latency: number;
 			let procDelay: number;
 
-			const perfEntries = performance.getEntriesByName(
-				`${env.PUBLIC_ORIGIN}${base}/api/public/now`
-			);
+			const perfEntries = performance.getEntriesByName(`${env.PUBLIC_ORIGIN}${base}/api/now`);
 
 			if (perfEntries.length === 0) {
 				if (!PRTUnavaiableWaringDisplayed) {
@@ -242,7 +176,19 @@
 		enctype={data.question.questionType === questionTypes.file
 			? 'multipart/form-data'
 			: 'application/x-www-form-urlencoded'}
-		use:enhance>
+		use:enhance={() => {
+			return async ({ result, update }) => {
+				if (result.type === 'failure') {
+					try {
+						// @ts-expect-error
+						toast.error(result.data.form.errors.answer.join(', '));
+					} catch {
+						toast.error('Unknown error');
+					}
+				}
+				update();
+			};
+		}}>
 		<div class="mb-4 flex justify-between gap-8">
 			<label
 				for="exit-button"
@@ -281,8 +227,10 @@
 								type="submit"
 								name="next"
 								value={question.number}
-								class:!bg-gray-300={question.answers.length > 0}
-								class:!border-gray-300={question.answers.length > 0}
+								class:!bg-gray-300={question.answers.length > 0 &&
+									question.number !== data.question.number}
+								class:!border-gray-300={question.answers.length > 0 &&
+									question.number !== data.question.number}
 								class:!bg-secondary-foreground={question.number === data.question.number}
 								class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-2 border-secondary-foreground bg-white p-0" />
 						{/each}
@@ -307,7 +255,7 @@
 			</div>
 			<div class="w-32"></div>
 		</div>
-		<div class="mx-2 flex items-center gap-4">
+		<div class="mx-2 mb-2 flex items-center gap-4">
 			<div
 				class="w-0 flex-grow overflow-hidden text-ellipsis text-nowrap text-xl font-semibold text-primary-foreground">
 				{data.exam.title}
@@ -317,5 +265,142 @@
 				<span>Time left: {formatDurationClock(timeLeft / 1000)}</span>
 			</div>
 		</div>
+		<div class="mx-2 rounded-xl bg-secondary p-4">
+			<div
+				class="prose prose-lg prose-neutral mb-8 w-full max-w-none overflow-scroll rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-lg">
+				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+				{@html data.question.html}
+			</div>
+			{#if data.question.questionType === questionTypes.choices}
+				<div class="flex flex-wrap items-stretch gap-4">
+					{#each data.question.choices as choice (choice.number)}
+						<input
+							id={`choice-input-${choice.number}`}
+							type="radio"
+							name="answer"
+							value={choice.number.toString()}
+							bind:group={answer}
+							class="hidden" />
+						<label
+							for={`choice-input-${choice.number}`}
+							class="prose prose-lg prose-neutral w-80 max-w-96 flex-grow cursor-pointer overflow-scroll rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+							{@html choice.html}
+						</label>
+					{/each}
+				</div>
+			{:else if data.question.questionType === questionTypes.checkboxes}
+				<div class="flex flex-wrap items-stretch gap-4">
+					{#each data.question.choices as choice (choice.number)}
+						<input
+							id={`choice-input-${choice.number}`}
+							type="checkbox"
+							name="answer"
+							value={choice.number.toString()}
+							bind:group={answer}
+							class="hidden" />
+						<label
+							for={`choice-input-${choice.number}`}
+							class="prose prose-lg prose-neutral w-80 max-w-96 flex-grow cursor-pointer overflow-scroll rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+							{@html choice.html}
+						</label>
+					{/each}
+				</div>
+			{:else if data.question.questionType === questionTypes.text}
+				<div class="relative h-64 w-full">
+					<textarea
+						name="answer"
+						bind:value={answer}
+						class="border-1 h-full w-full resize-none overflow-scroll rounded-xl border-gray-300 bg-white px-2 py-1 text-lg">
+					</textarea>
+					<span
+						class:!text-primary-foreground={data.question.textLengthLimit - (answer?.length ?? 0) <
+							25 && data.question.textLengthLimit - (answer?.length ?? 0) >= 0}
+						class:!text-red-500={data.question.textLengthLimit - (answer?.length ?? 0) < 0}
+						class="absolute bottom-0 right-1 rounded-lg bg-white/80 px-1 py-1 text-secondary-foreground">
+						{answer?.length ?? 0} / {data.question.textLengthLimit}
+					</span>
+				</div>
+			{:else if data.question.questionType === questionTypes.file}
+				<div class="w-full">
+					{#if answer && typeof answer === 'string'}
+						<div class="relative w-full rounded-xl bg-white p-4">
+							<div
+								class="block w-full rounded-xl border-2 border-dashed border-secondary-foreground">
+								<div
+									class="relative mx-auto my-4 w-fit rounded-lg bg-secondary px-4 py-2 text-primary-foreground">
+									<File size={128} strokeWidth={1} />
+									<a
+										href={`${base}/api/files/${answer}`}
+										class="mt-2 flex items-center justify-center gap-2 text-lg text-primary-foreground">
+										<Download />
+										{answer.replace(/.*?\./, 'answer.')}
+									</a>
+									<div class="absolute right-1 top-1">
+										<label for="remove-file-button" class="cursor-pointer">
+											<CircleX />
+										</label>
+										<input
+											type="submit"
+											id="remove-file-button"
+											name="next"
+											value="remove-answer"
+											class="hidden" />
+									</div>
+								</div>
+							</div>
+						</div>
+					{:else}
+						<div class="relative h-96 w-full rounded-xl bg-white p-4">
+							<label
+								for="file-input"
+								class="block h-full w-full rounded-xl border-2 border-dashed border-secondary-foreground px-4">
+								<img
+									src={fileIcon}
+									alt="File upload icon"
+									width="512"
+									height="512"
+									class="-my-4 mx-auto w-64" />
+								<span class="mb-1 block text-center text-lg font-semibold text-primary-foreground">
+									Drag & drop a file or <span class="underline">Browse</span>
+								</span>
+								<span
+									class="mb-4 block space-x-2 overflow-hidden text-ellipsis text-nowrap text-center text-lg text-secondary-foreground">
+									{#if data.question.fileTypes === null}
+										<span>Max: {formatNumber(data.question.fileSizeLimit * 1000)}B</span>
+										<span>Accept: any</span>
+									{:else}
+										<span>Max: {formatNumber(data.question.fileSizeLimit * 1000)}B</span>
+										<span>Accept: {data.acceptedFileTypes ?? 'any'}</span>
+									{/if}
+								</span>
+							</label>
+							<input
+								id="file-input"
+								type="file"
+								name="answer"
+								accept={data.question.fileTypes ?? ''}
+								class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer pt-[19.5rem] text-center text-lg text-primary-foreground file:hidden" />
+						</div>
+					{/if}
+				</div>
+			{/if}
+			{#if form?.form?.errors?.answer}
+				<span class="mx-2 mt-2 block text-lg text-red-500">
+					{form.form.errors.answer}
+				</span>
+			{/if}
+		</div>
 	</form>
 </div>
+
+<style lang="postcss">
+	input[type='radio']:checked + label {
+		@apply outline outline-4 outline-secondary-foreground;
+	}
+
+	input[type='checkbox']:checked + label {
+		@apply outline outline-4 outline-secondary-foreground;
+	}
+</style>

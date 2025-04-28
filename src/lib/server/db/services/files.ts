@@ -70,6 +70,7 @@ export async function createFileReturning(data: {
 }
 
 export async function getFile(id: string) {
+	id = suidToUuid(id);
 	return getFileQuery.execute({ id });
 }
 

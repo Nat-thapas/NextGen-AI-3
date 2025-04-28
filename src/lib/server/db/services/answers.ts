@@ -7,7 +7,7 @@ import { answers } from '$lib/server/db/schema';
 
 import { suidToUuid } from '../suid';
 
-export const getAnswerQuery = db.query.answers
+const getAnswerQuery = db.query.answers
 	.findFirst({
 		where: and(
 			eq(answers.examId, sql.placeholder('examId')),
@@ -17,7 +17,7 @@ export const getAnswerQuery = db.query.answers
 	})
 	.prepare('get_answer');
 
-export const upsertAnswerQuery = db
+const upsertAnswerQuery = db
 	.insert(answers)
 	.values({
 		examId: sql.placeholder('examId'),
@@ -30,6 +30,18 @@ export const upsertAnswerQuery = db
 		set: { answer: sql.placeholder('answer') }
 	})
 	.prepare('upsert_answer');
+
+const deleteAnswerReturningQuery = db
+	.delete(answers)
+	.where(
+		and(
+			eq(answers.examId, sql.placeholder('examId')),
+			eq(answers.questionNumber, sql.placeholder('questionNumber')),
+			eq(answers.userId, sql.placeholder('userId'))
+		)
+	)
+	.returning()
+	.prepare('delete_answer_returning');
 
 export async function getAnswer(examId: string, questionNumber: number, userId: string) {
 	examId = suidToUuid(examId);
@@ -44,4 +56,14 @@ export async function upsertAnswer(
 	answer: string
 ) {
 	return upsertAnswerQuery.execute({ examId, questionNumber, userId, answer });
+}
+
+export async function deleteAnswerReturning(
+	examId: string,
+	questionNumber: number,
+	userId: string
+) {
+	examId = suidToUuid(examId);
+	userId = suidToUuid(userId);
+	return deleteAnswerReturningQuery.execute({ examId, questionNumber, userId });
 }

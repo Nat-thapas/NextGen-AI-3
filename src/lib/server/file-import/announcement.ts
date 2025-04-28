@@ -46,8 +46,11 @@ export async function importAnnouncement(
 					extension,
 					referenceId: id
 				});
-				await fs.writeFile(join(env.FILE_STORAGE_PATH, file.storedName), compressed.stream());
-				assets[compressed.path] = `${base}/api/public/files/${file.storedName}`;
+				await fs.writeFile(
+					join(env.FILE_STORAGE_PATH, file.id + file.extension),
+					compressed.stream()
+				);
+				assets[compressed.path] = `${base}/api/files/${file.id + file.extension}`;
 			}
 		}
 
@@ -57,7 +60,7 @@ export async function importAnnouncement(
 	} catch (err) {
 		const assets = await deleteFilesByReferenceReturning(id);
 		await Promise.allSettled(
-			assets.map((file) => fs.unlink(join(env.FILE_STORAGE_PATH, file.storedName)))
+			assets.map((file) => fs.unlink(join(env.FILE_STORAGE_PATH, file.id + file.extension)))
 		);
 
 		throw err;

@@ -11,7 +11,14 @@ import { getFile } from '$lib/server/db/services/files';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params }) => {
-	const file = await getFile(params.id);
+	const idName = params.idName;
+	let dotIndex = idName.lastIndexOf('.');
+	if (dotIndex === -1) {
+		dotIndex = idName.length;
+	}
+	const id = idName.slice(0, dotIndex);
+
+	const file = await getFile(id);
 
 	if (!file) {
 		error(404, {
@@ -19,7 +26,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		});
 	}
 
-	const path = join(env.FILE_STORAGE_PATH, file.storedName);
+	const path = join(env.FILE_STORAGE_PATH, file.id + file.extension);
 
 	const dispositionInline = shouldDispositionInline(file.mimeType);
 
@@ -28,7 +35,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			headers: {
 				'Cache-Control': 'public, max-age=31536000, immutable',
 				'Content-Type': file.mimeType,
-				'Content-Disposition': `${dispositionInline ? 'inline' : 'attachment'}; filename="${toFileNameSafe(params.name)}"`
+				'Content-Disposition': `${dispositionInline ? 'inline' : 'attachment'}; filename="${toFileNameSafe(idName)}"`
 			}
 		});
 	} catch {

@@ -318,9 +318,6 @@ export const files = pgTable(
 		size: integer().notNull(),
 		mimeType: text().notNull(),
 		extension: text().notNull(),
-		storedName: text()
-			.generatedAlwaysAs((): SQL => sql`${files.id} || ${files.extension}`)
-			.notNull(),
 		referenceId: suid(),
 		...timeStamps
 	},

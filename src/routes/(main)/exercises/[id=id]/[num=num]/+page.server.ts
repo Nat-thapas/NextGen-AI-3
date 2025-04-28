@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { error, redirect } from '@sveltejs/kit';
 import mimeTypes from 'mime-types';
-import { fail, superValidate } from 'sveltekit-superforms';
+import { fail, message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 
@@ -12,13 +12,16 @@ import { env } from '$env/dynamic/private';
 
 import { getSecondsSince, utcNow } from '$lib/datetime';
 import { questionTypes, roles } from '$lib/enums';
-import { getExtension } from '$lib/files';
+import { getExtension, mimeTypesToExtensions } from '$lib/files';
 import { formatNumber } from '$lib/format-number';
 import { isRoleAtLeast } from '$lib/roles';
-import { getAnswer, upsertAnswer } from '$lib/server/db/services/answers';
+import { deleteAnswerReturning, getAnswer, upsertAnswer } from '$lib/server/db/services/answers';
 import { getExamQuestionAnswerSubmission, getExamSubmission } from '$lib/server/db/services/exams';
-import { createFileReturning, deleteFileReturning } from '$lib/server/db/services/files';
-import { getQuestionChoiceNumbers, getQuestionChoices } from '$lib/server/db/services/questions';
+import { createFileReturning, deleteFileReturning, getFile } from '$lib/server/db/services/files';
+import {
+	getQuestionChoiceNumbers,
+	getQuestionChoicesAnswer
+} from '$lib/server/db/services/questions';
 import { updateSubmissionSubmitted } from '$lib/server/db/services/submissions';
 import { setToastParams } from '$lib/toast';
 
@@ -43,7 +46,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
 	const [exam, question] = await Promise.all([
 		getExamQuestionAnswerSubmission(examId, user.id),
-		getQuestionChoices(examId, questionNumber)
+		getQuestionChoicesAnswer(examId, questionNumber, user.id)
 	]);
 
 	if (!exam || !question) {
@@ -87,47 +90,57 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		);
 	}
 
-	let formSchema;
+	let answer: string | string[] | undefined = undefined;
+	let acceptedFileTypes: string | undefined = undefined;
 
-	switch (question.questionType) {
-		case questionTypes.choices:
-			formSchema = choicesSchema;
-			break;
-		case questionTypes.checkboxes:
-			formSchema = checkboxesSchema;
-			break;
-		case questionTypes.text:
-			formSchema = z.object({
-				next: z.string(),
-				answer: z
-					.string()
-					.max(
-						question.textLengthLimit,
-						`Answer must be at most ${question.textLengthLimit} characters long`
-					)
-					.optional()
-			});
-			break;
-		case questionTypes.file:
-			formSchema = z.object({
-				next: z.string(),
-				answer: z
-					.instanceof(File, { message: 'Please upload a file' })
-					.refine(
-						(f) => (question.fileTypes ? question.fileTypes.split(',').includes(f.type) : true),
-						`File must be a supported file type (${(question.fileTypes ?? '')
-							.split(',')
-							.map((mimeType) => '.' + mimeTypes.lookup(mimeType) || '.dat')
-							.join(', ')})`
-					)
-					.refine(
-						(f) => f.size < question.fileSizeLimit * 1000,
-						`File size must be at most ${formatNumber(question.fileSizeLimit * 1000)}B`
-					)
-					.optional()
-			});
-			break;
+	if (question.questionType === questionTypes.checkboxes) {
+		answer = question.answers[0]?.answer?.split(';') ?? [];
+	} else if (question.questionType === questionTypes.file) {
+		answer = question.answers[0]?.answer;
+		if (answer) {
+			const file = await getFile(answer);
+			if (file) {
+				answer += file.extension;
+			}
+		}
+		if (question.fileTypes) {
+			acceptedFileTypes = mimeTypesToExtensions(question.fileTypes);
+		}
+	} else {
+		answer = question.answers[0]?.answer;
 	}
+
+	// switch (question.questionType) {
+	// 	case questionTypes.choices:
+	// 		answer = question.answers[0]?.answer;
+	// 		break;
+	// 	case questionTypes.checkboxes:
+	// 		answer = question.answers[0]?.answer?.split(';') ?? [];
+	// 		break;
+	// 	case questionTypes.text:
+	// 		answer = question.answers[0]?.answer;
+	// 		break;
+	// 	case questionTypes.file:
+	// 		answer = question.answers[0]?.answer;
+	// 		// formSchema = z.object({
+	// 		// 	next: z.string(),
+	// 		// 	answer: z
+	// 		// 		.instanceof(File, { message: 'Please upload a file' })
+	// 		// 		.refine(
+	// 		// 			(f) => (question.fileTypes ? question.fileTypes.split(',').includes(f.type) : true),
+	// 		// 			`File must be a supported file type (${(question.fileTypes ?? '')
+	// 		// 				.split(',')
+	// 		// 				.map((mimeType) => '.' + mimeTypes.lookup(mimeType) || '.dat')
+	// 		// 				.join(', ')})`
+	// 		// 		)
+	// 		// 		.refine(
+	// 		// 			(f) => f.size < question.fileSizeLimit * 1000,
+	// 		// 			`File size must be at most ${formatNumber(question.fileSizeLimit * 1000)}B`
+	// 		// 		)
+	// 		// 		.optional()
+	// 		// });
+	// 		break;
+	// }
 
 	return {
 		now: Date.now(),
@@ -140,8 +153,17 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		},
 		questions: exam.questions,
 		submission: exam.submissions[0],
-		question,
-		form: await superValidate(zod(formSchema))
+		question: {
+			number: question.number,
+			html: question.html,
+			questionType: question.questionType,
+			textLengthLimit: question.textLengthLimit,
+			fileTypes: question.fileTypes,
+			fileSizeLimit: question.fileSizeLimit,
+			choices: question.choices
+		},
+		answer,
+		acceptedFileTypes
 	};
 };
 
@@ -293,11 +315,8 @@ export const actions: Actions = {
 					answer: z
 						.instanceof(File, { message: 'Please upload a file' })
 						.refine(
-							(f) => (question.fileTypes ? question.fileTypes.split(',').includes(f.type) : true),
-							`File must be a supported file type (${(question.fileTypes ?? '')
-								.split(',')
-								.map((mimeType) => '.' + mimeTypes.lookup(mimeType) || '.dat')
-								.join(', ')})`
+							(f) => (question.fileTypes ? question.fileTypes.split(/, ?/).includes(f.type) : true),
+							`File must be of a supported type (${mimeTypesToExtensions(question.fileTypes)})`
 						)
 						.refine(
 							(f) => f.size < question.fileSizeLimit * 1000,
@@ -317,7 +336,7 @@ export const actions: Actions = {
 						referenceId: user.id
 					});
 					await fs.writeFile(
-						join(env.FILE_STORAGE_PATH, file.storedName),
+						join(env.FILE_STORAGE_PATH, file.id + file.extension),
 						await form.data.answer.bytes()
 					);
 
@@ -329,9 +348,9 @@ export const actions: Actions = {
 						const oldFile = await deleteFileReturning(oldAnswer.answer);
 						if (oldFile) {
 							try {
-								await fs.unlink(join(env.FILE_STORAGE_PATH, oldFile.storedName));
+								await fs.unlink(join(env.FILE_STORAGE_PATH, oldFile.id + oldFile.extension));
 							} catch (err) {
-								console.error(`Cannot delete file '${file.storedName}'`);
+								console.error(`Cannot delete file '${file.id + file.extension}'`);
 								console.error(err);
 							}
 						}
@@ -346,6 +365,22 @@ export const actions: Actions = {
 
 		if (/^[0-9]{1,15}$/.test(next)) {
 			redirect(303, `${base}/exercises/${exam.id}/${next}`);
+		}
+
+		if (next === 'remove-answer') {
+			const answers = await deleteAnswerReturning(exam.id, question.number, user.id);
+			if (question.questionType === questionTypes.file && answers.length > 0) {
+				const file = await deleteFileReturning(answers[0].answer);
+				if (file) {
+					try {
+						await fs.unlink(join(env.FILE_STORAGE_PATH, file.id + file.extension));
+					} catch (err) {
+						console.error(`Cannot delete file '${file.id + file.extension}'`);
+						console.error(err);
+					}
+				}
+			}
+			return { success: true };
 		}
 
 		if (next === 'submit') {
@@ -372,7 +407,7 @@ export const actions: Actions = {
 			303,
 			setToastParams(
 				`${base}/exercises/${exam.id}/${question.number}`,
-				"Unknown next action '${next}'",
+				`Unknown next action '${next}'`,
 				'If you did not intentionally do this, please contact administrator',
 				'error'
 			)

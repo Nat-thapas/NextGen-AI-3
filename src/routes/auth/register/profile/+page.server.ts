@@ -147,7 +147,7 @@ export const actions: Actions = {
 		});
 
 		await fs.writeFile(
-			join(env.FILE_STORAGE_PATH, transcript.storedName),
+			join(env.FILE_STORAGE_PATH, transcript.id + transcript.extension),
 			await form.data.transcript.bytes()
 		);
 

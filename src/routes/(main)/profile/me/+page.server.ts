@@ -81,7 +81,7 @@ export const actions: Actions = {
 			});
 
 			await fs.writeFile(
-				join(env.FILE_STORAGE_PATH, transcript.storedName),
+				join(env.FILE_STORAGE_PATH, transcript.id + transcript.extension),
 				await form.data.transcript.bytes()
 			);
 
@@ -105,9 +105,9 @@ export const actions: Actions = {
 				await deleteFile(oldTranscript.id);
 
 				try {
-					await fs.unlink(join(env.FILE_STORAGE_PATH, oldTranscript.storedName));
+					await fs.unlink(join(env.FILE_STORAGE_PATH, oldTranscript.id + oldTranscript.extension));
 				} catch (err) {
-					console.error(`Cannot delete file '${oldTranscript.storedName}'`);
+					console.error(`Cannot delete file '${oldTranscript.id + oldTranscript.extension}'`);
 					console.error(err);
 				}
 			}

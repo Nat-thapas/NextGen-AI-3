@@ -19,14 +19,14 @@
 
 <div class="mx-auto mt-6 max-w-7xl px-16">
 	<h1 class="mb-6 text-center text-5xl font-semibold">{data.exam.title}</h1>
-	<div class="rounded-xl bg-white p-8">
+	<div class="relative rounded-xl bg-white p-8">
 		<div class="mx-auto mb-8 flex h-48 w-64 items-center justify-center">
 			<img
 				src={exams}
 				alt="Exams"
 				width="1024"
 				height="830"
-				class="absolute top-32 h-fit w-[36rem]" />
+				class="absolute -top-12 h-fit w-[36rem]" />
 		</div>
 		<div class="mb-4 flex gap-4">
 			<p class="w-28 text-xl text-primary-foreground">Description</p>
