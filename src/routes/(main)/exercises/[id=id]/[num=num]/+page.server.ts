@@ -130,6 +130,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	}
 
 	return {
+		now: Date.now(),
 		exam: {
 			id: exam.id,
 			title: exam.title,
@@ -371,7 +372,7 @@ export const actions: Actions = {
 			303,
 			setToastParams(
 				`${base}/exercises/${exam.id}/${question.number}`,
-				'Unknown next action',
+				"Unknown next action '${next}'",
 				'If you did not intentionally do this, please contact administrator',
 				'error'
 			)

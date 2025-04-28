@@ -17,8 +17,8 @@
 
 	const navs: [string, string][] = [
 		[`${base}/exercises`, 'Exercises'],
-		[`${base}/challenge`, 'Challenge'],
-		[`${base}/leaderboard`, 'Leaderboard']
+		[`${base}/challenges`, 'Challenges'],
+		[`${base}/leaderboards`, 'Leaderboards']
 	];
 
 	onMount(() => {

@@ -29,7 +29,10 @@ export const configConstants = {
 	},
 	exams: {
 		maxTitleLength: 1024,
-		maxDescriptionLength: 65536
+		maxDescriptionLength: 65536,
+		timeSyncInterval: 30_000, // milliseconds
+		timeSyncLatencyLimit: 5000, // milliseconds
+		timeSyncProcDelayLimit: 1000 // milliseconds
 	},
 	questions: {
 		defaultTextAnswerLengthLimit: 65536,

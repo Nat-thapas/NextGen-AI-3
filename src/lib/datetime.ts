@@ -76,6 +76,28 @@ export function formatDuration(duration: number): string {
 	return parts.join('');
 }
 
+export function formatDurationClock(duration: number): string {
+	const negative = duration < 0 ? -1 : 1;
+	duration *= negative;
+
+	const hours = Math.floor(duration / (60 * 60));
+	const minutes = Math.floor((duration % (60 * 60)) / 60);
+	const seconds = Math.floor(duration % 60);
+
+	const parts: string[] = [];
+	if (hours) parts.push(hours.toString().padStart(2, '0'));
+	parts.push(minutes.toString().padStart(2, '0'));
+	parts.push(seconds.toString().padStart(2, '0'));
+
+	let joined = parts.join(':');
+
+	if (negative === -1) {
+		joined = '- ' + joined;
+	}
+
+	return joined;
+}
+
 export function utcNow(): Date {
 	return new Date(Date.now());
 }
