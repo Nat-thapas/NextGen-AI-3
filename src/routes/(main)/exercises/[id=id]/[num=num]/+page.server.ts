@@ -2,8 +2,7 @@ import fs from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { error, redirect } from '@sveltejs/kit';
-import mimeTypes from 'mime-types';
-import { fail, message, superValidate } from 'sveltekit-superforms';
+import { fail, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 
@@ -249,7 +248,7 @@ export const actions: Actions = {
 				const form = await superValidate(event.request, zod(formSchema));
 				if (!form.valid) return fail(400, { form });
 
-				if (form.data.answer) {
+				if (form.data.answer !== undefined) {
 					const choice = Math.floor(Number(form.data.answer));
 					if (choice > question.choices.length) {
 						form.errors.answer = ['Choice must be a valid choice for the question'];
@@ -268,7 +267,7 @@ export const actions: Actions = {
 				const form = await superValidate(event.request, zod(formSchema));
 				if (!form.valid) return fail(400, { form });
 
-				if (form.data.answer) {
+				if (form.data.answer !== undefined) {
 					const checks: number[] = [];
 					for (const [index, answer] of form.data.answer.entries()) {
 						const choice = Math.floor(Number(answer));
@@ -301,7 +300,9 @@ export const actions: Actions = {
 				const form = await superValidate(event.request, zod(formSchema));
 				if (!form.valid) return fail(400, { form });
 
-				if (form.data.answer) {
+				console.log(form.data);
+
+				if (form.data.answer !== undefined) {
 					await upsertAnswer(exam.id, question.number, user.id, form.data.answer);
 				}
 
@@ -315,7 +316,8 @@ export const actions: Actions = {
 					answer: z
 						.instanceof(File, { message: 'Please upload a file' })
 						.refine(
-							(f) => (question.fileTypes ? question.fileTypes.split(/, ?/).includes(f.type) : true),
+							(f) =>
+								question.fileTypes ? question.fileTypes.split(/ *[,;] */).includes(f.type) : true,
 							`File must be of a supported type (${mimeTypesToExtensions(question.fileTypes)})`
 						)
 						.refine(
@@ -328,7 +330,7 @@ export const actions: Actions = {
 				const form = await superValidate(event.request, zod(formSchema));
 				if (!form.valid) return fail(400, { form });
 
-				if (form.data.answer) {
+				if (form.data.answer !== undefined) {
 					const file = await createFileReturning({
 						size: form.data.answer.size,
 						mimeType: form.data.answer.type,
@@ -369,8 +371,8 @@ export const actions: Actions = {
 
 		if (next === 'remove-answer') {
 			const answers = await deleteAnswerReturning(exam.id, question.number, user.id);
-			if (question.questionType === questionTypes.file && answers.length > 0) {
-				const file = await deleteFileReturning(answers[0].answer);
+			if (question.questionType === questionTypes.file && answers) {
+				const file = await deleteFileReturning(answers.answer);
 				if (file) {
 					try {
 						await fs.unlink(join(env.FILE_STORAGE_PATH, file.id + file.extension));

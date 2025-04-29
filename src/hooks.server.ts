@@ -1,6 +1,3 @@
-import fs from 'node:fs/promises';
-import { join } from 'node:path';
-
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
@@ -18,13 +15,6 @@ import { setToastParams } from '$lib/toast';
 export const init: ServerInit = async () => {
 	await migrate(db, { migrationsFolder: 'drizzle' });
 	await db.execute(sql.raw(`ALTER DATABASE "${env.POSTGRES_DB}" SET timezone TO 'UTC'`));
-
-	const fileStoragePaths = ['/users/transcripts'];
-
-	for (const path of fileStoragePaths) {
-		const fullPath = join(env.FILE_STORAGE_PATH, path);
-		await fs.mkdir(fullPath, { recursive: true });
-	}
 };
 
 function isRouteProtected(route: string | null): boolean {

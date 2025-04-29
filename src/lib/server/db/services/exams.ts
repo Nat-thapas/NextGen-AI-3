@@ -15,7 +15,7 @@ import {
 } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
-import { answers, exams, questions, submissions } from '$lib/server/db/schema';
+import { answers, choices, exams, questions, submissions } from '$lib/server/db/schema';
 
 import { suidToUuid } from '../suid';
 
@@ -86,6 +86,47 @@ const getExamQuestionAnswerSubmissionQuery = db.query.exams
 		where: eq(exams.id, sql.placeholder('id'))
 	})
 	.prepare('get_exam_question_answer_submission');
+
+const getExamQuestionChoiceSubmissionQuery = db.query.exams
+	.findFirst({
+		columns: {
+			id: true
+		},
+		with: {
+			questions: {
+				columns: {
+					examId: true,
+					number: true,
+					questionType: true,
+					defaultScore: true,
+					minScore: true,
+					maxScore: true,
+					scoringType: true,
+					textCorrect: true
+				},
+				with: {
+					choices: {
+						columns: {
+							examId: true,
+							questionNumber: true,
+							number: true,
+							isCorrect: true
+						},
+						orderBy: [asc(choices.number)]
+					}
+				},
+				orderBy: [asc(questions.number)]
+			},
+			submissions: {
+				columns: {
+					examId: true,
+					userId: true
+				}
+			}
+		},
+		where: eq(exams.id, sql.placeholder('id'))
+	})
+	.prepare('get_exam_question_choices');
 
 const getExamsAvailableQuery = db
 	.select({
@@ -200,6 +241,11 @@ export async function getExamQuestionAnswerSubmission(id: string, userId: string
 	id = suidToUuid(id);
 	userId = suidToUuid(userId);
 	return getExamQuestionAnswerSubmissionQuery.execute({ id, userId });
+}
+
+export async function getExamQuestionChoiceSubmission(id: string) {
+	id = suidToUuid(id);
+	return getExamQuestionChoiceSubmissionQuery.execute({ id });
 }
 
 export async function getExamsAvailable(userId: string) {

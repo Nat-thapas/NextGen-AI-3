@@ -37,8 +37,10 @@ export const configConstants = {
 	questions: {
 		defaultTextAnswerLengthLimit: 65536,
 		defaultFileSizeLimit: 100_000, // kB
+		defaultDefaultScore: 0,
+		defaultMinScore: 0,
 		defaultMaxScore: 1,
-		defaultMinScore: 0
+		defaultScoringType: 'exact'
 	},
 	announcements: {
 		maxTitleLength: 1024

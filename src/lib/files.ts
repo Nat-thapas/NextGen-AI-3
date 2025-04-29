@@ -21,7 +21,7 @@ export function mimeTypesToExtensions(mimes?: string | null): string {
 		return 'any';
 	}
 	const outs: string[] = [];
-	for (const mime of mimes.split(/[,;] ?/)) {
+	for (const mime of mimes.split(/ *[,;] */)) {
 		const extensions = mimeTypes.extensions[mime];
 		if (!extensions) continue;
 		for (const extension of extensions) {

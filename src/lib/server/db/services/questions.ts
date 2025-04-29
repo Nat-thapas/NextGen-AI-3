@@ -15,8 +15,9 @@ const createQuestionQuery = db
 		markdown: sql.placeholder('markdown'),
 		html: sql.placeholder('html'),
 		questionType: sql.placeholder('questionType'),
-		maxScore: sql.placeholder('maxScore'),
+		defaultScore: sql.placeholder('defaultScore'),
 		minScore: sql.placeholder('minScore'),
+		maxScore: sql.placeholder('maxScore'),
 		scoringType: sql.placeholder('scoringType'),
 		textLengthLimit: sql.placeholder('textLengthLimit'),
 		textCorrect: sql.placeholder('textCorrect'),
@@ -86,8 +87,9 @@ export async function createQuestion(data: {
 	markdown: string;
 	html: string;
 	questionType: 'choices' | 'checkboxes' | 'text' | 'file';
-	maxScore: number;
+	defaultScore: number;
 	minScore: number;
+	maxScore: number;
 	scoringType: 'exact' | 'regex' | 'and' | 'or' | 'scale' | null;
 	textLengthLimit: number;
 	textCorrect: string | null;

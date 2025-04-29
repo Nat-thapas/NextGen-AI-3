@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 
-	import {
-		formatDateTime,
-		formatDuration,
-		getSecondsSince,
-		getSecondsUntil
-	} from '$lib/datetime.js';
+	import { formatDateTime, formatDuration, getSecondsSince, getSecondsUntil } from '$lib/datetime';
 
 	import exams from '$lib/images/exams.avif';
 

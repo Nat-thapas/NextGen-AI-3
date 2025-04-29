@@ -1,6 +1,7 @@
-import { isNotNull, relations, sql, type SQL } from 'drizzle-orm';
+import { isNotNull, relations, sql } from 'drizzle-orm';
 import {
 	boolean,
+	doublePrecision,
 	foreignKey,
 	index,
 	integer,
@@ -164,8 +165,9 @@ export const questions = pgTable(
 		markdown: text().notNull(),
 		html: text().notNull(),
 		questionType: questionTypes().notNull(),
-		maxScore: integer().notNull(),
-		minScore: integer().notNull(),
+		defaultScore: doublePrecision().notNull(),
+		minScore: doublePrecision().notNull(),
+		maxScore: doublePrecision().notNull(),
 		scoringType: scoringTypes(),
 		textLengthLimit: integer().notNull(), // type=text: lenght limit
 		textCorrect: text(), // type=text: correct answer to score against, can be regex
@@ -254,7 +256,9 @@ export const answers = pgTable(
 		examId: suid().notNull(),
 		questionNumber: integer().notNull(),
 		userId: suid().notNull(),
-		answer: text().notNull()
+		answer: text().notNull(),
+		correctness: doublePrecision(),
+		...timeStamps
 	},
 	(table) => [
 		primaryKey({ columns: [table.examId, table.questionNumber, table.userId] }),

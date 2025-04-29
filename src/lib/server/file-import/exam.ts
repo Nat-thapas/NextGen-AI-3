@@ -26,7 +26,7 @@ function parseFileTypes(fileTypes: string | null): string | null {
 		return null;
 	}
 
-	const fileTypesArray = fileTypes?.split(/[,;] ?/);
+	const fileTypesArray = fileTypes?.split(/ *[,;] */);
 	const parsedFileTypesArray: string[] = [];
 	for (const fileType of fileTypesArray) {
 		const contentType = mimeTypes.contentType(fileType);
@@ -125,44 +125,45 @@ export async function importExam(
 						throw Error(`Sheet '${name}' Cell C${rowNumber + 1} (Question type) is invalid`);
 					}
 
-					const maxScore = Number(row[3] ?? configConstants.questions.defaultMaxScore);
+					const defaultScore = Number(row[3] ?? configConstants.questions.defaultMinScore);
 					const minScore = Number(row[4] ?? configConstants.questions.defaultMinScore);
+					const maxScore = Number(row[5] ?? configConstants.questions.defaultMaxScore);
 
 					if (
 						(questionType === questionTypes.checkboxes || questionType === questionTypes.text) &&
-						row[5] === undefined
+						row[6] === undefined
 					) {
-						throw Error(`Sheet '${name}' Cell F${rowNumber + 1} (Scoring type) is empty`);
+						throw Error(`Sheet '${name}' Cell G${rowNumber + 1} (Scoring type) is empty`);
 					}
 					const scoringType = (
 						questionType === questionTypes.checkboxes || questionType === questionTypes.text
-							? String(row[5]).toLowerCase()
+							? String(row[6]).toLowerCase()
 							: null
 					) as 'exact' | 'regex' | 'and' | 'or' | 'scale' | null;
 					if (
 						scoringType !== null &&
 						!['exact', 'regex', 'and', 'or', 'scale'].includes(scoringType)
 					) {
-						throw Error(`Sheet '${name}' Cell F${rowNumber + 1} (Scoring type) is invalid`);
+						throw Error(`Sheet '${name}' Cell G${rowNumber + 1} (Scoring type) is invalid`);
 					}
 
 					const textLengthLimit = Number(
-						row[6] ?? configConstants.questions.defaultTextAnswerLengthLimit
+						row[7] ?? configConstants.questions.defaultTextAnswerLengthLimit
 					);
 					const textCorrect =
 						questionType === questionTypes.text
-							? row[7] === undefined
-								? null
-								: String(row[7])
-							: null;
-
-					const rawFileTypes =
-						questionType === questionTypes.file
 							? row[8] === undefined
 								? null
 								: String(row[8])
 							: null;
-					const fileSizeLimit = Number(row[9] ?? configConstants.questions.defaultFileSizeLimit);
+
+					const rawFileTypes =
+						questionType === questionTypes.file
+							? row[9] === undefined
+								? null
+								: String(row[9])
+							: null;
+					const fileSizeLimit = Number(row[10] ?? configConstants.questions.defaultFileSizeLimit);
 
 					console.log(rawFileTypes);
 					const fileTypes = parseFileTypes(rawFileTypes);
@@ -177,8 +178,9 @@ export async function importExam(
 						markdown,
 						html: renderMarkdown(markdown),
 						questionType,
-						maxScore,
+						defaultScore,
 						minScore,
+						maxScore,
 						scoringType,
 						textLengthLimit,
 						textCorrect,

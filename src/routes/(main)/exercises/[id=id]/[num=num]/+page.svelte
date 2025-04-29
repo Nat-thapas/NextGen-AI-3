@@ -1,24 +1,23 @@
 <script lang="ts">
-	import { ChevronLeft, ChevronRight, CircleX, Clock, Download, File } from '@lucide/svelte';
-	import mimeTypes from 'mime-types';
+	import { ChevronLeft, ChevronRight, CircleX, Clock, Download, File, Menu } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { MediaQuery } from 'svelte/reactivity';
-	import { superForm, type SuperValidated } from 'sveltekit-superforms';
-	import { zodClient } from 'sveltekit-superforms/adapters';
-	import { z } from 'zod';
 
 	import { enhance } from '$app/forms';
+	import { afterNavigate } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { env } from '$env/dynamic/public';
 
+	import * as AlertDialog from '$lib/components/ui/alert-dialog';
+	import * as Dialog from '$lib/components/ui/dialog';
 	import { Progress } from '$lib/components/ui/progress';
-	import { configConstants } from '$lib/config-constants.js';
-	import { formatDurationClock, getSecondsSince, getSecondsUntil } from '$lib/datetime';
-	import { questionTypes } from '$lib/enums.js';
-	import { getErrorMessage } from '$lib/error.js';
+	import { configConstants } from '$lib/config-constants';
+	import { formatDurationClock } from '$lib/datetime';
+	import { questionTypes } from '$lib/enums';
+	import { getErrorMessage } from '$lib/error';
 	import { FetchJson } from '$lib/fetch-json';
-	import { formatNumber } from '$lib/format-number.js';
+	import { formatNumber } from '$lib/format-number';
 	import type { PartialExam } from '$lib/interfaces/exam';
 	import type { OwnUserPartial } from '$lib/interfaces/partial-user';
 	import type { PartialQuestionAnswer, Question } from '$lib/interfaces/question';
@@ -46,14 +45,14 @@
 		form: ActionData | undefined;
 	} = $props();
 
-	const isLaptop = new MediaQuery('(min-width: 40rem)', false);
-	const isDesktop = new MediaQuery('(min-width: 64rem)', false);
+	const isLaptop = new MediaQuery('(min-width: 64rem)', false);
+	const isDesktop = new MediaQuery('(min-width: 80rem)', false);
 
 	let completedCount = $derived(data.questions.filter((q) => q.answers.length > 0).length);
 	let percentCompleted = $derived(100 * (completedCount / data.questions.length));
 	let percentCompletedString = $derived(percentCompleted.toFixed(0));
 
-	let showQuestionsCount = $derived(isDesktop.current ? 7 : 5);
+	let showQuestionsCount = $derived(5 + (isLaptop.current ? 2 : 0) + (isDesktop.current ? 2 : 0));
 	let shownQuestions = $derived.by(() => {
 		const minusOne = showQuestionsCount - 1;
 		const half = Math.floor(showQuestionsCount / 2);
@@ -75,7 +74,6 @@
 
 	$effect(() => {
 		answer = data.answer;
-		console.log($inspect(answer));
 	});
 
 	const fetchJson = new FetchJson(fetch, base);
@@ -93,7 +91,7 @@
 	);
 	let timeLeft = $derived(endAt - now);
 
-	async function syncNow() {
+	async function syncNow(): Promise<void> {
 		if (syncing) return;
 		syncing = true;
 		try {
@@ -151,7 +149,7 @@
 	}
 
 	onMount(() => {
-		const updateNowInterval = setInterval(() => {
+		const updateNowInterval = setInterval((): void => {
 			now = performance.now() + offset;
 		}, 200);
 
@@ -159,10 +157,16 @@
 
 		syncNow();
 
-		return () => {
+		return (): void => {
 			clearInterval(updateNowInterval);
 			clearInterval(syncNowInterval);
 		};
+	});
+
+	let questionsDialogOpen = $state(false);
+
+	afterNavigate(() => {
+		questionsDialogOpen = false;
 	});
 </script>
 
@@ -170,17 +174,18 @@
 	<title>CE Next Gen AI - {data.exam.title}</title>
 </svelte:head>
 
-<div class="mx-auto mt-4 max-w-7xl px-16">
+<div class="mx-auto mt-4 max-w-screen-2xl px-16">
 	<form
+		id="form"
 		method="POST"
 		enctype={data.question.questionType === questionTypes.file
 			? 'multipart/form-data'
 			: 'application/x-www-form-urlencoded'}
 		use:enhance={() => {
-			return async ({ result, update }) => {
+			return async ({ result, update }): Promise<void> => {
 				if (result.type === 'failure') {
 					try {
-						// @ts-expect-error
+						// @ts-expect-error It should work, but if it doesn't it's in a try catch
 						toast.error(result.data.form.errors.answer.join(', '));
 					} catch {
 						toast.error('Unknown error');
@@ -192,11 +197,16 @@
 		<div class="mb-4 flex justify-between gap-8">
 			<label
 				for="exit-button"
-				class="flex h-fit w-32 cursor-pointer items-center gap-1 text-lg font-semibold text-secondary-foreground">
+				class="relative flex h-8 w-32 items-center gap-1 text-lg font-semibold text-secondary-foreground transition-colors hover:text-primary-foreground">
 				<ChevronLeft />Back
-				<input type="submit" id="exit-button" name="next" value="exit" class="hidden" />
+				<input
+					type="submit"
+					id="exit-button"
+					name="next"
+					value="exit"
+					class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
 			</label>
-			<div class="w-0 max-w-xl flex-grow">
+			<div class="w-0 max-w-2xl flex-grow">
 				<div class="flex items-center justify-between">
 					<span class="mb-2 text-primary-foreground">{percentCompletedString}% Complete</span>
 					<span class="mb-2 text-primary-foreground">
@@ -206,20 +216,20 @@
 				<Progress value={percentCompleted} max={100} class="mb-4 h-3" />
 				<div class="flex items-center justify-evenly">
 					<label
-						for="backward-button"
+						for="backward-button-top"
 						class:!text-gray-400={data.question.number === 1}
 						class:!bg-gray-300={data.question.number === 1}
 						class:!border-gray-300={data.question.number === 1}
-						class:!cursor-not-allowed={data.question.number === 1}
-						class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-2 border-secondary-foreground bg-white p-0 text-secondary-foreground transition-colors">
+						class="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-secondary-foreground bg-white p-0 text-secondary-foreground transition-colors">
 						<ChevronLeft size={28} />
 						<input
 							type="submit"
-							id="backward-button"
+							id="backward-button-top"
 							name="next"
 							value={data.question.number - 1}
 							disabled={data.question.number === 1}
-							class="hidden" />
+							class:!cursor-not-allowed={data.question.number === 1}
+							class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
 					</label>
 					<div class="flex items-center gap-3">
 						{#each shownQuestions as question (question.number)}
@@ -236,24 +246,53 @@
 						{/each}
 					</div>
 					<label
-						for="forward-button"
+						for="forward-button-top"
 						class:!text-gray-400={data.question.number === data.questions.length}
 						class:!bg-gray-300={data.question.number === data.questions.length}
 						class:!border-gray-300={data.question.number === data.questions.length}
 						class:!cursor-not-allowed={data.question.number === data.questions.length}
-						class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-2 border-secondary-foreground bg-white p-0 text-secondary-foreground transition-colors">
+						class="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-secondary-foreground bg-white p-0 text-secondary-foreground transition-colors">
 						<ChevronRight size={28} />
 						<input
 							type="submit"
-							id="forward-button"
+							id="forward-button-top"
 							name="next"
 							value={data.question.number + 1}
 							disabled={data.question.number === data.questions.length}
-							class="hidden" />
+							class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
 					</label>
 				</div>
 			</div>
-			<div class="w-32"></div>
+			<Dialog.Root bind:open={questionsDialogOpen}>
+				<Dialog.Trigger
+					type="button"
+					class="flex h-8 w-32 items-center gap-1 text-lg font-semibold text-secondary-foreground transition-colors hover:text-primary-foreground">
+					<Menu />Questions
+				</Dialog.Trigger>
+				<Dialog.Content class="max-h-[80dvh] overflow-y-scroll">
+					<Dialog.Header>
+						<Dialog.Title>Questions</Dialog.Title>
+						<Dialog.Description class="text-lg text-gray-700">
+							List of all questions in this exam
+						</Dialog.Description>
+					</Dialog.Header>
+					<div class="flex flex-wrap gap-3">
+						{#each data.questions as question (question.number)}
+							<input
+								form="form"
+								type="submit"
+								name="next"
+								value={question.number}
+								class:!bg-gray-300={question.answers.length > 0 &&
+									question.number !== data.question.number}
+								class:!border-gray-300={question.answers.length > 0 &&
+									question.number !== data.question.number}
+								class:!bg-secondary-foreground={question.number === data.question.number}
+								class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-2 border-secondary-foreground bg-white p-0" />
+						{/each}
+					</div>
+				</Dialog.Content>
+			</Dialog.Root>
 		</div>
 		<div class="mx-2 mb-2 flex items-center gap-4">
 			<div
@@ -265,7 +304,7 @@
 				<span>Time left: {formatDurationClock(timeLeft / 1000)}</span>
 			</div>
 		</div>
-		<div class="mx-2 rounded-xl bg-secondary p-4">
+		<div class="mx-2 mb-4 rounded-xl bg-secondary p-4">
 			<div
 				class="prose prose-lg prose-neutral mb-8 w-full max-w-none overflow-scroll rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-lg">
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -274,36 +313,36 @@
 			{#if data.question.questionType === questionTypes.choices}
 				<div class="flex flex-wrap items-stretch gap-4">
 					{#each data.question.choices as choice (choice.number)}
-						<input
-							id={`choice-input-${choice.number}`}
-							type="radio"
-							name="answer"
-							value={choice.number.toString()}
-							bind:group={answer}
-							class="hidden" />
 						<label
 							for={`choice-input-${choice.number}`}
-							class="prose prose-lg prose-neutral w-80 max-w-96 flex-grow cursor-pointer overflow-scroll rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
+							class="w-semi-auto prose prose-lg prose-neutral cursor-pointer overflow-scroll rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							{@html choice.html}
+							<input
+								id={`choice-input-${choice.number}`}
+								type="radio"
+								name="answer"
+								value={choice.number.toString()}
+								bind:group={answer}
+								class="sr-only" />
 						</label>
 					{/each}
 				</div>
 			{:else if data.question.questionType === questionTypes.checkboxes}
 				<div class="flex flex-wrap items-stretch gap-4">
 					{#each data.question.choices as choice (choice.number)}
-						<input
-							id={`choice-input-${choice.number}`}
-							type="checkbox"
-							name="answer"
-							value={choice.number.toString()}
-							bind:group={answer}
-							class="hidden" />
 						<label
 							for={`choice-input-${choice.number}`}
-							class="prose prose-lg prose-neutral w-80 max-w-96 flex-grow cursor-pointer overflow-scroll rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
+							class="w-semi-auto prose prose-lg prose-neutral cursor-pointer overflow-scroll rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							{@html choice.html}
+							<input
+								id={`choice-input-${choice.number}`}
+								type="checkbox"
+								name="answer"
+								value={choice.number.toString()}
+								bind:group={answer}
+								class="sr-only" />
 						</label>
 					{/each}
 				</div>
@@ -338,15 +377,15 @@
 										{answer.replace(/.*?\./, 'answer.')}
 									</a>
 									<div class="absolute right-1 top-1">
-										<label for="remove-file-button" class="cursor-pointer">
+										<label for="remove-file-button" class="relative h-6 w-6">
 											<CircleX />
+											<input
+												type="submit"
+												id="remove-file-button"
+												name="next"
+												value="remove-answer"
+												class="absolute bottom-0 left-0 right-0 top-0 h-6 w-6 cursor-pointer bg-transparent text-transparent" />
 										</label>
-										<input
-											type="submit"
-											id="remove-file-button"
-											name="next"
-											value="remove-answer"
-											class="hidden" />
 									</div>
 								</div>
 							</div>
@@ -392,15 +431,101 @@
 				</span>
 			{/if}
 		</div>
+		<div class="mx-2 flex items-center justify-between">
+			<label
+				for="backward-button-bottom"
+				class="relative flex items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg">
+				Back
+				<input
+					type="submit"
+					id="backward-button-bottom"
+					name="next"
+					value={data.question.number - 1 || 'exit'}
+					class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
+			</label>
+			{#if data.answer !== undefined && data.answer.length > 0 && data.question.questionType !== questionTypes.file}
+				<label
+					for="clear-answer-button"
+					class="relative flex items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg">
+					Remove Answer
+					<input
+						type="submit"
+						id="clear-answer-button"
+						name="next"
+						value="remove-answer"
+						class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
+				</label>
+			{/if}
+			{#if data.question.number === data.questions.length}
+				<AlertDialog.Root>
+					<AlertDialog.Trigger
+						type="button"
+						class="button-gradient flex cursor-pointer items-center justify-center rounded-full px-5 py-1.5 text-lg font-semibold text-white drop-shadow-lg">
+						Submit
+					</AlertDialog.Trigger>
+					<AlertDialog.Content>
+						<AlertDialog.Header>
+							<AlertDialog.Title>Confirm Exam Submission</AlertDialog.Title>
+							<AlertDialog.Description class="text-lg text-gray-700">
+								Are you sure you want to submit your exam? Once submitted, you will not be able to
+								make any changes.
+							</AlertDialog.Description>
+						</AlertDialog.Header>
+						<AlertDialog.Footer>
+							<AlertDialog.Cancel
+								class="flex cursor-pointer items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg">
+								Cancel
+							</AlertDialog.Cancel>
+							<AlertDialog.Action
+								class="button-gradient relative flex items-center justify-center rounded-full px-5 py-1.5 text-lg font-semibold text-white drop-shadow-lg">
+								<label for="submit-button-bottom">
+									Submit
+									<input
+										form="form"
+										type="submit"
+										id="submit-button-bottom"
+										name="next"
+										value="submit"
+										class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
+								</label>
+							</AlertDialog.Action>
+						</AlertDialog.Footer>
+					</AlertDialog.Content>
+				</AlertDialog.Root>
+			{:else}
+				<label
+					for="forward-button-bottom"
+					class="relative flex items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg">
+					Next
+					<input
+						type="submit"
+						id="forward-button-bottom"
+						name="next"
+						value={data.question.number + 1}
+						disabled={data.question.number === data.questions.length}
+						class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
+				</label>
+			{/if}
+		</div>
 	</form>
 </div>
 
 <style lang="postcss">
-	input[type='radio']:checked + label {
+	label:has(input[type='radio']:checked) {
 		@apply outline outline-4 outline-secondary-foreground;
 	}
 
-	input[type='checkbox']:checked + label {
+	label:has(input[type='checkbox']:checked) {
 		@apply outline outline-4 outline-secondary-foreground;
+	}
+
+	label.w-semi-auto {
+		width: calc(50% - 0.5rem);
+	}
+
+	@media (min-width: 80rem) {
+		label.w-semi-auto {
+			width: calc(33% - 0.5rem);
+		}
 	}
 </style>

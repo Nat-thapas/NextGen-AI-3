@@ -31,6 +31,21 @@ const upsertAnswerQuery = db
 	})
 	.prepare('upsert_answer');
 
+const updateAnswerCorrectnessQuery = db
+	.update(answers)
+	.set({
+		correctness: sql.placeholder('correctness'),
+		updatedAt: sql`now()`
+	})
+	.where(
+		and(
+			eq(answers.examId, sql.placeholder('examId')),
+			eq(answers.questionNumber, sql.placeholder('questionNumber')),
+			eq(answers.userId, sql.placeholder('userId'))
+		)
+	)
+	.prepare('update_answer');
+
 const deleteAnswerReturningQuery = db
 	.delete(answers)
 	.where(
@@ -42,6 +57,17 @@ const deleteAnswerReturningQuery = db
 	)
 	.returning()
 	.prepare('delete_answer_returning');
+
+const deleteAnswerQuery = db
+	.delete(answers)
+	.where(
+		and(
+			eq(answers.examId, sql.placeholder('examId')),
+			eq(answers.questionNumber, sql.placeholder('questionNumber')),
+			eq(answers.userId, sql.placeholder('userId'))
+		)
+	)
+	.prepare('delete_answer');
 
 export async function getAnswer(examId: string, questionNumber: number, userId: string) {
 	examId = suidToUuid(examId);
@@ -58,6 +84,17 @@ export async function upsertAnswer(
 	return upsertAnswerQuery.execute({ examId, questionNumber, userId, answer });
 }
 
+export async function updateAnswerCorrectness(
+	examId: string,
+	questionNumber: number,
+	userId: string,
+	correctness: number | null
+) {
+	examId = suidToUuid(examId);
+	userId = suidToUuid(userId);
+	return updateAnswerCorrectnessQuery.execute({ examId, questionNumber, userId, correctness });
+}
+
 export async function deleteAnswerReturning(
 	examId: string,
 	questionNumber: number,
@@ -65,5 +102,11 @@ export async function deleteAnswerReturning(
 ) {
 	examId = suidToUuid(examId);
 	userId = suidToUuid(userId);
-	return deleteAnswerReturningQuery.execute({ examId, questionNumber, userId });
+	return (await deleteAnswerReturningQuery.execute({ examId, questionNumber, userId }))[0];
+}
+
+export async function deleteAnswer(examId: string, questionNumber: number, userId: string) {
+	examId = suidToUuid(examId);
+	userId = suidToUuid(userId);
+	return deleteAnswerQuery.execute({ examId, questionNumber, userId });
 }

@@ -38,6 +38,20 @@ const updateSubmissionSubmittedQuery = db
 	)
 	.prepare('update_submission_submitted');
 
+const updateSubmissionScoreQuery = db
+	.update(submissions)
+	.set({
+		score: sql.placeholder('score'),
+		updatedAt: sql`now()`
+	})
+	.where(
+		and(
+			eq(submissions.examId, sql.placeholder('examId')),
+			eq(submissions.userId, sql.placeholder('userId'))
+		)
+	)
+	.prepare('update_submission_score');
+
 export async function createSubmission(examId: string, userId: string) {
 	return createSubmissionQuery.execute({ examId, userId });
 }
@@ -56,4 +70,10 @@ export async function updateSubmissionSubmitted(
 	examId = suidToUuid(examId);
 	userId = suidToUuid(userId);
 	return updateSubmissionSubmittedQuery.execute({ examId, userId, submitted });
+}
+
+export async function updateSubmissionScore(examId: string, userId: string, score: number) {
+	examId = suidToUuid(examId);
+	userId = suidToUuid(userId);
+	return updateSubmissionScoreQuery.execute({ examId, userId, score });
 }
