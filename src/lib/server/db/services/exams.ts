@@ -16,8 +16,7 @@ import {
 
 import { db } from '$lib/server/db';
 import { answers, choices, exams, questions, submissions } from '$lib/server/db/schema';
-
-import { suidToUuid } from '../suid';
+import { suidToUuid } from '$lib/server/db/suid';
 
 const createExamReturningQuery = db
 	.insert(exams)
@@ -87,7 +86,7 @@ const getExamQuestionAnswerSubmissionQuery = db.query.exams
 	})
 	.prepare('get_exam_question_answer_submission');
 
-const getExamQuestionChoiceSubmissionQuery = db.query.exams
+const getExamQuestionsChoicesSubmissionsQuery = db.query.exams
 	.findFirst({
 		columns: {
 			id: true
@@ -126,7 +125,63 @@ const getExamQuestionChoiceSubmissionQuery = db.query.exams
 		},
 		where: eq(exams.id, sql.placeholder('id'))
 	})
-	.prepare('get_exam_question_choices');
+	.prepare('get_exam_questions_choices_submissions');
+
+const getExamQuestionsChoicesSubmissionsUsersQuery = db.query.exams
+	.findFirst({
+		columns: {
+			id: true
+		},
+		with: {
+			questions: {
+				columns: {
+					examId: true,
+					number: true,
+					questionType: true,
+					defaultScore: true,
+					minScore: true,
+					maxScore: true,
+					scoringType: true
+				},
+				with: {
+					choices: {
+						columns: {
+							examId: true,
+							questionNumber: true,
+							number: true
+						},
+						extras: {
+							shortMarkdown: sql<string>`left(${choices.markdown}, 64)`.as('short_markdown')
+						},
+						orderBy: [asc(choices.number)]
+					}
+				},
+				extras: {
+					shortMarkdown: sql<string>`left(${questions.markdown}, 64)`.as('short_markdown')
+				},
+				orderBy: [asc(questions.number)]
+			},
+			submissions: {
+				columns: {
+					examId: true,
+					userId: true,
+					score: true
+				},
+				with: {
+					user: {
+						columns: {
+							id: true,
+							prefix: true,
+							name: true,
+							email: true
+						}
+					}
+				}
+			}
+		},
+		where: eq(exams.id, sql.placeholder('id'))
+	})
+	.prepare('get_exam_questions_choices_submissions_users');
 
 const getExamsAvailableQuery = db
 	.select({
@@ -243,9 +298,14 @@ export async function getExamQuestionAnswerSubmission(id: string, userId: string
 	return getExamQuestionAnswerSubmissionQuery.execute({ id, userId });
 }
 
-export async function getExamQuestionChoiceSubmission(id: string) {
+export async function getExamQuestionsChoicesSubmissions(id: string) {
 	id = suidToUuid(id);
-	return getExamQuestionChoiceSubmissionQuery.execute({ id });
+	return getExamQuestionsChoicesSubmissionsQuery.execute({ id });
+}
+
+export async function getExamQuestionsChoicesSubmissionsUsers(id: string) {
+	id = suidToUuid(id);
+	return getExamQuestionsChoicesSubmissionsUsersQuery.execute({ id });
 }
 
 export async function getExamsAvailable(userId: string) {

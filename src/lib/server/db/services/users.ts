@@ -4,8 +4,7 @@ import { eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
-
-import { suidToUuid } from '../suid';
+import { suidToUuid } from '$lib/server/db/suid';
 
 const createUserQuery = db
 	.insert(users)

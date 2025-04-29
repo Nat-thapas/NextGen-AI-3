@@ -5,7 +5,7 @@
 	import { MediaQuery } from 'svelte/reactivity';
 
 	import { enhance } from '$app/forms';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { env } from '$env/dynamic/public';
 
@@ -131,11 +131,11 @@
 
 			if (latency > configConstants.exams.timeSyncLatencyLimit) {
 				toast.warning('High time sync latency', {
-					description: `The time sync latency is at ${latency} ms. This may lead to inaccurate time left display. Please make sure that your internet connection is stable`
+					description: `The time sync latency is at ${latency.toFixed(0)} ms. This may lead to inaccurate time left display. Please make sure that your internet connection is stable`
 				});
 			} else if (procDelay > configConstants.exams.timeSyncProcDelayLimit) {
 				toast.warning('High time sync processing delay', {
-					description: `The time sync processing delay is at ${procDelay} ms. This may lead to inaccurate time left display. This is usually due to insufficient processing power`
+					description: `The time sync processing delay is at ${procDelay.toFixed(0)} ms. This may lead to inaccurate time left display. This is usually due to insufficient processing power`
 				});
 			}
 		} catch (err) {
@@ -161,6 +161,18 @@
 			clearInterval(updateNowInterval);
 			clearInterval(syncNowInterval);
 		};
+	});
+
+	beforeNavigate(({ cancel, to }) => {
+		if (
+			to?.route.id !== '/(main)/exercises/[id=id]/[num=num]' &&
+			to?.route.id !== '/(main)/exercises' &&
+			!confirm(
+				'Are you sure you want to leave this page? You have unsaved changes that will be lost.'
+			)
+		) {
+			cancel();
+		}
 	});
 
 	let questionsDialogOpen = $state(false);
@@ -269,7 +281,7 @@
 					class="flex h-8 w-32 items-center gap-1 text-lg font-semibold text-secondary-foreground transition-colors hover:text-primary-foreground">
 					<Menu />Questions
 				</Dialog.Trigger>
-				<Dialog.Content class="max-h-[80dvh] overflow-y-scroll">
+				<Dialog.Content class="max-h-[80dvh] overflow-y-auto">
 					<Dialog.Header>
 						<Dialog.Title>Questions</Dialog.Title>
 						<Dialog.Description class="text-lg text-gray-700">
@@ -306,16 +318,18 @@
 		</div>
 		<div class="mx-2 mb-4 rounded-xl bg-secondary p-4">
 			<div
-				class="prose prose-lg prose-neutral mb-8 w-full max-w-none overflow-scroll rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-lg">
+				class="prose prose-lg prose-neutral mb-4 w-full max-w-none overflow-auto rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-lg">
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html data.question.html}
 			</div>
+			<div class="mb-4 border-b-2 border-secondary-foreground"></div>
 			{#if data.question.questionType === questionTypes.choices}
 				<div class="flex flex-wrap items-stretch gap-4">
 					{#each data.question.choices as choice (choice.number)}
 						<label
 							for={`choice-input-${choice.number}`}
-							class="w-semi-auto prose prose-lg prose-neutral cursor-pointer overflow-scroll rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
+							class:w-3-columns={data.question.choices.length > 4}
+							class="w-2-columns prose prose-lg prose-neutral max-h-64 cursor-pointer overflow-auto rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							{@html choice.html}
 							<input
@@ -333,7 +347,8 @@
 					{#each data.question.choices as choice (choice.number)}
 						<label
 							for={`choice-input-${choice.number}`}
-							class="w-semi-auto prose prose-lg prose-neutral cursor-pointer overflow-scroll rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
+							class:w-3-columns={data.question.choices.length > 4}
+							class="w-2-columns prose prose-lg prose-neutral max-h-64 cursor-pointer overflow-auto rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							{@html choice.html}
 							<input
@@ -351,13 +366,13 @@
 					<textarea
 						name="answer"
 						bind:value={answer}
-						class="border-1 h-full w-full resize-none overflow-scroll rounded-xl border-gray-300 bg-white px-2 py-1 text-lg">
+						class="border-1 h-full w-full resize-none overflow-auto rounded-xl border-gray-300 bg-white px-2 py-1 text-lg">
 					</textarea>
 					<span
 						class:!text-primary-foreground={data.question.textLengthLimit - (answer?.length ?? 0) <
 							25 && data.question.textLengthLimit - (answer?.length ?? 0) >= 0}
 						class:!text-red-500={data.question.textLengthLimit - (answer?.length ?? 0) < 0}
-						class="absolute bottom-0 right-1 rounded-lg bg-white/80 px-1 py-1 text-secondary-foreground">
+						class="absolute bottom-0.5 right-1 rounded-lg bg-white/80 px-1 py-1 text-secondary-foreground">
 						{answer?.length ?? 0} / {data.question.textLengthLimit}
 					</span>
 				</div>
@@ -519,13 +534,13 @@
 		@apply outline outline-4 outline-secondary-foreground;
 	}
 
-	label.w-semi-auto {
+	.w-2-columns {
 		width: calc(50% - 0.5rem);
 	}
 
 	@media (min-width: 80rem) {
-		label.w-semi-auto {
-			width: calc(33% - 0.5rem);
+		.w-3-columns {
+			width: calc(33% - 0.5rem) !important;
 		}
 	}
 </style>

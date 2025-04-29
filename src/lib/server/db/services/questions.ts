@@ -4,8 +4,7 @@ import { and, asc, eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { answers, choices, questions } from '$lib/server/db/schema';
-
-import { suidToUuid } from '../suid';
+import { suidToUuid } from '$lib/server/db/suid';
 
 const createQuestionQuery = db
 	.insert(questions)

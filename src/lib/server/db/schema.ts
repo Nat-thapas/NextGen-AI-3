@@ -232,7 +232,7 @@ export const submissions = pgTable(
 			})
 			.notNull(),
 		submitted: boolean().default(false).notNull(),
-		score: integer(),
+		score: doublePrecision(),
 		...timeStamps
 	},
 	(table) => [primaryKey({ columns: [table.examId, table.userId] })]

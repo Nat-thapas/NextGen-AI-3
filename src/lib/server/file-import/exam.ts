@@ -126,8 +126,17 @@ export async function importExam(
 					}
 
 					const defaultScore = Number(row[3] ?? configConstants.questions.defaultMinScore);
+					if (isNaN(defaultScore)) {
+						throw Error(`Sheet '${name}' Cell D${rowNumber + 1} (Default score) is invalid`);
+					}
 					const minScore = Number(row[4] ?? configConstants.questions.defaultMinScore);
+					if (isNaN(minScore)) {
+						throw Error(`Sheet '${name}' Cell E${rowNumber + 1} (Min score) is invalid`);
+					}
 					const maxScore = Number(row[5] ?? configConstants.questions.defaultMaxScore);
+					if (isNaN(maxScore)) {
+						throw Error(`Sheet '${name}' Cell F${rowNumber + 1} (Max score) is invalid`);
+					}
 
 					if (
 						(questionType === questionTypes.checkboxes || questionType === questionTypes.text) &&
@@ -150,6 +159,10 @@ export async function importExam(
 					const textLengthLimit = Number(
 						row[7] ?? configConstants.questions.defaultTextAnswerLengthLimit
 					);
+					if (isNaN(textLengthLimit)) {
+						throw Error(`Sheet '${name}' Cell H${rowNumber + 1} (Text length limit) is invalid`);
+					}
+
 					const textCorrect =
 						questionType === questionTypes.text
 							? row[8] === undefined
@@ -164,10 +177,14 @@ export async function importExam(
 								: String(row[9])
 							: null;
 					const fileSizeLimit = Number(row[10] ?? configConstants.questions.defaultFileSizeLimit);
+					if (isNaN(fileSizeLimit)) {
+						throw Error(`Sheet '${name}' Cell K${rowNumber + 1} (File size limit) is invalid`);
+					}
 
-					console.log(rawFileTypes);
 					const fileTypes = parseFileTypes(rawFileTypes);
-					console.log(fileTypes);
+					if (fileTypes !== null && fileTypes.length === 0) {
+						throw Error(`Sheet '${name}' Cell J${rowNumber + 1} (Accept file types) is invalid`);
+					}
 
 					questionNumber++;
 					choiceNumber = 0;

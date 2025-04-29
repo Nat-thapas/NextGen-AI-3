@@ -1,20 +1,26 @@
 <script lang="ts">
-	import { ArrowRight } from '@lucide/svelte';
+	import { ArrowRight, Download, SquareSigma } from '@lucide/svelte';
 
 	import { base } from '$app/paths';
 
 	import { formatDate, formatDateTime, formatTime } from '$lib/datetime';
 	import type { Exam } from '$lib/interfaces/exam';
+	import type { OwnUserPartial } from '$lib/interfaces/partial-user';
+	import { isRoleAtLeast } from '$lib/roles';
 
 	let {
+		user,
 		exam,
+		onDownloadClick,
 		color,
-		isExamAvailable = false,
+		isExamAvailable,
 		timeZone
 	}: {
+		user: OwnUserPartial | undefined;
 		exam: Exam;
+		onDownloadClick: () => any;
 		color: 'green' | 'blue' | 'amber' | 'gray' | 'red';
-		isExamAvailable?: boolean;
+		isExamAvailable: boolean;
 		timeZone: string;
 	} = $props();
 </script>
@@ -50,7 +56,14 @@
 			Begins at: {formatDateTime(exam.openAt, { locale: 'en-GB', timeZone })}
 		</span>
 	</div>
-	<div class="mr-4 flex h-28 w-16 items-center justify-center">
+	<div class="mr-4 flex h-28 w-16 flex-col items-center justify-center gap-2">
+		{#if isRoleAtLeast(user?.role, 'teacher')}
+			<button
+				onclick={onDownloadClick}
+				class="flex h-10 w-10 items-center justify-center rounded-full bg-accent-foreground">
+				<Download class="text-white" />
+			</button>
+		{/if}
 		{#if isExamAvailable}
 			<a
 				href={`${base}/exercises/${exam.id}`}

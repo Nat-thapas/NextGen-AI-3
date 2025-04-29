@@ -2,7 +2,7 @@ import difflib from 'difflib';
 
 import { questionTypes, scoringTypes } from '$lib/enums';
 import { deleteAnswer, getAnswer, updateAnswerCorrectness } from '$lib/server/db/services/answers';
-import { getExamQuestionChoiceSubmission } from '$lib/server/db/services/exams';
+import { getExamQuestionsChoicesSubmissions } from '$lib/server/db/services/exams';
 import { updateSubmissionScore } from '$lib/server/db/services/submissions';
 import { getUser } from '$lib/server/db/services/users';
 
@@ -11,7 +11,7 @@ function getScore(question: { minScore: number; maxScore: number }, correctness:
 }
 
 function parseRegexString(regexString: string): RegExp {
-	const regexMatcher = /^\/((?:\\\/|[^/])*)\/([gimyus]*)$/;
+	const regexMatcher = /^\/(.*)\/([gimyus]*)$/;
 	const match = regexString.match(regexMatcher);
 
 	if (match) {
@@ -24,7 +24,7 @@ function parseRegexString(regexString: string): RegExp {
 }
 
 export async function calculateExamScore(examId: string): Promise<void> {
-	const exam = await getExamQuestionChoiceSubmission(examId);
+	const exam = await getExamQuestionsChoicesSubmissions(examId);
 
 	if (!exam) {
 		throw Error('Exam not found');
@@ -46,19 +46,8 @@ export async function calculateExamScore(examId: string): Promise<void> {
 			}
 
 			if (question.questionType === questionTypes.choices) {
-				let ans = Number(answer.answer);
-				if (isNaN(ans)) {
-					await deleteAnswer(exam.id, question.number, user.id);
-					score += question.defaultScore;
-					continue;
-				}
-				ans--;
-				if (ans >= question.choices.length) {
-					await deleteAnswer(exam.id, question.number, user.id);
-					score += question.defaultScore;
-					continue;
-				}
-				correctness = question.choices[ans].isCorrect ? 1 : 0;
+				const ans = Number(answer.answer) - 1;
+				correctness = question.choices[ans]?.isCorrect ? 1 : 0;
 				score += getScore(question, correctness);
 			} else if (question.questionType === questionTypes.checkboxes) {
 				const ans = answer.answer.split(';').map((v) => Number(v));

@@ -4,8 +4,7 @@ import { desc, eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { announcements } from '$lib/server/db/schema';
-
-import { suidToUuid } from '../suid';
+import { suidToUuid } from '$lib/server/db/suid';
 
 const createAnnouncementQuery = db
 	.insert(announcements)

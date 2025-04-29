@@ -276,7 +276,9 @@ export const actions: Actions = {
 							form.errors.answer[index] = ['Choice must be a valid choice for the question'];
 							return fail(400, { form });
 						}
-						checks.push(choice);
+						if (!checks.includes(choice)) {
+							checks.push(choice);
+						}
 					}
 					await upsertAnswer(exam.id, question.number, user.id, checks.join(';'));
 				}

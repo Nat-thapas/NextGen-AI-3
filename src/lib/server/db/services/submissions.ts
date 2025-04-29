@@ -3,9 +3,8 @@
 import { and, eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
-
-import { submissions } from '../schema';
-import { suidToUuid } from '../suid';
+import { submissions } from '$lib/server/db/schema';
+import { suidToUuid } from '$lib/server/db/suid';
 
 const createSubmissionQuery = db
 	.insert(submissions)

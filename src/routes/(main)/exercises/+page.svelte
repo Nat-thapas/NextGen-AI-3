@@ -4,23 +4,26 @@
 	import { fileProxy, superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
+	import { base } from '$app/paths';
+
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
 	import { configConstants } from '$lib/config-constants';
 	import { roles } from '$lib/enums';
 	import { getErrorMessage } from '$lib/error';
+	import type { Exam } from '$lib/interfaces/exam';
 	import { isRoleAtLeast } from '$lib/roles';
 
 	import ExamCard from './exam-card.svelte';
-	import { formSchema } from './schema';
+	import { calculateScoreFormSchema, createExamFormSchema } from './schema';
 
 	let { data } = $props();
 
-	let isFormDialogOpen = $state(false);
+	let isCreateExamDialogOpen = $state(false);
 
-	const form = superForm(data.form, {
-		validators: zodClient(formSchema),
+	const createExamForm = superForm(data.createExamForm, {
+		validators: zodClient(createExamFormSchema),
 		resetForm: false,
 		delayMs: configConstants.forms.delay,
 		timeoutMs: configConstants.forms.longTimeout,
@@ -29,11 +32,13 @@
 				switch (form.message.type) {
 					case 'success':
 						toast.success(form.message.text);
-						isFormDialogOpen = false;
+						isCreateExamDialogOpen = false;
+						createExamForm.reset();
 						break;
 					case 'info':
 						toast.info(form.message.text);
-						isFormDialogOpen = false;
+						isCreateExamDialogOpen = false;
+						createExamForm.reset();
 						break;
 					case 'warning':
 						toast.warning(form.message.text);
@@ -52,9 +57,57 @@
 		}
 	});
 
-	const { form: formData, enhance, delayed } = form;
+	const {
+		form: createExamFormData,
+		enhance: createExamEnhance,
+		delayed: createExamDelayed
+	} = createExamForm;
 
-	let file = fileProxy(form, 'file');
+	let examFile = fileProxy(createExamForm, 'file');
+
+	let isCalculateScoreDialogOpen = $state(false);
+
+	const calculateScoreForm = superForm(data.calculateScoreForm, {
+		validators: zodClient(calculateScoreFormSchema),
+		resetForm: false,
+		delayMs: configConstants.forms.delay,
+		timeoutMs: configConstants.forms.longTimeout,
+		onUpdated({ form }) {
+			if (form.message) {
+				switch (form.message.type) {
+					case 'success':
+						toast.success(form.message.text);
+						break;
+					case 'info':
+						toast.info(form.message.text);
+						break;
+					case 'warning':
+						toast.warning(form.message.text);
+						break;
+					case 'error':
+						toast.error(form.message.text);
+						break;
+					default:
+						toast(form.message.text);
+						break;
+				}
+			}
+		},
+		onError({ result }) {
+			toast.error(getErrorMessage(result.error));
+		}
+	});
+
+	const {
+		form: calculateScoreFormData,
+		enhance: calculateScoreEnhance,
+		delayed: calculateScoreDelayed
+	} = calculateScoreForm;
+
+	function showCalculateScoreDialog(exam: Exam) {
+		$calculateScoreFormData.examId = exam.id;
+		isCalculateScoreDialogOpen = true;
+	}
 </script>
 
 <svelte:head>
@@ -64,12 +117,12 @@
 <div class="mx-auto mt-6 max-w-7xl px-16">
 	<div class="mb-6 flex items-center justify-center gap-4">
 		{#if isRoleAtLeast(data.user?.role, roles.teacher)}
-			<Dialog.Root bind:open={isFormDialogOpen}>
+			<Dialog.Root bind:open={isCreateExamDialogOpen}>
 				<Dialog.Trigger
 					class="flex h-12 w-12 items-center justify-center rounded-full bg-secondary-foreground text-white transition-colors hover:bg-primary-foreground">
 					<Plus size={28} />
 				</Dialog.Trigger>
-				<Dialog.Content class="max-h-[80dvh] overflow-y-scroll">
+				<Dialog.Content class="scrollba max-h-[80dvh] overflow-y-auto">
 					<Dialog.Header>
 						<Dialog.Title class="text-lg">Create exam</Dialog.Title>
 						<Dialog.Description class="text-base text-primary-foreground">
@@ -78,58 +131,62 @@
 							<a class="underline" href="/instructions/upload-contents">how to upload contents</a>
 						</Dialog.Description>
 					</Dialog.Header>
-					<form method="POST" enctype="multipart/form-data" use:enhance>
-						<Form.Field {form} name="title" class="mb-4 w-full">
+					<form
+						method="POST"
+						action="?/create-exam"
+						enctype="multipart/form-data"
+						use:createExamEnhance>
+						<Form.Field form={createExamForm} name="title" class="mb-4 w-full">
 							<Form.Control>
 								{#snippet children({ props })}
 									<Form.Label class="text-lg text-primary-foreground">Title</Form.Label>
 									<Input
 										{...props}
-										bind:value={$formData.title}
+										bind:value={$createExamFormData.title}
 										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
 						</Form.Field>
-						<Form.Field {form} name="description" class="mb-4 w-full">
+						<Form.Field form={createExamForm} name="description" class="mb-4 w-full">
 							<Form.Control>
 								{#snippet children({ props })}
 									<Form.Label class="text-lg text-primary-foreground">Description</Form.Label>
 									<Input
 										{...props}
-										bind:value={$formData.description}
+										bind:value={$createExamFormData.description}
 										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
 						</Form.Field>
-						<Form.Field {form} name="openAt" class="mb-4 w-full">
+						<Form.Field form={createExamForm} name="openAt" class="mb-4 w-full">
 							<Form.Control>
 								{#snippet children({ props })}
 									<Form.Label class="text-lg text-primary-foreground">Open at</Form.Label>
 									<Input
 										{...props}
 										type="datetime-local"
-										bind:value={$formData.openAt}
+										bind:value={$createExamFormData.openAt}
 										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
 						</Form.Field>
-						<Form.Field {form} name="closeAt" class="mb-4 w-full">
+						<Form.Field form={createExamForm} name="closeAt" class="mb-4 w-full">
 							<Form.Control>
 								{#snippet children({ props })}
 									<Form.Label class="text-lg text-primary-foreground">Close at</Form.Label>
 									<Input
 										{...props}
 										type="datetime-local"
-										bind:value={$formData.closeAt}
+										bind:value={$createExamFormData.closeAt}
 										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
 						</Form.Field>
-						<Form.Field {form} name="timeLimit" class="mb-4 w-full">
+						<Form.Field form={createExamForm} name="timeLimit" class="mb-4 w-full">
 							<Form.Control>
 								{#snippet children({ props })}
 									<Form.Label class="text-lg text-primary-foreground">
@@ -137,13 +194,13 @@
 									</Form.Label>
 									<Input
 										{...props}
-										bind:value={$formData.timeLimit}
+										bind:value={$createExamFormData.timeLimit}
 										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
 						</Form.Field>
-						<Form.Field {form} name="file" class="mb-4 w-full">
+						<Form.Field form={createExamForm} name="file" class="mb-4 w-full">
 							<Form.Control>
 								{#snippet children({ props })}
 									<div class="flex items-center gap-2">
@@ -151,7 +208,7 @@
 									</div>
 									<input
 										{...props}
-										bind:files={$file}
+										bind:files={$examFile}
 										type="file"
 										accept="application/zip, application/zip-compressed, application/x-zip-compressed, multipart/x-zip"
 										class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-secondary-foreground file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
@@ -161,11 +218,55 @@
 						</Form.Field>
 						<Form.Button
 							class="button-gradient flex w-full items-center gap-2 rounded-xl text-lg text-white drop-shadow-lg">
-							{#if $delayed}
+							{#if $createExamDelayed}
 								<LoaderCircle class="animate-spin" />
 							{/if}
 							Create
 						</Form.Button>
+					</form>
+				</Dialog.Content>
+			</Dialog.Root>
+			<Dialog.Root bind:open={isCalculateScoreDialogOpen}>
+				<Dialog.Content class="max-h-[80dvh] overflow-y-auto">
+					<Dialog.Header>
+						<Dialog.Title class="text-lg">Calculat & Download exam score</Dialog.Title>
+						<Dialog.Description class="text-base text-primary-foreground">
+							The calculate function will calculate score for all submissions of the exam, <strong>
+								this will override existing score data
+							</strong>
+							. The download function will download current score data. If you have not perform a score
+							calculation before, you probably want to do that before downloading.
+						</Dialog.Description>
+					</Dialog.Header>
+					<form method="POST" action="?/calculate-score" use:calculateScoreEnhance>
+						<Form.Field form={calculateScoreForm} name="examId">
+							<Form.Control>
+								{#snippet children({ props })}
+									<Form.Label class="hidden">Exam ID</Form.Label>
+									<Input
+										{...props}
+										type="hidden"
+										bind:value={$calculateScoreFormData.examId}
+										readonly
+										class="hidden" />
+								{/snippet}
+							</Form.Control>
+							<Form.FieldErrors />
+						</Form.Field>
+						<div class="flex gap-2">
+							<Form.Button
+								class="button-gradient flex w-0 flex-grow items-center gap-2 rounded-xl text-lg text-white drop-shadow-lg">
+								{#if $calculateScoreDelayed}
+									<LoaderCircle class="animate-spin" />
+								{/if}
+								Calculate
+							</Form.Button>
+							<a
+								href={`${base}/api/exams/${$calculateScoreFormData.examId}/score.xlsx`}
+								class="button-gradient flex h-10 w-0 flex-grow items-center justify-center gap-2 rounded-xl px-4 text-lg font-semibold text-white drop-shadow-lg">
+								Download
+							</a>
+						</div>
 					</form>
 				</Dialog.Content>
 			</Dialog.Root>
@@ -176,7 +277,9 @@
 	<div class="mb-8 space-y-4">
 		{#each data.availableExams as exam (exam.id)}
 			<ExamCard
+				user={data.user}
 				{exam}
+				onDownloadClick={(): void => showCalculateScoreDialog(exam)}
 				color={exam.attempted ? 'blue' : 'green'}
 				isExamAvailable={true}
 				timeZone={data.timeZone} />
@@ -187,7 +290,13 @@
 	<h2 class="mb-2 text-3xl font-semibold">Upcoming</h2>
 	<div class="mb-8 space-y-4">
 		{#each data.upcomingExams as exam (exam.id)}
-			<ExamCard {exam} color="amber" timeZone={data.timeZone} />
+			<ExamCard
+				user={data.user}
+				{exam}
+				onDownloadClick={(): void => showCalculateScoreDialog(exam)}
+				color="amber"
+				isExamAvailable={isRoleAtLeast(data.user?.role, 'teacher')}
+				timeZone={data.timeZone} />
 		{:else}
 			<span class="block w-full text-center">No exercise upcoming</span>
 		{/each}
@@ -195,7 +304,13 @@
 	<h2 class="mb-2 text-3xl font-semibold">Completed</h2>
 	<div class="mb-8 space-y-4">
 		{#each data.completedExams as exam (exam.id)}
-			<ExamCard {exam} color="gray" timeZone={data.timeZone} />
+			<ExamCard
+				user={data.user}
+				{exam}
+				onDownloadClick={(): void => showCalculateScoreDialog(exam)}
+				color="gray"
+				isExamAvailable={isRoleAtLeast(data.user?.role, 'teacher')}
+				timeZone={data.timeZone} />
 		{:else}
 			<span class="block w-full text-center">No exercise completed</span>
 		{/each}
@@ -203,7 +318,13 @@
 	<h2 class="mb-2 text-3xl font-semibold">Expired</h2>
 	<div class="mb-8 space-y-4">
 		{#each data.expiredExams as exam (exam.id)}
-			<ExamCard {exam} color="red" timeZone={data.timeZone} />
+			<ExamCard
+				user={data.user}
+				{exam}
+				onDownloadClick={(): void => showCalculateScoreDialog(exam)}
+				color="red"
+				isExamAvailable={isRoleAtLeast(data.user?.role, 'teacher')}
+				timeZone={data.timeZone} />
 		{:else}
 			<span class="block w-full text-center">No exercise expired</span>
 		{/each}

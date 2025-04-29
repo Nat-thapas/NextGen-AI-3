@@ -4,8 +4,7 @@ import { and, eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { answers } from '$lib/server/db/schema';
-
-import { suidToUuid } from '../suid';
+import { suidToUuid } from '$lib/server/db/suid';
 
 const getAnswerQuery = db.query.answers
 	.findFirst({
@@ -27,7 +26,7 @@ const upsertAnswerQuery = db
 	})
 	.onConflictDoUpdate({
 		target: [answers.examId, answers.questionNumber, answers.userId],
-		set: { answer: sql.placeholder('answer') }
+		set: { answer: sql.placeholder('answer'), updatedAt: sql`now()` }
 	})
 	.prepare('upsert_answer');
 

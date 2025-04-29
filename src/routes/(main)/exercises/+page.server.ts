@@ -12,10 +12,11 @@ import {
 	getExamsExpired,
 	getExamsUpcoming
 } from '$lib/server/db/services/exams';
+import { calculateExamScore } from '$lib/server/file-export/calculate-exam-score';
 import { importExam } from '$lib/server/file-import/exam';
 
 import type { Actions, PageServerLoad } from './$types';
-import { formSchema } from './schema';
+import { calculateScoreFormSchema, createExamFormSchema } from './schema';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user;
@@ -31,8 +32,16 @@ export const load: PageServerLoad = async ({ locals }) => {
 		});
 	}
 
-	const [form, availableExams, upcomingExams, completedExams, expiredExams] = await Promise.all([
-		superValidate(zod(formSchema)),
+	const [
+		createExamForm,
+		calculateScoreForm,
+		availableExams,
+		upcomingExams,
+		completedExams,
+		expiredExams
+	] = await Promise.all([
+		superValidate(zod(createExamFormSchema)),
+		superValidate(zod(calculateScoreFormSchema)),
 		getExamsAvailable(user.id),
 		getExamsUpcoming(user.id),
 		getExamsCompleted(user.id),
@@ -40,7 +49,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 	]);
 
 	return {
-		form,
+		createExamForm,
+		calculateScoreForm,
 		availableExams,
 		upcomingExams,
 		completedExams,
@@ -49,8 +59,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	default: async (event) => {
-		const form = await superValidate(event.request, zod(formSchema));
+	'create-exam': async (event) => {
+		const form = await superValidate(event.request, zod(createExamFormSchema));
 		if (!form.valid) return fail(400, { form });
 
 		const user = event.locals.user;
@@ -89,6 +99,39 @@ export const actions: Actions = {
 		return message(form, {
 			type: 'success',
 			text: 'Exam created successfully'
+		});
+	},
+
+	'calculate-score': async (event) => {
+		const form = await superValidate(event.request, zod(calculateScoreFormSchema));
+		if (!form.valid) return fail(400, { form });
+
+		const user = event.locals.user;
+
+		if (!user) {
+			error(401, {
+				message: 'You have to be logged in to access this page'
+			});
+		}
+
+		if (!isRoleAtLeast(user.role, roles.teacher)) {
+			error(403, {
+				message: 'You do not have access to this page'
+			});
+		}
+
+		try {
+			await calculateExamScore(form.data.examId);
+		} catch (err) {
+			return message(form, {
+				type: 'error',
+				text: getErrorMessage(err)
+			});
+		}
+
+		return message(form, {
+			type: 'success',
+			text: 'Exam score calculated successfully'
 		});
 	}
 };

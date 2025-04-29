@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { configConstants } from '$lib/config-constants';
 
-export const formSchema = z
+export const createExamFormSchema = z
 	.object({
 		title: z
 			.string()
@@ -47,4 +47,10 @@ export const formSchema = z
 		}
 	});
 
-export type FormSchema = typeof formSchema;
+export type CreateExamFormSchema = typeof createExamFormSchema;
+
+export const calculateScoreFormSchema = z.object({
+	examId: z.string()
+});
+
+export type CalculateScoreFormSchema = typeof calculateScoreFormSchema;

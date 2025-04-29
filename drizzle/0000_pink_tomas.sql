@@ -16,6 +16,9 @@ CREATE TABLE "answers" (
 	"question_number" integer NOT NULL,
 	"user_id" uuid NOT NULL,
 	"answer" text NOT NULL,
+	"correctness" double precision,
+	"created_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "answers_exam_id_question_number_user_id_pk" PRIMARY KEY("exam_id","question_number","user_id")
 );
 --> statement-breakpoint
@@ -49,7 +52,6 @@ CREATE TABLE "files" (
 	"size" integer NOT NULL,
 	"mime_type" text NOT NULL,
 	"extension" text NOT NULL,
-	"stored_name" text GENERATED ALWAYS AS ("files"."id" || "files"."extension") STORED NOT NULL,
 	"reference_id" uuid,
 	"created_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp (6) with time zone DEFAULT now() NOT NULL
@@ -61,13 +63,14 @@ CREATE TABLE "questions" (
 	"markdown" text NOT NULL,
 	"html" text NOT NULL,
 	"question_type" "question_types" NOT NULL,
-	"max_score" integer DEFAULT 1 NOT NULL,
-	"min_score" integer DEFAULT 0 NOT NULL,
+	"default_score" double precision NOT NULL,
+	"min_score" double precision NOT NULL,
+	"max_score" double precision NOT NULL,
 	"scoring_type" "scoring_types",
-	"text_length_limit" integer DEFAULT 1024,
+	"text_length_limit" integer NOT NULL,
 	"text_correct" text,
 	"file_types" text,
-	"file_size_limit" integer DEFAULT 25,
+	"file_size_limit" integer NOT NULL,
 	"created_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "questions_exam_id_number_pk" PRIMARY KEY("exam_id","number")
