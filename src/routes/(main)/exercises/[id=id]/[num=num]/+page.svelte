@@ -1,5 +1,13 @@
 <script lang="ts">
-	import { ChevronLeft, ChevronRight, CircleX, Clock, Download, File, Menu } from '@lucide/svelte';
+	import {
+		ChevronLeft,
+		ChevronRight,
+		CircleX,
+		Clock,
+		Download,
+		File as FileIcon,
+		Menu
+	} from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { MediaQuery } from 'svelte/reactivity';
@@ -194,7 +202,47 @@
 		enctype={data.question.questionType === questionTypes.file
 			? 'multipart/form-data'
 			: 'application/x-www-form-urlencoded'}
-		use:enhance={() => {
+		use:enhance={({ formData, cancel }) => {
+			for (const [key, value] of formData.entries()) {
+				if (key !== 'answer') {
+					continue;
+				}
+
+				if (
+					data.question.questionType === questionTypes.text &&
+					(typeof value === 'string' || value instanceof String)
+				) {
+					if (value.length > data.question.textLengthLimit) {
+						toast.error(`Answer must be at most ${data.question.textLengthLimit} characters long`);
+						cancel();
+						return;
+					}
+				}
+
+				if (
+					data.question.questionType === questionTypes.file &&
+					value instanceof File &&
+					value.name !== '' &&
+					value.size > 0
+				) {
+					if (
+						data.question.fileTypes &&
+						!data.question.fileTypes.split(/ *[,;] */).includes(value.type)
+					) {
+						toast.error(`File must be of a supported types (${data.acceptedFileTypes})`);
+						cancel();
+						return;
+					}
+					if (value.size > data.question.fileSizeLimit * 1000) {
+						toast.error(
+							`File size must be at most ${formatNumber(data.question.fileSizeLimit * 1000)}B`
+						);
+						cancel();
+						return;
+					}
+				}
+			}
+
 			return async ({ result, update }): Promise<void> => {
 				if (result.type === 'failure') {
 					try {
@@ -400,9 +448,10 @@
 								class="block w-full rounded-xl border-2 border-dashed border-secondary-foreground">
 								<div
 									class="relative mx-auto my-4 w-fit rounded-lg bg-secondary px-4 py-2 text-primary-foreground">
-									<File size={128} strokeWidth={1} />
+									<FileIcon size={128} strokeWidth={1} />
 									<a
 										href={`${base}/api/files/${answer}`}
+										target="_blank"
 										class="mt-2 flex items-center justify-center gap-2 text-lg text-primary-foreground">
 										<Download />
 										{answer.replace(/^.*?\./, 'answer.')}
