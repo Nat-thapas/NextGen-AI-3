@@ -1,4 +1,5 @@
-import xlsx from 'node-xlsx';
+import { WrapText } from '@lucide/svelte';
+import xlsx from 'xlsx-js-style';
 
 import { base } from '$app/paths';
 import { env } from '$env/dynamic/public';
@@ -37,67 +38,405 @@ function toExcelCol(n: number): string {
 
 // End of stackoverflow code
 
+type Cell = string | number | boolean | undefined | { [property: string]: Cell };
+
+const alignment = {
+	vertical: 'top'
+};
+
+const alignmentWrap = {
+	vertical: 'top',
+	wrapText: true
+};
+
+const fillWhite = {
+	fgColor: { rgb: 'FFFFFF' }
+};
+
+const fillLightGreen = {
+	fgColor: { rgb: 'D8E4BC' }
+};
+
+const fillLightBlue = {
+	fgColor: { rgb: 'C5D9F1' }
+};
+
+const fillLightOrange = {
+	fgColor: { rgb: 'FCD5B4' }
+};
+
+const fillLightRed = {
+	fgColor: { rgb: 'F2DCDB' }
+};
+
+const fillLightGray = {
+	fgColor: { rgb: 'F2F2F2' }
+};
+
+const fillGray = {
+	fgColor: { rgb: 'D9D9D9' }
+};
+
+const fillDarkGray = {
+	fgColor: { rgb: '808080' }
+};
+
+const border = {
+	top: {
+		style: 'thin',
+		color: { rgb: '808080' }
+	},
+	right: {
+		style: 'thin',
+		color: { rgb: '808080' }
+	},
+	bottom: {
+		style: 'thin',
+		color: { rgb: '808080' }
+	},
+	left: {
+		style: 'thin',
+		color: { rgb: '808080' }
+	}
+};
+
+const borderThickRight = {
+	top: {
+		style: 'thin',
+		color: { rgb: '808080' }
+	},
+	right: {
+		style: 'medium',
+		color: { rgb: '000000' }
+	},
+	bottom: {
+		style: 'thin',
+		color: { rgb: '808080' }
+	},
+	left: {
+		style: 'thin',
+		color: { rgb: '808080' }
+	}
+};
+
+const borderThickLeft = {
+	top: {
+		style: 'thin',
+		color: { rgb: '808080' }
+	},
+	right: {
+		style: 'thin',
+		color: { rgb: '808080' }
+	},
+	bottom: {
+		style: 'thin',
+		color: { rgb: '808080' }
+	},
+	left: {
+		style: 'medium',
+		color: { rgb: '000000' }
+	}
+};
+
 export async function exportExamScore(examId: string): Promise<Buffer> {
-	const data: (string | number | Record<string, string | Record<string, string>> | undefined)[][] =
-		[];
+	const data: Cell[][] = [];
 	const exam = await getExamQuestionsChoicesSubmissionsUsers(examId);
 
 	if (!exam) {
 		throw Error('Exam not found');
 	}
 
+	const columnsCount = 4 + exam.questions.length * 3 + 1;
+
+	const columnInfos: { wch: number }[] = [{ wch: 10 }, { wch: 6 }, { wch: 20 }, { wch: 20 }];
+	const rowInfos: { hpt: number }[] = [
+		{ hpt: 16 },
+		{ hpt: 16 },
+		{ hpt: 16 },
+		{ hpt: 16 },
+		{ hpt: 16 },
+		{ hpt: 16 },
+		{ hpt: 16 },
+		{ hpt: 16 },
+		{ hpt: 16 },
+		{ hpt: 16 },
+		{ hpt: 16 }
+	];
+	const merges: { s: { c: number; r: number }; e: { c: number; r: number } }[] = [];
+
 	let rowIndex = 1;
 
-	const preemble1: (string | number | undefined)[] = ['#', undefined, undefined, undefined];
-	for (const question of exam.questions) {
-		preemble1.push('Default Score', question.defaultScore, undefined);
+	const comments: string[] = [
+		'Any row beginning with # is considered a comment by the parser. If you want to add any custom rows, prefix them with # to not disturb the parser when you upload this score file back to the site',
+		'Only edit white cells, those are weight cells (Default Score, Min Score, Max Score) and correctness cells. Edits to any other cells will not be saved when you upload this score file back to the site',
+		'Correctness should be a number between 0 and 1 with 0 being fully wrong and 1 being totally correct',
+		'Score for each question is calculated from weights and correctness',
+		"The sum score is calculated from all question's score added together",
+		'Formulae are already included in the workbook'
+	];
+
+	for (const comment of comments) {
+		data.push([
+			{
+				v: '#',
+				t: 's',
+				s: {
+					alignment,
+					fill: fillLightGreen
+				}
+			},
+			{
+				v: comment,
+				t: 's',
+				s: {
+					alignment,
+					fill: fillLightGreen
+				}
+			}
+		]);
+		merges.push({ s: { c: 1, r: rowIndex - 1 }, e: { c: columnsCount - 1, r: rowIndex - 1 } });
+
+		rowIndex++;
 	}
-	data.push(preemble1);
 
-	rowIndex++;
+	const headers: (string | number | undefined)[][] = [
+		['$Default', '', '', ''],
+		['$Min', '', '', ''],
+		['$Max', '', '', ''],
+		['#', '', '', ''],
+		['# User ID', 'Prefix', 'Name', 'Email']
+	];
 
-	const preemble2: (string | number | undefined)[] = ['#', undefined, undefined, undefined];
-	for (const question of exam.questions) {
-		preemble2.push('Min Score', question.minScore, undefined);
+	for (const [i, question] of exam.questions.entries()) {
+		headers[0].push('Default Score', question.defaultScore, '');
+		headers[1].push('Min Score', question.minScore, '');
+		headers[2].push('Max Score', question.maxScore, '');
+		headers[3].push(`Q${question.number}: ${question.shortMarkdown.replaceAll('\n', ' ')}`, '', '');
+		headers[4].push('Answer', 'Correctness', 'Score');
+
+		columnInfos.push({ wch: 25 }, { wch: 6 }, { wch: 6 });
+		merges.push({ s: { c: 4 + i * 3, r: 9 }, e: { c: 6 + i * 3, r: 9 } });
 	}
-	data.push(preemble2);
 
-	rowIndex++;
+	headers[4].push('Sum');
+	columnInfos.push({ wch: 10 });
 
-	const preemble3: (string | number | undefined)[] = ['#', undefined, undefined, undefined];
-	for (const question of exam.questions) {
-		preemble3.push('Max Score', question.maxScore, undefined);
+	for (let i = 0; i < 4; i++) {
+		const header = headers[i];
+		const row: Cell[] = [
+			{
+				v: header[0],
+				t: 's',
+				s: {
+					alignment,
+					fill: fillDarkGray,
+					border
+				}
+			},
+			{
+				v: header[1],
+				t: 's',
+				s: {
+					alignment,
+					fill: fillDarkGray,
+					border
+				}
+			},
+			{
+				v: header[2],
+				t: 's',
+				s: {
+					alignment,
+					fill: fillDarkGray,
+					border
+				}
+			},
+			{
+				v: header[3],
+				t: 's',
+				s: {
+					alignment,
+					fill: fillDarkGray,
+					border: borderThickRight
+				}
+			}
+		];
+
+		for (let j = 4; j < header.length - 2; j += 3) {
+			row.push(
+				{
+					v: header[j],
+					t: 's',
+					s: {
+						alignment,
+						fill: fillLightBlue,
+						border: borderThickLeft
+					}
+				},
+				{
+					v: header[j + 1],
+					t: 'n',
+					s: {
+						alignment,
+						fill: fillWhite,
+						border
+					}
+				},
+				{
+					v: header[j + 2],
+					t: 's',
+					s: {
+						alignment,
+						fill: fillDarkGray,
+						border: borderThickRight
+					}
+				}
+			);
+		}
+
+		row.push({
+			v: '',
+			t: 's',
+			s: {
+				alignment,
+				fill: fillDarkGray,
+				border: borderThickLeft
+			}
+		});
+
+		data.push(row);
+		rowIndex++;
 	}
-	data.push(preemble3);
 
-	rowIndex++;
+	const header = headers[4];
+	const row: Cell[] = [
+		{
+			v: header[0],
+			t: 's',
+			s: {
+				alignment,
+				fill: fillLightOrange,
+				border
+			}
+		},
+		{
+			v: header[1],
+			t: 's',
+			s: {
+				alignment,
+				fill: fillLightOrange,
+				border
+			}
+		},
+		{
+			v: header[2],
+			t: 's',
+			s: {
+				alignment,
+				fill: fillLightOrange,
+				border
+			}
+		},
+		{
+			v: header[3],
+			t: 's',
+			s: {
+				alignment,
+				fill: fillLightOrange,
+				border: borderThickRight
+			}
+		}
+	];
 
-	const preemble4: (string | number | undefined)[] = ['#', undefined, undefined, undefined];
-	for (const question of exam.questions) {
-		preemble4.push(`Q${question.number}: ${question.shortMarkdown}`, undefined, undefined);
+	for (let j = 4; j < header.length - 2; j += 3) {
+		row.push(
+			{
+				v: header[j],
+				t: 's',
+				s: {
+					alignment,
+					fill: fillLightOrange,
+					border: borderThickLeft
+				}
+			},
+			{
+				v: header[j + 1],
+				t: 's',
+				s: {
+					alignment,
+					fill: fillLightOrange,
+					border
+				}
+			},
+			{
+				v: header[j + 2],
+				t: 's',
+				s: {
+					alignment,
+					fill: fillLightOrange,
+					border: borderThickRight
+				}
+			}
+		);
 	}
-	data.push(preemble4);
 
-	rowIndex++;
+	row.push({
+		v: header[header.length - 1],
+		t: 's',
+		s: {
+			alignment,
+			fill: fillLightOrange,
+			border: borderThickLeft
+		}
+	});
 
-	const headers: string[] = ['# User ID', 'Prefix', 'Name', 'Email'];
-	for (let i = 0; i < exam.questions.length; i++) {
-		headers.push('Answer', 'Correctness', 'Score');
-	}
-	headers.push('Sum');
-	data.push(headers);
-
+	data.push(row);
 	rowIndex++;
 
 	for (const submission of exam.submissions) {
 		let colIndex = 1;
+		let rowHeight = 16;
+
+		const fill = rowIndex % 2 === 0 ? fillGray : fillLightGray;
 
 		const user = submission.user;
-		const row: (string | number | Record<string, string | Record<string, string>> | undefined)[] = [
-			user.id,
-			user.prefix ?? undefined,
-			user.name ?? undefined,
-			user.email
+		const row: Cell[] = [
+			{
+				v: user.id,
+				t: 's',
+				s: {
+					alignment,
+					fill,
+					border
+				}
+			},
+			{
+				v: user.prefix ?? '',
+				t: 's',
+				s: {
+					alignment,
+					fill,
+					border
+				}
+			},
+			{
+				v: user.name ?? '',
+				t: 's',
+				s: {
+					alignment,
+					fill,
+					border
+				}
+			},
+			{
+				v: user.email,
+				t: 's',
+				s: {
+					alignment,
+					fill,
+					border: borderThickRight
+				}
+			}
 		];
 		const scoreCells: string[] = [];
 
@@ -107,48 +446,139 @@ export async function exportExamScore(examId: string): Promise<Buffer> {
 			const answer = await getAnswer(exam.id, question.number, user.id);
 			if (answer) {
 				if (question.questionType === questionTypes.choices) {
-					row.push(
-						`${answer.answer}: ${question.choices[Number(answer.answer)]?.shortMarkdown ?? 'Unknown'}`
-					);
+					row.push({
+						v: `${answer.answer}: ${question.choices[Number(answer.answer) - 1]?.shortMarkdown?.replaceAll('\n', ' ') ?? 'Unknown'}`,
+						t: 's',
+						s: {
+							alignment: alignmentWrap,
+							fill,
+							border: borderThickLeft
+						}
+					});
 				} else if (question.questionType === questionTypes.checkboxes) {
 					let text: string = '';
-					for (const ans in answer.answer.split(';')) {
-						text += `${ans}: ${question.choices[Number(ans)]?.shortMarkdown ?? 'Unknown'}\n`;
+					const answers = answer.answer.split(';');
+					for (const ans of answers) {
+						text += `${ans}: ${question.choices[Number(ans) - 1]?.shortMarkdown?.replaceAll('\n', ' ') ?? 'Unknown'}\n`;
 					}
-					row.push(text.slice(0, text.length - 1));
+					row.push({
+						v: text.slice(0, text.length - 1),
+						t: 's',
+						s: {
+							alignment: alignmentWrap,
+							fill,
+							border: borderThickLeft
+						}
+					});
+					rowHeight = Math.max(rowHeight, 16 * answers.length);
 				} else if (question.questionType === questionTypes.text) {
-					row.push(answer.answer);
+					row.push({
+						v: answer.answer,
+						t: 's',
+						s: {
+							alignment: alignmentWrap,
+							fill,
+							border: borderThickLeft
+						}
+					});
+					rowHeight = Math.max(rowHeight, 16 * Math.ceil(answer.answer.length / 32));
 				} else if (question.questionType === questionTypes.file) {
 					const file = await getFile(answer.answer);
 					if (file) {
 						row.push({
 							v: `${env.PUBLIC_ORIGIN}${base}/api/files/${file.id}${file.extension}`,
+							t: 's',
 							l: {
 								Target: `${env.PUBLIC_ORIGIN}${base}/api/files/${file.id}${file.extension}`,
 								Tooltip: 'Download file'
+							},
+							s: {
+								alignment: alignmentWrap,
+								fill,
+								border: borderThickLeft
 							}
 						});
 					} else {
 						row.push({
 							v: `${env.PUBLIC_ORIGIN}${base}/api/files/${answer.answer}`,
+							t: 's',
 							l: {
 								Target: `${env.PUBLIC_ORIGIN}${base}/api/files/${answer.answer}`,
 								Tooltip: 'Download file'
+							},
+							s: {
+								alignment: alignmentWrap,
+								fill,
+								border: borderThickLeft
 							}
 						});
 					}
 				} else {
-					row.push('Unknown question type');
+					row.push({
+						v: 'Unknown question type',
+						t: 's',
+						s: {
+							alignment: alignmentWrap,
+							fill,
+							border: borderThickLeft
+						}
+					});
 				}
-				row.push(answer.correctness ?? undefined);
+
+				if (answer.correctness === null) {
+					row.push({
+						v: '',
+						t: 's',
+						s: {
+							alignment,
+							fill: fillLightRed,
+							border
+						}
+					});
+				} else {
+					row.push({
+						v: answer.correctness,
+						t: 'n',
+						s: {
+							alignment,
+							fill: fillWhite,
+							border
+						}
+					});
+				}
 			} else {
-				row.push(undefined, undefined);
+				row.push(
+					{
+						v: '',
+						t: 's',
+						s: {
+							alignment: alignmentWrap,
+							fill,
+							border: borderThickLeft
+						}
+					},
+					{
+						v: '',
+						t: 's',
+						s: {
+							alignment,
+							fill: fillWhite,
+							border
+						}
+					}
+				);
 			}
 
 			colIndex += 2;
 
 			row.push({
-				f: `=IF(ISBLANK(${toExcelCol(colIndex - 1)}${rowIndex}), ${toExcelCol(colIndex - 1)}$1, ${toExcelCol(colIndex - 1)}$2+(${toExcelCol(colIndex - 1)}$3-${toExcelCol(colIndex - 1)}$2)*${toExcelCol(colIndex - 1)}${rowIndex})`
+				f: `=IF(ISNUMBER(${toExcelCol(colIndex - 1)}${rowIndex}), ${toExcelCol(colIndex - 1)}$8+(${toExcelCol(colIndex - 1)}$9-${toExcelCol(colIndex - 1)}$8)*${toExcelCol(colIndex - 1)}${rowIndex}, ${toExcelCol(colIndex - 1)}$7)`,
+				t: 'n',
+				s: {
+					alignment,
+					fill,
+					border: borderThickRight
+				}
 			});
 			scoreCells.push(`${toExcelCol(colIndex)}${rowIndex}`);
 
@@ -156,25 +586,29 @@ export async function exportExamScore(examId: string): Promise<Buffer> {
 		}
 
 		row.push({
-			f: `=SUM(${scoreCells.join(',')})`
+			f: `=SUM(${scoreCells.join(',')})`,
+			t: 'n',
+			s: {
+				alignment,
+				fill,
+				border: borderThickLeft
+			}
 		});
 
 		colIndex += 1;
 
 		data.push(row);
+		rowInfos.push({ hpt: Math.min(rowHeight, 55) });
 
 		rowIndex++;
 	}
 
-	const columns: { wch: number }[] = [{ wch: 10 }, { wch: 6 }, { wch: 20 }, { wch: 20 }];
-	const merges: { s: { c: number; r: number }; e: { c: number; r: number } }[] = [];
+	const workbook = xlsx.utils.book_new();
+	const worksheet = xlsx.utils.aoa_to_sheet(data);
+	worksheet['!cols'] = columnInfos;
+	worksheet['!rows'] = rowInfos;
+	worksheet['!merges'] = merges;
+	xlsx.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
 
-	for (let i = 0; i < exam.questions.length; i++) {
-		columns.push({ wch: 25 }, { wch: 6 }, { wch: 6 });
-		merges.push({ s: { c: 4 + i * 3, r: 3 }, e: { c: 6 + i * 3, r: 3 } });
-	}
-
-	columns.push({ wch: 10 });
-
-	return xlsx.build([{ name: 'Sheet1', data, options: { '!cols': columns, '!merges': merges } }]);
+	return xlsx.write(workbook, { type: 'buffer', compression: true });
 }
