@@ -37,89 +37,81 @@ export async function calculateExamScore(examId: string): Promise<void> {
 		let score = 0;
 
 		for (const question of exam.questions) {
-			let correctness: number | null = null;
-
 			const answer = await getAnswer(exam.id, question.number, user.id);
-			if (!answer) {
-				score += question.defaultScore;
-				continue;
-			}
 
-			if (question.questionType === questionTypes.choices) {
-				const ans = Number(answer.answer) - 1;
-				correctness = question.choices[ans]?.isCorrect ? 1 : 0;
-				score += getScore(question, correctness);
-			} else if (question.questionType === questionTypes.checkboxes) {
-				const ans = answer.answer.split(';').map((v) => Number(v));
-				if (question.scoringType === scoringTypes.exact) {
-					correctness = 1;
-					for (const choice of question.choices) {
-						if (ans.includes(choice.number) !== choice.isCorrect) {
-							correctness = 0;
-							break;
-						}
-					}
-					score += getScore(question, correctness);
-				} else if (question.scoringType === scoringTypes.and) {
-					correctness = 1;
-					for (const choice of question.choices) {
-						if (choice.isCorrect && !ans.includes(choice.number)) {
-							correctness = 0;
-							break;
-						}
-					}
-					score += getScore(question, correctness);
-				} else if (question.scoringType === scoringTypes.or) {
-					correctness = 0;
-					for (const choice of question.choices) {
-						if (choice.isCorrect && ans.includes(choice.number)) {
-							correctness = 1;
-							break;
-						}
-					}
-					score += getScore(question, correctness);
-				} else if (question.scoringType === scoringTypes.scale) {
-					let correctCount = 0;
-					for (const choice of question.choices) {
-						if (ans.includes(choice.number) === choice.isCorrect) {
-							correctCount += 1;
-						}
-					}
-					correctness = correctCount / question.choices.length;
-					score += getScore(question, correctness);
-				} else {
-					throw Error(`Question #${question.number} contains invalid scoring type`);
-				}
-			} else if (question.questionType === questionTypes.text) {
-				const ans = answer.answer;
-				if (question.textCorrect === null) {
-					score += question.defaultScore;
-				} else {
+			if (answer) {
+				if (question.questionType === questionTypes.choices) {
+					const ans = Number(answer.answer) - 1;
+					answer.correctness = question.choices[ans]?.isCorrect ? 1 : 0;
+				} else if (question.questionType === questionTypes.checkboxes) {
+					const ans = answer.answer.split(';').map((v) => Number(v));
 					if (question.scoringType === scoringTypes.exact) {
-						correctness = ans === question.textCorrect ? 1 : 0;
-						score += getScore(question, correctness);
-					} else if (question.scoringType === scoringTypes.scale) {
-						const sequenceMatcher = new difflib.SequenceMatcher(null, question.textCorrect, ans);
-						correctness = sequenceMatcher.ratio();
-						score += getScore(question, correctness);
-					} else if (question.scoringType === scoringTypes.regex) {
-						let regex;
-						try {
-							regex = parseRegexString(question.textCorrect);
-						} catch {
-							throw Error(`Question #${question.number} contains invalid regex`);
+						answer.correctness = 1;
+						for (const choice of question.choices) {
+							if (ans.includes(choice.number) !== choice.isCorrect) {
+								answer.correctness = 0;
+								break;
+							}
 						}
-						correctness = regex.test(ans) ? 1 : 0;
-						score += getScore(question, correctness);
+					} else if (question.scoringType === scoringTypes.and) {
+						answer.correctness = 1;
+						for (const choice of question.choices) {
+							if (choice.isCorrect && !ans.includes(choice.number)) {
+								answer.correctness = 0;
+								break;
+							}
+						}
+					} else if (question.scoringType === scoringTypes.or) {
+						answer.correctness = 0;
+						for (const choice of question.choices) {
+							if (choice.isCorrect && ans.includes(choice.number)) {
+								answer.correctness = 1;
+								break;
+							}
+						}
+					} else if (question.scoringType === scoringTypes.scale) {
+						let correctCount = 0;
+						for (const choice of question.choices) {
+							if (ans.includes(choice.number) === choice.isCorrect) {
+								correctCount += 1;
+							}
+						}
+						answer.correctness = correctCount / question.choices.length;
 					} else {
 						throw Error(`Question #${question.number} contains invalid scoring type`);
 					}
+				} else if (question.questionType === questionTypes.text) {
+					const ans = answer.answer;
+					if (question.textCorrect !== null) {
+						if (question.scoringType === scoringTypes.exact) {
+							answer.correctness = ans === question.textCorrect ? 1 : 0;
+						} else if (question.scoringType === scoringTypes.scale) {
+							const sequenceMatcher = new difflib.SequenceMatcher(null, question.textCorrect, ans);
+							answer.correctness = sequenceMatcher.ratio();
+						} else if (question.scoringType === scoringTypes.regex) {
+							let regex;
+							try {
+								regex = parseRegexString(question.textCorrect);
+							} catch {
+								throw Error(`Question #${question.number} contains invalid regex`);
+							}
+							answer.correctness = regex.test(ans) ? 1 : 0;
+						} else {
+							throw Error(`Question #${question.number} contains invalid scoring type`);
+						}
+					}
 				}
+
+				if (answer.correctness === null) {
+					score += question.defaultScore;
+				} else {
+					score += getScore(question, answer.correctness);
+				}
+
+				await updateAnswerCorrectness(exam.id, question.number, user.id, answer.correctness);
 			} else {
 				score += question.defaultScore;
 			}
-
-			await updateAnswerCorrectness(exam.id, question.number, user.id, correctness);
 		}
 
 		await updateSubmissionScore(exam.id, user.id, score);

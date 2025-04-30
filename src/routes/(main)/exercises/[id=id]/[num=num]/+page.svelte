@@ -342,7 +342,8 @@
 					{#each data.question.choices as choice (choice.number)}
 						<label
 							for={`choice-input-${choice.number}`}
-							class:w-3-columns={data.question.choices.length > 4}
+							class:w-3-columns={data.question.choices.length > 4 ||
+								data.question.choices.length === 3}
 							class="w-2-columns prose prose-lg prose-neutral max-h-64 cursor-pointer overflow-auto rounded-xl bg-white px-4 py-2 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							{@html choice.html}
@@ -361,7 +362,8 @@
 					{#each data.question.choices as choice (choice.number)}
 						<label
 							for={`choice-input-${choice.number}`}
-							class:w-3-columns={data.question.choices.length > 4}
+							class:w-3-columns={data.question.choices.length > 4 ||
+								data.question.choices.length === 3}
 							class="w-2-columns prose prose-lg prose-neutral max-h-64 cursor-pointer overflow-auto rounded-xl bg-white px-4 py-2 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							{@html choice.html}
