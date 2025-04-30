@@ -610,5 +610,5 @@ export async function exportExamScore(examId: string): Promise<Buffer> {
 	worksheet['!merges'] = merges;
 	xlsx.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
 
-	return xlsx.write(workbook, { type: 'buffer', compression: true });
+	return xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx', compression: true });
 }
