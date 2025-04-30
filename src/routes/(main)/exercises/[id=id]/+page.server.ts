@@ -57,7 +57,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		);
 	}
 
-	return { exam };
+	return { now: Date.now(), exam };
 };
 
 export const actions: Actions = {

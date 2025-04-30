@@ -9,7 +9,7 @@ import { base } from '$app/paths';
 import { env } from '$env/dynamic/private';
 
 import { configConstants } from '$lib/config-constants';
-import { questionTypes } from '$lib/enums';
+import { questionTypes, scoringTypes } from '$lib/enums';
 import { getExtension } from '$lib/files';
 import { renderMarkdown } from '$lib/markdown';
 import { createChoice } from '$lib/server/db/services/choices';
@@ -20,6 +20,8 @@ import {
 } from '$lib/server/db/services/files';
 import { createQuestion } from '$lib/server/db/services/questions';
 import { updateAssets } from '$lib/server/file-import/update-assets';
+
+import { parseRegexString } from '../file-export/calculate-exam-score';
 
 function parseFileTypes(fileTypes: string | null): string | null {
 	if (fileTypes === null || fileTypes === undefined) {
@@ -71,7 +73,7 @@ export async function importExam(
 		for (const compressed of archive.files) {
 			if (compressed.type !== 'File') continue;
 
-			if (/^(?:[^/]*?)\.xlsx/.test(compressed.path)) {
+			if (/^(?:[^/]*?)\.xlsx$/.test(compressed.path)) {
 				if (sheets) {
 					throw Error('Multiple excel (.xlsx) files found in root directory');
 				}
@@ -169,6 +171,20 @@ export async function importExam(
 								? null
 								: String(row[8])
 							: null;
+
+					if (
+						textCorrect !== null &&
+						questionType === questionTypes.text &&
+						scoringType === scoringTypes.regex
+					) {
+						try {
+							parseRegexString(textCorrect);
+						} catch {
+							throw Error(
+								`Sheet '${name}' Cell I${rowNumber + 1} (Text correct) contains invalid regex`
+							);
+						}
+					}
 
 					const rawFileTypes =
 						questionType === questionTypes.file

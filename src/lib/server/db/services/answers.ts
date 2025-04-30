@@ -30,6 +30,21 @@ const upsertAnswerQuery = db
 	})
 	.prepare('upsert_answer');
 
+const updateAnswerQuery = db
+	.update(answers)
+	.set({
+		answer: sql.placeholder('answer'),
+		updatedAt: sql`now()`
+	})
+	.where(
+		and(
+			eq(answers.examId, sql.placeholder('examId')),
+			eq(answers.questionNumber, sql.placeholder('questionNumber')),
+			eq(answers.userId, sql.placeholder('userId'))
+		)
+	)
+	.prepare('update_answer');
+
 const updateAnswerCorrectnessQuery = db
 	.update(answers)
 	.set({
@@ -81,6 +96,17 @@ export async function upsertAnswer(
 	answer: string
 ) {
 	return upsertAnswerQuery.execute({ examId, questionNumber, userId, answer });
+}
+
+export async function updateAnswer(
+	examId: string,
+	questionNumber: number,
+	userId: string,
+	answer: string
+) {
+	examId = suidToUuid(examId);
+	userId = suidToUuid(userId);
+	return updateAnswerQuery.execute({ examId, questionNumber, userId, answer });
 }
 
 export async function updateAnswerCorrectness(

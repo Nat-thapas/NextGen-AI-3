@@ -32,7 +32,7 @@ export async function importAnnouncement(
 		for (const compressed of archive.files) {
 			if (compressed.type !== 'File') continue;
 
-			if (/^(?:[^/]*?)\.md/.test(compressed.path)) {
+			if (/^(?:[^/]*?)\.md$/.test(compressed.path)) {
 				if (markdown) {
 					throw Error('Multiple markdown files found in root directory');
 				}

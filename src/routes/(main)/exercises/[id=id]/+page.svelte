@@ -1,11 +1,98 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { onMount } from 'svelte';
+	import { toast } from 'svelte-sonner';
 
+	import { enhance } from '$app/forms';
+	import { base } from '$app/paths';
+	import { env } from '$env/dynamic/public';
+
+	import { configConstants } from '$lib/config-constants.js';
 	import { formatDateTime, formatDuration, getSecondsSince, getSecondsUntil } from '$lib/datetime';
+	import { getErrorMessage } from '$lib/error.js';
+	import { FetchJson } from '$lib/fetch-json.js';
 
 	import exams from '$lib/images/exams.avif';
 
 	let { data } = $props();
+
+	const fetchJson = new FetchJson(fetch, base);
+
+	let syncing = false;
+	let now = $state(data.now);
+	let offset = $state(data.now - performance.now());
+	let PRTUnavaiableWaringDisplayed = false;
+
+	async function syncNow(): Promise<void> {
+		if (syncing) return;
+		syncing = true;
+		try {
+			const start = performance.now();
+			const response = await fetchJson.get<{ now: number }>('/api/now');
+			const end = performance.now();
+
+			let latency: number;
+			let procDelay: number;
+
+			const perfEntries = performance.getEntriesByName(`${env.PUBLIC_ORIGIN}${base}/api/now`);
+
+			if (perfEntries.length === 0) {
+				if (!PRTUnavaiableWaringDisplayed) {
+					PRTUnavaiableWaringDisplayed = true;
+					toast.warning('Performance Resource Timing API data unavailable', {
+						description: 'The time left display may be inaccurate'
+					});
+				}
+				const diff = end - start;
+				latency = diff - 5;
+				procDelay = 5;
+			} else {
+				const timing = perfEntries[perfEntries.length - 1];
+				if (timing instanceof PerformanceResourceTiming) {
+					latency = timing.responseStart - timing.requestStart;
+					procDelay = performance.now() - timing.responseStart;
+				} else {
+					latency = timing.duration;
+					procDelay = performance.now() - timing.startTime - timing.duration;
+				}
+			}
+
+			offset = response.now + procDelay + latency / 2 - performance.now();
+
+			performance.clearResourceTimings();
+
+			if (latency > configConstants.exams.timeSyncLatencyLimit) {
+				toast.warning('High time sync latency', {
+					description: `The time sync latency is at ${latency.toFixed(0)} ms. This may lead to inaccurate time left display. Please make sure that your internet connection is stable`
+				});
+			} else if (procDelay > configConstants.exams.timeSyncProcDelayLimit) {
+				toast.warning('High time sync processing delay', {
+					description: `The time sync processing delay is at ${procDelay.toFixed(0)} ms. This may lead to inaccurate time left display. This is usually due to insufficient processing power`
+				});
+			}
+		} catch (err) {
+			toast.error(`Error syncing time from server: ${getErrorMessage(err)}`, {
+				description:
+					"The time left display may be inaccurate, please make sure that you're online and your internet connection is stable"
+			});
+		} finally {
+			syncing = false;
+		}
+	}
+
+	onMount(() => {
+		const updateNowInterval = setInterval((): void => {
+			now = performance.now() + offset;
+		}, 200);
+
+		const syncNowInterval = setInterval(syncNow, configConstants.exams.timeSyncInterval);
+
+		syncNow();
+
+		return (): void => {
+			clearInterval(updateNowInterval);
+			clearInterval(syncNowInterval);
+		};
+	});
 </script>
 
 <svelte:head>
@@ -49,13 +136,13 @@
 				{#if data.exam.submission}
 					You have already started this exam. You have {formatDuration(
 						Math.min(
-							data.exam.timeLimit - getSecondsSince(data.exam.submission.createdAt),
-							getSecondsUntil(data.exam.closeAt)
+							data.exam.timeLimit - getSecondsSince(data.exam.submission.createdAt, now),
+							getSecondsUntil(data.exam.closeAt, now)
 						)
 					)} left to complete the exam.
 				{:else}
 					You have not started this exam. If you start now you'll have {formatDuration(
-						Math.min(data.exam.timeLimit, getSecondsUntil(data.exam.closeAt))
+						Math.min(data.exam.timeLimit, getSecondsUntil(data.exam.closeAt, now))
 					)} to complete the exam.
 				{/if}
 			</p>

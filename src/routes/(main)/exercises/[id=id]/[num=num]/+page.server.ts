@@ -14,7 +14,12 @@ import { questionTypes, roles } from '$lib/enums';
 import { getExtension, mimeTypesToExtensions } from '$lib/files';
 import { formatNumber } from '$lib/format-number';
 import { isRoleAtLeast } from '$lib/roles';
-import { deleteAnswerReturning, getAnswer, upsertAnswer } from '$lib/server/db/services/answers';
+import {
+	deleteAnswerReturning,
+	getAnswer,
+	updateAnswer,
+	upsertAnswer
+} from '$lib/server/db/services/answers';
 import { getExamQuestionAnswerSubmission, getExamSubmission } from '$lib/server/db/services/exams';
 import { createFileReturning, deleteFileReturning, getFile } from '$lib/server/db/services/files';
 import {
@@ -109,38 +114,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		answer = question.answers[0]?.answer;
 	}
 
-	// switch (question.questionType) {
-	// 	case questionTypes.choices:
-	// 		answer = question.answers[0]?.answer;
-	// 		break;
-	// 	case questionTypes.checkboxes:
-	// 		answer = question.answers[0]?.answer?.split(';') ?? [];
-	// 		break;
-	// 	case questionTypes.text:
-	// 		answer = question.answers[0]?.answer;
-	// 		break;
-	// 	case questionTypes.file:
-	// 		answer = question.answers[0]?.answer;
-	// 		// formSchema = z.object({
-	// 		// 	next: z.string(),
-	// 		// 	answer: z
-	// 		// 		.instanceof(File, { message: 'Please upload a file' })
-	// 		// 		.refine(
-	// 		// 			(f) => (question.fileTypes ? question.fileTypes.split(',').includes(f.type) : true),
-	// 		// 			`File must be a supported file type (${(question.fileTypes ?? '')
-	// 		// 				.split(',')
-	// 		// 				.map((mimeType) => '.' + mimeTypes.lookup(mimeType) || '.dat')
-	// 		// 				.join(', ')})`
-	// 		// 		)
-	// 		// 		.refine(
-	// 		// 			(f) => f.size < question.fileSizeLimit * 1000,
-	// 		// 			`File size must be at most ${formatNumber(question.fileSizeLimit * 1000)}B`
-	// 		// 		)
-	// 		// 		.optional()
-	// 		// });
-	// 		break;
-	// }
-
 	return {
 		now: Date.now(),
 		exam: {
@@ -162,6 +135,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			choices: question.choices
 		},
 		answer,
+		answerExists: question.answers.length > 0,
 		acceptedFileTypes
 	};
 };
@@ -280,7 +254,10 @@ export const actions: Actions = {
 							checks.push(choice);
 						}
 					}
+					checks.sort((a, b) => a - b);
 					await upsertAnswer(exam.id, question.number, user.id, checks.join(';'));
+				} else {
+					await updateAnswer(exam.id, question.number, user.id, '');
 				}
 
 				next = form.data.next;
@@ -302,10 +279,10 @@ export const actions: Actions = {
 				const form = await superValidate(event.request, zod(formSchema));
 				if (!form.valid) return fail(400, { form });
 
-				console.log(form.data);
-
 				if (form.data.answer !== undefined) {
 					await upsertAnswer(exam.id, question.number, user.id, form.data.answer);
+				} else {
+					await updateAnswer(exam.id, question.number, user.id, '');
 				}
 
 				next = form.data.next;

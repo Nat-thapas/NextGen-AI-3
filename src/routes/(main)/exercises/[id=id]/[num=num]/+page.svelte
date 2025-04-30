@@ -40,6 +40,7 @@
 			submission: PartialSubmission;
 			question: Question;
 			answer: string | string[] | undefined;
+			answerExists: boolean;
 			acceptedFileTypes: string | undefined;
 		};
 		form: ActionData | undefined;
@@ -198,7 +199,20 @@
 				if (result.type === 'failure') {
 					try {
 						// @ts-expect-error It should work, but if it doesn't it's in a try catch
-						toast.error(result.data.form.errors.answer.join(', '));
+						const errors = result.data.form.errors.answer;
+						if (errors instanceof Array) {
+							toast.error(errors.join(', '));
+						} else if (errors instanceof Object) {
+							console.log(errors);
+							const errs: string[] = [];
+							for (const [index, value] of Object.entries(errors)) {
+								console.log(index, value);
+								// @ts-expect-error Value is string[]
+								errs.push(`${index}: ${value.join(', ')}`);
+							}
+							console.log(errs);
+							toast.error(errs.join(', '));
+						}
 					} catch {
 						toast.error('Unknown error');
 					}
@@ -318,7 +332,7 @@
 		</div>
 		<div class="mx-2 mb-4 rounded-xl bg-secondary p-4">
 			<div
-				class="prose prose-lg prose-neutral mb-4 w-full max-w-none overflow-auto rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-lg">
+				class="prose prose-lg prose-neutral mb-4 w-full max-w-none overflow-auto rounded-xl bg-white px-4 py-2 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html data.question.html}
 			</div>
@@ -329,7 +343,7 @@
 						<label
 							for={`choice-input-${choice.number}`}
 							class:w-3-columns={data.question.choices.length > 4}
-							class="w-2-columns prose prose-lg prose-neutral max-h-64 cursor-pointer overflow-auto rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
+							class="w-2-columns prose prose-lg prose-neutral max-h-64 cursor-pointer overflow-auto rounded-xl bg-white px-4 py-2 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							{@html choice.html}
 							<input
@@ -348,7 +362,7 @@
 						<label
 							for={`choice-input-${choice.number}`}
 							class:w-3-columns={data.question.choices.length > 4}
-							class="w-2-columns prose prose-lg prose-neutral max-h-64 cursor-pointer overflow-auto rounded-xl bg-white px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-md">
+							class="w-2-columns prose prose-lg prose-neutral max-h-64 cursor-pointer overflow-auto rounded-xl bg-white px-4 py-2 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							{@html choice.html}
 							<input
@@ -378,7 +392,7 @@
 				</div>
 			{:else if data.question.questionType === questionTypes.file}
 				<div class="w-full">
-					{#if answer && typeof answer === 'string'}
+					{#if data.answerExists && typeof answer === 'string'}
 						<div class="relative w-full rounded-xl bg-white p-4">
 							<div
 								class="block w-full rounded-xl border-2 border-dashed border-secondary-foreground">
@@ -389,7 +403,7 @@
 										href={`${base}/api/files/${answer}`}
 										class="mt-2 flex items-center justify-center gap-2 text-lg text-primary-foreground">
 										<Download />
-										{answer.replace(/.*?\./, 'answer.')}
+										{answer.replace(/^.*?\./, 'answer.')}
 									</a>
 									<div class="absolute right-1 top-1">
 										<label for="remove-file-button" class="relative h-6 w-6">
@@ -439,10 +453,23 @@
 						</div>
 					{/if}
 				</div>
+			{:else}
+				<div class="w-full text-center text-lg font-semibold text-red-500">
+					Unknown question type
+				</div>
 			{/if}
 			{#if form?.form?.errors?.answer}
 				<span class="mx-2 mt-2 block text-lg text-red-500">
-					{form.form.errors.answer}
+					{#if form.form.errors.answer instanceof Array}
+						{form.form.errors.answer.join(', ')}
+					{:else if form.form.errors.answer instanceof Object}
+						{Object.entries(form.form.errors.answer).reduce(
+							(acc, [index, value]) => (acc += `${index}: ${value.join(', ')}`),
+							''
+						)}
+					{:else}
+						Unknown error
+					{/if}
 				</span>
 			{/if}
 		</div>
@@ -458,7 +485,7 @@
 					value={data.question.number - 1 || 'exit'}
 					class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
 			</label>
-			{#if data.answer !== undefined && data.answer.length > 0 && data.question.questionType !== questionTypes.file}
+			{#if data.answerExists && data.question.questionType !== questionTypes.file}
 				<label
 					for="clear-answer-button"
 					class="relative flex items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg">
@@ -532,6 +559,10 @@
 
 	label:has(input[type='checkbox']:checked) {
 		@apply outline outline-4 outline-secondary-foreground;
+	}
+
+	input[type='file'].text-center {
+		text-align-last: center;
 	}
 
 	.w-2-columns {

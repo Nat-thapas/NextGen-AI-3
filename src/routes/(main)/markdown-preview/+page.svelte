@@ -155,7 +155,7 @@
 		</div>
 		<div
 			bind:this={previewElement}
-			class="prose prose-lg prose-neutral w-full max-w-none flex-grow overflow-auto rounded-lg border border-gray-300 px-4 py-2 prose-img:h-fit prose-img:w-full prose-img:max-w-lg">
+			class="prose prose-lg prose-neutral w-full max-w-none flex-grow overflow-auto rounded-lg border border-gray-300 px-4 py-2 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 			{@html html}
 		</div>

@@ -30,7 +30,7 @@ export const updateProfileFormSchema = z.object({
 			configConstants.users.phoneNumberLength,
 			`Phone number must be ${configConstants.users.phoneNumberLength} characters long`
 		)
-		.regex(/[0-9]{10}/, 'Phone number must be a 10 digits number'),
+		.regex(/^[0-9]{10}$/, 'Phone number must be a 10 digits number'),
 	schoolName: z
 		.string()
 		.min(1, 'School name is required')
@@ -71,7 +71,7 @@ export const updateProfileFormSchema = z.object({
 			configConstants.users.postcodeLength,
 			`Postcode must be ${configConstants.users.postcodeLength} characters long`
 		)
-		.regex(/[0-9]{5}/, 'Postcode must be a 5 digits number'),
+		.regex(/^[0-9]{5}$/, 'Postcode must be a 5 digits number'),
 	addressDetail: z
 		.string()
 		.min(1, 'Detail is required')

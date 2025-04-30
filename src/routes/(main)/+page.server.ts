@@ -14,7 +14,7 @@ import { createAnnouncementFormSchema } from './schema';
 export const load: PageServerLoad = async ({ url }) => {
 	let announcementsCount: number | string = url.searchParams.get('announcements-count') ?? '3';
 
-	if (!/[0-9]{1,15}/.test(announcementsCount)) {
+	if (!/^[0-9]{1,15}$/.test(announcementsCount)) {
 		error(400, {
 			message: 'Invalid announcements-count'
 		});

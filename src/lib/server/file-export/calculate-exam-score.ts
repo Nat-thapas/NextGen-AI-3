@@ -10,7 +10,7 @@ function getScore(question: { minScore: number; maxScore: number }, correctness:
 	return question.minScore + (question.maxScore - question.minScore) * correctness;
 }
 
-function parseRegexString(regexString: string): RegExp {
+export function parseRegexString(regexString: string): RegExp {
 	const regexMatcher = /^\/(.*)\/([gimyus]*)$/;
 	const match = regexString.match(regexMatcher);
 
