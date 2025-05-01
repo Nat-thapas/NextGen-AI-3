@@ -4,10 +4,11 @@
 	import '../katex.css';
 	import '../hljs.css';
 
+	import { tick } from 'svelte';
 	import { toast } from 'svelte-sonner';
 
-	import { afterNavigate, beforeNavigate } from '$app/navigation';
-	import { updated } from '$app/state';
+	import { afterNavigate, beforeNavigate, replaceState } from '$app/navigation';
+	import { page, updated } from '$app/state';
 
 	import { Toaster } from '$lib/components/ui/sonner';
 
@@ -19,7 +20,7 @@
 		}
 	});
 
-	afterNavigate(() => {
+	afterNavigate(async () => {
 		const urlParams = new URLSearchParams(window.location.search);
 		if (urlParams.has('toast-message') || urlParams.has('toast-description')) {
 			let message = urlParams.get('toast-message');
@@ -59,7 +60,8 @@
 			newUrl.searchParams.delete('toast-description');
 			newUrl.searchParams.delete('toast-type');
 
-			window.history.replaceState(null, '', newUrl);
+			await tick();
+			replaceState(newUrl, page.state);
 		}
 	});
 </script>

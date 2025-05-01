@@ -65,7 +65,7 @@ export async function importExam(
 	let sheets:
 		| {
 				name: string;
-				data: (string | number | boolean | Date)[][];
+				data: (string | number | boolean | undefined)[][];
 		  }[]
 		| undefined = undefined;
 
@@ -106,8 +106,10 @@ export async function importExam(
 			const data = sheet.data;
 			for (const [rowNumber, row] of data.entries()) {
 				if (row.length === 0) continue;
-				if (!(row[0] instanceof String || typeof row[0] === 'string') || !row[0].startsWith('$'))
+				// @ts-expect-error I have no idea why ts thinks this wouldn't work
+				if (!(row[0] instanceof String || typeof row[0] === 'string') || !row[0].startsWith('$')) {
 					continue;
+				}
 
 				if (row[0].toLowerCase().startsWith('$q')) {
 					if (row[1] === undefined) {
@@ -234,6 +236,7 @@ export async function importExam(
 
 					const isCorrect =
 						String(row[2]).toLowerCase() === 'true' ||
+						// @ts-expect-error I have no idea why ts thinks this wouldn't work
 						((row[2] instanceof Number || typeof row[2] === 'number') && row[2] !== 0);
 
 					choiceNumber++;

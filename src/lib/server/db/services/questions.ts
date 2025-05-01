@@ -80,6 +80,48 @@ const getQuestionChoiceNumbersQuery = db.query.questions
 	})
 	.prepare('get_question_choice_numbers');
 
+export const updateQuestionDefaultScoreQuery = db
+	.update(questions)
+	.set({
+		defaultScore: sql.placeholder('defaultScore'),
+		updatedAt: sql`now()`
+	})
+	.where(
+		and(
+			eq(questions.examId, sql.placeholder('examId')),
+			eq(questions.number, sql.placeholder('number'))
+		)
+	)
+	.prepare('update_question_default_score');
+
+export const updateQuestionMinScoreQuery = db
+	.update(questions)
+	.set({
+		minScore: sql.placeholder('minScore'),
+		updatedAt: sql`now()`
+	})
+	.where(
+		and(
+			eq(questions.examId, sql.placeholder('examId')),
+			eq(questions.number, sql.placeholder('number'))
+		)
+	)
+	.prepare('update_question_min_score');
+
+export const updateQuestionMaxScoreQuery = db
+	.update(questions)
+	.set({
+		maxScore: sql.placeholder('maxScore'),
+		updatedAt: sql`now()`
+	})
+	.where(
+		and(
+			eq(questions.examId, sql.placeholder('examId')),
+			eq(questions.number, sql.placeholder('number'))
+		)
+	)
+	.prepare('update_question_max_score');
+
 export async function createQuestion(data: {
 	examId: string;
 	number: number;
@@ -107,4 +149,23 @@ export async function getQuestionChoicesAnswer(examId: string, number: number, u
 export async function getQuestionChoiceNumbers(examId: string, number: number) {
 	examId = suidToUuid(examId);
 	return getQuestionChoiceNumbersQuery.execute({ examId, number });
+}
+
+export async function updateQuestionDefaultScore(
+	examId: string,
+	number: number,
+	defaultScore: number
+) {
+	examId = suidToUuid(examId);
+	return updateQuestionDefaultScoreQuery.execute({ examId, number, defaultScore });
+}
+
+export async function updateQuestionMinScore(examId: string, number: number, minScore: number) {
+	examId = suidToUuid(examId);
+	return updateQuestionMinScoreQuery.execute({ examId, number, minScore });
+}
+
+export async function updateQuestionMaxScore(examId: string, number: number, maxScore: number) {
+	examId = suidToUuid(examId);
+	return updateQuestionMaxScoreQuery.execute({ examId, number, maxScore });
 }

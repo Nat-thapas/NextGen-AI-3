@@ -58,18 +58,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			message: 'Not Found'
 		});
 	}
-	if (exam.openAt > utcNow()) {
-		return redirect(
-			303,
-			setToastParams(`${base}/exercises`, 'Exam is not open yet', undefined, 'error')
-		);
-	}
-	if (exam.closeAt <= utcNow()) {
-		return redirect(
-			303,
-			setToastParams(`${base}/exercises`, 'Exam is already closed', undefined, 'error')
-		);
-	}
 	if (exam.submissions.length === 0) {
 		return redirect(
 			303,
@@ -81,17 +69,42 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			)
 		);
 	}
-	if (getSecondsSince(exam.submissions[0].createdAt) > exam.timeLimit) {
-		return redirect(
-			303,
-			setToastParams(`${base}/exercises`, "You've ran out of time on this exam", undefined, 'error')
-		);
-	}
-	if (exam.submissions[0].submitted) {
-		return redirect(
-			303,
-			setToastParams(`${base}/exercises`, "You've already submitted this exam", undefined, 'error')
-		);
+
+	if (!isRoleAtLeast(user.role, roles.teacher)) {
+		if (exam.openAt > utcNow()) {
+			return redirect(
+				303,
+				setToastParams(`${base}/exercises`, 'Exam is not open yet', undefined, 'error')
+			);
+		}
+		if (exam.closeAt <= utcNow()) {
+			return redirect(
+				303,
+				setToastParams(`${base}/exercises`, 'Exam is already closed', undefined, 'error')
+			);
+		}
+		if (getSecondsSince(exam.submissions[0].createdAt) > exam.timeLimit) {
+			return redirect(
+				303,
+				setToastParams(
+					`${base}/exercises`,
+					"You've ran out of time on this exam",
+					undefined,
+					'error'
+				)
+			);
+		}
+		if (exam.submissions[0].submitted) {
+			return redirect(
+				303,
+				setToastParams(
+					`${base}/exercises`,
+					"You've already submitted this exam",
+					undefined,
+					'error'
+				)
+			);
+		}
 	}
 
 	let answer: string | string[] | undefined = undefined;
@@ -167,18 +180,6 @@ export const actions: Actions = {
 				message: 'Not Found'
 			});
 		}
-		if (exam.openAt > utcNow()) {
-			return redirect(
-				303,
-				setToastParams(`${base}/exercises`, 'Exam is not open yet', undefined, 'error')
-			);
-		}
-		if (exam.closeAt <= utcNow()) {
-			return redirect(
-				303,
-				setToastParams(`${base}/exercises`, 'Exam is already closed', undefined, 'error')
-			);
-		}
 		if (!exam.submission) {
 			return redirect(
 				303,
@@ -190,27 +191,42 @@ export const actions: Actions = {
 				)
 			);
 		}
-		if (getSecondsSince(exam.submission.createdAt) > exam.timeLimit) {
-			return redirect(
-				303,
-				setToastParams(
-					`${base}/exercises`,
-					"You've ran out of time on this exam",
-					undefined,
-					'error'
-				)
-			);
-		}
-		if (exam.submission.submitted) {
-			return redirect(
-				303,
-				setToastParams(
-					`${base}/exercises`,
-					"You've already submitted this exam",
-					undefined,
-					'error'
-				)
-			);
+
+		if (!isRoleAtLeast(user.role, roles.teacher)) {
+			if (exam.openAt > utcNow()) {
+				return redirect(
+					303,
+					setToastParams(`${base}/exercises`, 'Exam is not open yet', undefined, 'error')
+				);
+			}
+			if (exam.closeAt <= utcNow()) {
+				return redirect(
+					303,
+					setToastParams(`${base}/exercises`, 'Exam is already closed', undefined, 'error')
+				);
+			}
+			if (getSecondsSince(exam.submission.createdAt) > exam.timeLimit) {
+				return redirect(
+					303,
+					setToastParams(
+						`${base}/exercises`,
+						"You've ran out of time on this exam",
+						undefined,
+						'error'
+					)
+				);
+			}
+			if (exam.submission.submitted) {
+				return redirect(
+					303,
+					setToastParams(
+						`${base}/exercises`,
+						"You've already submitted this exam",
+						undefined,
+						'error'
+					)
+				);
+			}
 		}
 
 		let next: string;

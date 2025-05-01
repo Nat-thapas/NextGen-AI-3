@@ -13,7 +13,7 @@
 	import { MediaQuery } from 'svelte/reactivity';
 
 	import { enhance } from '$app/forms';
-	import { afterNavigate, beforeNavigate } from '$app/navigation';
+	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { env } from '$env/dynamic/public';
 
@@ -22,7 +22,7 @@
 	import { Progress } from '$lib/components/ui/progress';
 	import { configConstants } from '$lib/config-constants';
 	import { formatDurationClock } from '$lib/datetime';
-	import { questionTypes } from '$lib/enums';
+	import { questionTypes, roles } from '$lib/enums';
 	import { getErrorMessage } from '$lib/error';
 	import { FetchJson } from '$lib/fetch-json';
 	import { formatNumber } from '$lib/format-number';
@@ -30,6 +30,8 @@
 	import type { OwnUserPartial } from '$lib/interfaces/partial-user';
 	import type { PartialQuestionAnswer, Question } from '$lib/interfaces/question';
 	import type { PartialSubmission } from '$lib/interfaces/submission';
+	import { isRoleAtLeast } from '$lib/roles';
+	import { setToastParams } from '$lib/toast';
 
 	import type { ActionData } from './$types';
 
@@ -99,6 +101,11 @@
 		)
 	);
 	let timeLeft = $derived(endAt - now);
+
+	let questionsDialogOpen = $state(false);
+
+	let fileInput: HTMLInputElement | undefined = $state();
+	let removeFileVisible = $state(false);
 
 	async function syncNow(): Promise<void> {
 		if (syncing) return;
@@ -172,10 +179,9 @@
 		};
 	});
 
-	beforeNavigate(({ cancel, to }) => {
+	beforeNavigate(({ type, cancel }) => {
 		if (
-			to?.route.id !== '/(main)/exercises/[id=id]/[num=num]' &&
-			to?.route.id !== '/(main)/exercises' &&
+			(type === 'leave' || type === 'link') &&
 			!confirm(
 				'Are you sure you want to leave this page? You have unsaved changes that will be lost.'
 			)
@@ -184,10 +190,22 @@
 		}
 	});
 
-	let questionsDialogOpen = $state(false);
-
 	afterNavigate(() => {
 		questionsDialogOpen = false;
+		removeFileVisible = false;
+	});
+
+	$effect(() => {
+		if (timeLeft < 0 && !isRoleAtLeast(data.user?.role, roles.teacher)) {
+			goto(
+				setToastParams(
+					`${base}/exercises`,
+					"You've ran out of time on this exam",
+					'Existing answers was automatically submitted',
+					'info'
+				)
+			);
+		}
 	});
 </script>
 
@@ -324,7 +342,6 @@
 						class:!text-gray-400={data.question.number === data.questions.length}
 						class:!bg-gray-300={data.question.number === data.questions.length}
 						class:!border-gray-300={data.question.number === data.questions.length}
-						class:!cursor-not-allowed={data.question.number === data.questions.length}
 						class="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-secondary-foreground bg-white p-0 text-secondary-foreground transition-colors">
 						<ChevronRight size={28} />
 						<input
@@ -333,6 +350,7 @@
 							name="next"
 							value={data.question.number + 1}
 							disabled={data.question.number === data.questions.length}
+							class:!cursor-not-allowed={data.question.number === data.questions.length}
 							class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
 					</label>
 				</div>
@@ -373,7 +391,9 @@
 				class="w-0 flex-grow overflow-hidden text-ellipsis text-nowrap text-xl font-semibold text-primary-foreground">
 				{data.exam.title}
 			</div>
-			<div class="flex w-fit items-center justify-start gap-2 text-lg text-primary-foreground">
+			<div
+				class:!text-red-500={timeLeft <= 60_000}
+				class="flex w-fit items-center justify-start gap-2 text-lg text-primary-foreground">
 				<Clock />
 				<span>Time left: {formatDurationClock(timeLeft / 1000)}</span>
 			</div>
@@ -500,6 +520,10 @@
 								type="file"
 								name="answer"
 								accept={data.question.fileTypes ?? ''}
+								bind:this={fileInput}
+								oninput={(): void => {
+									removeFileVisible = true;
+								}}
 								class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer pt-[19.5rem] text-center text-lg text-primary-foreground file:hidden" />
 						</div>
 					{/if}
@@ -538,16 +562,28 @@
 			</label>
 			{#if data.answerExists && data.question.questionType !== questionTypes.file}
 				<label
-					for="clear-answer-button"
+					for="remove-answer-button"
 					class="relative flex items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg">
 					Remove Answer
 					<input
 						type="submit"
-						id="clear-answer-button"
+						id="remove-answer-button"
 						name="next"
 						value="remove-answer"
 						class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
 				</label>
+			{:else if data.question.questionType === questionTypes.file && removeFileVisible}
+				<button
+					type="button"
+					onclick={(): void => {
+						if (fileInput) {
+							fileInput.value = '';
+						}
+						removeFileVisible = false;
+					}}
+					class="relative flex items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg">
+					Remove File
+				</button>
 			{/if}
 			{#if data.question.number === data.questions.length}
 				<AlertDialog.Root>

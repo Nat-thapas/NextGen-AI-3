@@ -1,12 +1,15 @@
 import difflib from 'difflib';
 
 import { questionTypes, scoringTypes } from '$lib/enums';
-import { deleteAnswer, getAnswer, updateAnswerCorrectness } from '$lib/server/db/services/answers';
+import { getAnswer, updateAnswerCorrectness } from '$lib/server/db/services/answers';
 import { getExamQuestionsChoicesSubmissions } from '$lib/server/db/services/exams';
 import { updateSubmissionScore } from '$lib/server/db/services/submissions';
 import { getUser } from '$lib/server/db/services/users';
 
-function getScore(question: { minScore: number; maxScore: number }, correctness: number): number {
+export function getScore(
+	question: { minScore: number; maxScore: number },
+	correctness: number
+): number {
 	return question.minScore + (question.maxScore - question.minScore) * correctness;
 }
 

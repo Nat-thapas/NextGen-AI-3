@@ -56,10 +56,16 @@ export const actions: Actions = {
 		try {
 			await importAnnouncement(user.id, form.data.title, form.data.file);
 		} catch (err) {
-			return message(form, {
-				type: 'error',
-				text: getErrorMessage(err)
-			});
+			return message(
+				form,
+				{
+					type: 'error',
+					text: getErrorMessage(err)
+				},
+				{
+					status: 500
+				}
+			);
 		}
 
 		return message(form, {

@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { ArrowRight, Download, SquareSigma } from '@lucide/svelte';
+	import { ArrowRight, Calculator } from '@lucide/svelte';
 
 	import { base } from '$app/paths';
 
 	import { formatDate, formatDateTime, formatTime } from '$lib/datetime';
+	import { roles } from '$lib/enums';
 	import type { Exam } from '$lib/interfaces/exam';
 	import type { OwnUserPartial } from '$lib/interfaces/partial-user';
 	import { isRoleAtLeast } from '$lib/roles';
@@ -57,11 +58,11 @@
 		</span>
 	</div>
 	<div class="mr-4 flex h-28 w-16 flex-col items-center justify-center gap-2">
-		{#if isRoleAtLeast(user?.role, 'teacher')}
+		{#if isRoleAtLeast(user?.role, roles.teacher)}
 			<button
 				onclick={onDownloadClick}
 				class="flex h-10 w-10 items-center justify-center rounded-full bg-accent-foreground">
-				<Download class="text-white" />
+				<Calculator class="text-white" />
 			</button>
 		{/if}
 		{#if isExamAvailable}

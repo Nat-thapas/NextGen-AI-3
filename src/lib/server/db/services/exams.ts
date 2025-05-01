@@ -37,6 +37,27 @@ const getExamQuery = db.query.exams
 	})
 	.prepare('get_exam');
 
+const getExamQuestionsQuery = db.query.exams
+	.findFirst({
+		columns: {
+			id: true
+		},
+		with: {
+			questions: {
+				columns: {
+					examId: true,
+					number: true,
+					defaultScore: true,
+					minScore: true,
+					maxScore: true
+				},
+				orderBy: [asc(questions.number)]
+			}
+		},
+		where: eq(exams.id, sql.placeholder('id'))
+	})
+	.prepare('get_exam_questions');
+
 const getExamSubmissionQuery = db
 	.select({
 		...getTableColumns(exams),
@@ -284,6 +305,11 @@ export async function createExamReturning(data: {
 export async function getExam(id: string) {
 	id = suidToUuid(id);
 	return getExamQuery.execute({ id });
+}
+
+export async function getExamQuestions(id: string) {
+	id = suidToUuid(id);
+	return getExamQuestionsQuery.execute({ id });
 }
 
 export async function getExamSubmission(id: string, userId: string) {

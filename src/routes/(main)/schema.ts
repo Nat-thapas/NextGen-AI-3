@@ -20,7 +20,7 @@ export const createAnnouncementFormSchema = z.object({
 					'application/x-zip-compressed',
 					'multipart/x-zip'
 				].includes(f.type),
-			'File must be a .zip, .7zip or .rar file'
+			'File must be a .zip file'
 		)
 });
 

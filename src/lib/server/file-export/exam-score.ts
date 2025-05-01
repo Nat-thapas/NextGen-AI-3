@@ -168,7 +168,7 @@ export async function exportExamScore(examId: string): Promise<Buffer> {
 
 	const comments: string[] = [
 		'Any row beginning with # is considered a comment by the parser. If you want to add any custom rows, prefix them with # to not disturb the parser when you upload this score file back to the site',
-		'Only edit white cells, those are weight cells (Default Score, Min Score, Max Score) and correctness cells. Edits to any other cells will not be saved when you upload this score file back to the site',
+		'Only edit pink and white cells, those are weight cells (Default Score, Min Score, Max Score) and correctness cells. Edits to any other cells will not be saved when you upload this score file back to the site',
 		'Correctness should be a number between 0 and 1 with 0 being fully wrong and 1 being totally correct',
 		'Score for each question is calculated from weights and correctness',
 		"The sum score is calculated from all question's score added together",
@@ -203,7 +203,7 @@ export async function exportExamScore(examId: string): Promise<Buffer> {
 		['$Default', '', '', ''],
 		['$Min', '', '', ''],
 		['$Max', '', '', ''],
-		['#', '', '', ''],
+		['$Exam ID', exam.id, '', ''],
 		['# User ID', 'Prefix', 'Name', 'Email']
 	];
 

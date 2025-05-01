@@ -34,7 +34,7 @@ export const createExamFormSchema = z
 						'application/x-zip-compressed',
 						'multipart/x-zip'
 					].includes(f.type),
-				'File must be a .zip, .7zip or .rar file'
+				'File must be a .zip file'
 			)
 	})
 	.superRefine(({ openAt, closeAt }, checkCloseAtAfterOpenAt) => {
@@ -54,3 +54,26 @@ export const calculateScoreFormSchema = z.object({
 });
 
 export type CalculateScoreFormSchema = typeof calculateScoreFormSchema;
+
+export const uploadScoreFormSchema = z.object({
+	examId: z.string(),
+	file: z
+		.instanceof(File, { message: 'Please upload a file' })
+		.refine(
+			(f) =>
+				[
+					'application/vnd.ms-excel',
+					'application/msexcel',
+					'application/x-msexcel',
+					'application/x-ms-excel',
+					'application/x-excel',
+					'application/x-dos_ms_excel',
+					'application/xls',
+					'application/x-xls',
+					'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+				].includes(f.type),
+			'File must be a .xlsx file'
+		)
+});
+
+export type UploadScoreFormSchema = typeof uploadScoreFormSchema;

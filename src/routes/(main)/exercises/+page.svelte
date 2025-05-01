@@ -16,7 +16,7 @@
 	import { isRoleAtLeast } from '$lib/roles';
 
 	import ExamCard from './exam-card.svelte';
-	import { calculateScoreFormSchema, createExamFormSchema } from './schema';
+	import { calculateScoreFormSchema, createExamFormSchema, uploadScoreFormSchema } from './schema';
 
 	let { data } = $props();
 
@@ -104,8 +104,48 @@
 		delayed: calculateScoreDelayed
 	} = calculateScoreForm;
 
+	const uploadScoreForm = superForm(data.uploadScoreForm, {
+		validators: zodClient(uploadScoreFormSchema),
+		resetForm: false,
+		delayMs: configConstants.forms.delay,
+		timeoutMs: configConstants.forms.longTimeout,
+		onUpdated({ form }) {
+			if (form.message) {
+				switch (form.message.type) {
+					case 'success':
+						toast.success(form.message.text);
+						break;
+					case 'info':
+						toast.info(form.message.text);
+						break;
+					case 'warning':
+						toast.warning(form.message.text);
+						break;
+					case 'error':
+						toast.error(form.message.text);
+						break;
+					default:
+						toast(form.message.text);
+						break;
+				}
+			}
+		},
+		onError({ result }) {
+			toast.error(getErrorMessage(result.error));
+		}
+	});
+
+	const {
+		form: uploadScoreFormData,
+		enhance: uploadScoreEnhance,
+		delayed: uploadScoreDelayed
+	} = uploadScoreForm;
+
+	let scoreFile = fileProxy(uploadScoreForm, 'file');
+
 	function showCalculateScoreDialog(exam: Exam) {
 		$calculateScoreFormData.examId = exam.id;
+		$uploadScoreFormData.examId = exam.id;
 		isCalculateScoreDialogOpen = true;
 	}
 </script>
@@ -229,13 +269,13 @@
 			<Dialog.Root bind:open={isCalculateScoreDialogOpen}>
 				<Dialog.Content class="max-h-[80dvh] overflow-y-auto">
 					<Dialog.Header>
-						<Dialog.Title class="text-lg">Calculat & Download exam score</Dialog.Title>
+						<Dialog.Title class="text-lg">Exam score</Dialog.Title>
 						<Dialog.Description class="text-base text-primary-foreground">
 							The calculate function will calculate score for all submissions of the exam, <strong>
-								this will override existing score data
+								this will override any existing score data
 							</strong>
 							. The download function will download current score data. If you have not perform a score
-							calculation before, you probably want to do that before downloading.
+							calculation before, the downloaded data won't have any pre-calculated score.
 						</Dialog.Description>
 					</Dialog.Header>
 					<form method="POST" action="?/calculate-score" use:calculateScoreEnhance>
@@ -268,6 +308,57 @@
 							</a>
 						</div>
 					</form>
+					<span class="-mb-4 text-lg font-semibold text-black">Upload score file</span>
+					<form
+						method="POST"
+						action="?/upload-score"
+						enctype="multipart/form-data"
+						use:uploadScoreEnhance>
+						<Form.Field form={uploadScoreForm} name="examId">
+							<Form.Control>
+								{#snippet children({ props })}
+									<Form.Label class="hidden">Exam ID</Form.Label>
+									<Input
+										{...props}
+										type="hidden"
+										bind:value={$uploadScoreFormData.examId}
+										readonly
+										class="hidden" />
+								{/snippet}
+							</Form.Control>
+							<Form.FieldErrors />
+						</Form.Field>
+						<Form.Field form={uploadScoreForm} name="file" class="mb-4 w-full">
+							<Form.Control>
+								{#snippet children({ props })}
+									<Form.Description class="text-base text-primary-foreground">
+										Once you have updated the score file, you can upload it here to update the score
+										data.
+										<strong>this will override any existing score data</strong>
+									</Form.Description>
+									<div class="flex items-center gap-2">
+										<Form.Label class="sr-only text-primary-foreground">Upload file</Form.Label>
+									</div>
+									<input
+										{...props}
+										bind:files={$scoreFile}
+										type="file"
+										accept="application/vnd.ms-excel, application/msexcel, application/x-msexcel, application/x-ms-excel, application/x-excel, application/x-dos_ms_excel, application/xls, application/x-xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+										class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-secondary-foreground bg-white px-2 py-1.5 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-secondary-foreground file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
+								{/snippet}
+							</Form.Control>
+							<Form.FieldErrors />
+						</Form.Field>
+						<div class="flex gap-2">
+							<Form.Button
+								class="button-gradient flex w-0 flex-grow items-center gap-2 rounded-xl text-lg text-white drop-shadow-lg">
+								{#if $uploadScoreDelayed}
+									<LoaderCircle class="animate-spin" />
+								{/if}
+								Upload
+							</Form.Button>
+						</div>
+					</form>
 				</Dialog.Content>
 			</Dialog.Root>
 		{/if}
@@ -295,7 +386,7 @@
 				{exam}
 				onDownloadClick={(): void => showCalculateScoreDialog(exam)}
 				color="amber"
-				isExamAvailable={isRoleAtLeast(data.user?.role, 'teacher')}
+				isExamAvailable={isRoleAtLeast(data.user?.role, roles.teacher)}
 				timeZone={data.timeZone} />
 		{:else}
 			<span class="block w-full text-center">No exercise upcoming</span>
@@ -309,7 +400,7 @@
 				{exam}
 				onDownloadClick={(): void => showCalculateScoreDialog(exam)}
 				color="gray"
-				isExamAvailable={isRoleAtLeast(data.user?.role, 'teacher')}
+				isExamAvailable={isRoleAtLeast(data.user?.role, roles.teacher)}
 				timeZone={data.timeZone} />
 		{:else}
 			<span class="block w-full text-center">No exercise completed</span>
@@ -323,7 +414,7 @@
 				{exam}
 				onDownloadClick={(): void => showCalculateScoreDialog(exam)}
 				color="red"
-				isExamAvailable={isRoleAtLeast(data.user?.role, 'teacher')}
+				isExamAvailable={isRoleAtLeast(data.user?.role, roles.teacher)}
 				timeZone={data.timeZone} />
 		{:else}
 			<span class="block w-full text-center">No exercise expired</span>
