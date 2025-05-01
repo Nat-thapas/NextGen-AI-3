@@ -48,6 +48,19 @@ export function formatNumber(
 				.concat(space ? ' ' : '');
 }
 
+export function formatNumberOptional(
+	num?: number,
+	space: boolean = true,
+	above: number = 0,
+	below: number = 0,
+	digits: number = 3
+): string | undefined {
+	if (num === undefined || num === null) {
+		return undefined;
+	}
+	return formatNumber(num, space, above, below, digits);
+}
+
 export function formatBinary(
 	num: number,
 	space: boolean = true,
@@ -96,4 +109,17 @@ export function formatBinary(
 				.toExponential(digits)
 				.replace(exponentialTrailingZerosRegexp, '')
 				.concat(space ? ' ' : '');
+}
+
+export function formatBinaryOptional(
+	num?: number,
+	space: boolean = true,
+	above: number = 0,
+	below: number = 0,
+	digits: number = 3
+): string | undefined {
+	if (num === undefined || num === null) {
+		return undefined;
+	}
+	return formatBinary(num, space, above, below, digits);
 }

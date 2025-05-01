@@ -5,7 +5,6 @@ export interface Exam {
 	openAt: Date;
 	closeAt: Date;
 	timeLimit: number; // seconds
-	scoreConfirmed: boolean;
 	createdAt: Date;
 	updatedAt: Date;
 }

@@ -84,7 +84,6 @@ export const actions: Actions = {
 		try {
 			await importExam(
 				{
-					ownerId: user.id,
 					title: form.data.title,
 					description: form.data.description,
 					openAt: parseDateWithTimeZone(form.data.openAt, event.locals.timeZone),

@@ -54,7 +54,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			await importAnnouncement(user.id, form.data.title, form.data.file);
+			await importAnnouncement(form.data.title, form.data.file);
 		} catch (err) {
 			return message(
 				form,

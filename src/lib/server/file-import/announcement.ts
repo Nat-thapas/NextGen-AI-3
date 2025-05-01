@@ -17,11 +17,7 @@ import {
 import { generateSuid } from '$lib/server/db/suid';
 import { updateAssets } from '$lib/server/file-import/update-assets';
 
-export async function importAnnouncement(
-	authorId: string,
-	title: string,
-	file: File
-): Promise<void> {
+export async function importAnnouncement(title: string, file: File): Promise<void> {
 	const archive = await unzipper.Open.buffer(Buffer.from(await file.arrayBuffer()));
 
 	const id = generateSuid();
@@ -70,7 +66,6 @@ export async function importAnnouncement(
 
 	await createAnnouncementWithId({
 		id,
-		authorId,
 		title,
 		markdown,
 		html: renderMarkdown(markdown)

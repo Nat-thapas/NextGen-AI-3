@@ -602,7 +602,7 @@
 						</AlertDialog.Header>
 						<AlertDialog.Footer>
 							<AlertDialog.Cancel
-								class="flex cursor-pointer items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg">
+								class="flex cursor-pointer items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg hover:bg-secondary">
 								Cancel
 							</AlertDialog.Cancel>
 							<AlertDialog.Action

@@ -1,20 +1,34 @@
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import cron from 'node-cron';
 
 import { base } from '$app/paths';
 import { env } from '$env/dynamic/private';
 
-import { getSecondsSince, isTimeZoneValid } from '$lib/datetime';
+import { isTimeZoneValid } from '$lib/datetime';
 import { db } from '$lib/server/db';
-import { deleteSession, getSessionWithUser, updateSession } from '$lib/server/db/services/sessions';
+import { sessions } from '$lib/server/db/schema';
+import { deleteSession, updateSessionWithUserReturning } from '$lib/server/db/services/sessions';
 import type { Session } from '$lib/server/interfaces/session';
 import type { User } from '$lib/server/interfaces/user';
 import { setToastParams } from '$lib/toast';
 
+async function pruneSessions(): Promise<void> {
+	await db
+		.delete(sessions)
+		.where(
+			sql`${sessions.updatedAt} < now() - (${Number(env.SESSION_LIFETIME)} || ' seconds')::INTERVAL`
+		);
+}
+
 export const init: ServerInit = async () => {
 	await migrate(db, { migrationsFolder: 'drizzle' });
 	await db.execute(sql.raw(`ALTER DATABASE "${env.POSTGRES_DB}" SET timezone TO 'UTC'`));
+	cron.schedule('0 21 * * *', pruneSessions, {
+		timezone: 'UTC',
+		runOnInit: true
+	});
 };
 
 function isRouteProtected(route: string | null): boolean {
@@ -46,23 +60,24 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const token = event.cookies.get('token');
 
 		if (token) {
-			const result = await getSessionWithUser(token);
+			let ip = '0.0.0.0';
+			try {
+				ip = event.getClientAddress();
+			} catch {} // eslint-disable-line no-empty
+			const userAgent = event.request.headers.get('User-Agent') ?? '';
+
+			const result = await updateSessionWithUserReturning(
+				token,
+				ip,
+				userAgent,
+				Number(env.SESSION_LIFETIME)
+			);
+
 			if (result) {
-				if (getSecondsSince(result.updatedAt) > +env.SESSION_LIFETIME) {
-					await deleteSession(token);
-				} else {
-					session = result;
-					user = result.user;
-
-					let ip = '0.0.0.0';
-					try {
-						ip = event.getClientAddress();
-					} catch {} // eslint-disable-line no-empty
-
-					const userAgent = event.request.headers.get('User-Agent') ?? '';
-
-					await updateSession({ ip, userAgent, token });
-				}
+				session = result.session;
+				user = result.user;
+			} else {
+				await deleteSession(token);
 			}
 		}
 

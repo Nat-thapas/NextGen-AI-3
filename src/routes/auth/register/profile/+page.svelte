@@ -61,7 +61,7 @@
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label class="hidden">Token</Form.Label>
-					<Input {...props} type="hidden" bind:value={$formData.token} class="hidden" />
+					<Input {...props} type="hidden" bind:value={$formData.token} />
 				{/snippet}
 			</Form.Control>
 			<Form.FieldErrors />

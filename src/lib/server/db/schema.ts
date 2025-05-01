@@ -128,26 +128,17 @@ export const exams = pgTable(
 		id: suid()
 			.default(sql`gen_random_uuid()`)
 			.primaryKey(),
-		ownerId: suid().references(() => users.id, {
-			onUpdate: 'cascade',
-			onDelete: 'set null'
-		}),
 		title: text().notNull(),
 		description: text().notNull(),
 		openAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
 		closeAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
 		timeLimit: integer().notNull(), // seconds
-		scoreConfirmed: boolean().default(false).notNull(),
 		...timeStamps
 	},
 	(table) => [index().on(table.openAt, table.closeAt), index().on(table.closeAt)]
 );
 
 export const examsRelation = relations(exams, ({ one, many }) => ({
-	owner: one(users, {
-		fields: [exams.ownerId],
-		references: [users.id]
-	}),
 	questions: many(questions),
 	submissions: many(submissions)
 }));
@@ -288,30 +279,58 @@ export const answersRelation = relations(answers, ({ one }) => ({
 	})
 }));
 
-export const announcements = pgTable(
-	'announcements',
+export const leaderboards = pgTable('leaderboards', {
+	id: suid()
+		.default(sql`gen_random_uuid()`)
+		.primaryKey(),
+	name: text().notNull(),
+	order: integer().notNull(),
+	...timeStamps
+});
+
+export const leaderboardsRelation = relations(leaderboards, ({ many }) => ({
+	leaderboardsToExams: many(leaderboardsToExams)
+}));
+
+export const leaderboardsToExams = pgTable(
+	'leaderboards_to_exams',
 	{
-		id: suid()
-			.default(sql`gen_random_uuid()`)
-			.primaryKey(),
-		authorId: suid().references(() => users.id, {
-			onUpdate: 'cascade',
-			onDelete: 'set null'
-		}),
-		title: text().notNull(),
-		markdown: text().notNull(),
-		html: text().notNull(),
-		...timeStamps
+		leaderboardId: suid()
+			.references(() => leaderboards.id, {
+				onUpdate: 'cascade',
+				onDelete: 'cascade'
+			})
+			.notNull(),
+		examId: suid()
+			.references(() => exams.id, {
+				onUpdate: 'cascade',
+				onDelete: 'cascade'
+			})
+			.notNull()
 	},
-	(table) => [index().on(table.authorId)]
+	(table) => [primaryKey({ columns: [table.leaderboardId, table.examId] })]
 );
 
-export const announcementsRelation = relations(announcements, ({ one }) => ({
-	author: one(users, {
-		fields: [announcements.authorId],
-		references: [users.id]
+export const leaderboardsToExamsRelation = relations(leaderboardsToExams, ({ one }) => ({
+	leaderboard: one(leaderboards, {
+		fields: [leaderboardsToExams.leaderboardId],
+		references: [leaderboards.id]
+	}),
+	exams: one(exams, {
+		fields: [leaderboardsToExams.examId],
+		references: [exams.id]
 	})
 }));
+
+export const announcements = pgTable('announcements', {
+	id: suid()
+		.default(sql`gen_random_uuid()`)
+		.primaryKey(),
+	title: text().notNull(),
+	markdown: text().notNull(),
+	html: text().notNull(),
+	...timeStamps
+});
 
 export const files = pgTable(
 	'files',

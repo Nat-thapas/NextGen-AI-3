@@ -15,6 +15,13 @@
       "when": 1745941190124,
       "tag": "0001_clean_blink",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1746097346758,
+      "tag": "0002_unusual_lily_hollister",
+      "breakpoints": true
     }
   ]
 }

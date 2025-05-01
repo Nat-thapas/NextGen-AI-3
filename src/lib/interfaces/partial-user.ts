@@ -24,6 +24,8 @@ export interface OwnUserPartial {
 	id: string;
 	role: Role;
 	email: string;
+	prefix: string | null;
+	name: string | null;
 }
 
 export function convertOwnUser(user: OwnUser): OwnUser {
@@ -52,7 +54,9 @@ export function convertOwnUserPartial(user: OwnUserPartial): OwnUserPartial {
 	return {
 		id: user.id,
 		role: user.role,
-		email: user.email
+		email: user.email,
+		prefix: user.prefix,
+		name: user.name
 	};
 }
 

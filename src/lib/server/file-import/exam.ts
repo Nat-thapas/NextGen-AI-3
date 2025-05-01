@@ -48,7 +48,6 @@ function parseFileTypes(fileTypes: string | null): string | null {
 
 export async function importExam(
 	data: {
-		ownerId: string;
 		title: string;
 		description: string;
 		openAt: Date;

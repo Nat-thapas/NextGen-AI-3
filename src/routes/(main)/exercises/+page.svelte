@@ -287,8 +287,7 @@
 										{...props}
 										type="hidden"
 										bind:value={$calculateScoreFormData.examId}
-										readonly
-										class="hidden" />
+										readonly />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -322,8 +321,7 @@
 										{...props}
 										type="hidden"
 										bind:value={$uploadScoreFormData.examId}
-										readonly
-										class="hidden" />
+										readonly />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />

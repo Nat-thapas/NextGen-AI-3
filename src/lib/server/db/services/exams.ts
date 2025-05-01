@@ -21,7 +21,6 @@ import { suidToUuid } from '$lib/server/db/suid';
 const createExamReturningQuery = db
 	.insert(exams)
 	.values({
-		ownerId: sql.placeholder('ownerId'),
 		title: sql.placeholder('title'),
 		description: sql.placeholder('description'),
 		openAt: sql.placeholder('openAt'),
@@ -204,6 +203,16 @@ const getExamQuestionsChoicesSubmissionsUsersQuery = db.query.exams
 	})
 	.prepare('get_exam_questions_choices_submissions_users');
 
+const getExamsQuery = db.query.exams
+	.findMany({
+		columns: {
+			id: true,
+			title: true
+		},
+		orderBy: [desc(exams.createdAt)]
+	})
+	.prepare('get_exams');
+
 const getExamsAvailableQuery = db
 	.select({
 		...getTableColumns(exams),
@@ -292,7 +301,6 @@ const deleteExamQuery = db
 	.prepare('delete_exam');
 
 export async function createExamReturning(data: {
-	ownerId: string;
 	title: string;
 	description: string;
 	openAt: Date;
@@ -332,6 +340,10 @@ export async function getExamQuestionsChoicesSubmissions(id: string) {
 export async function getExamQuestionsChoicesSubmissionsUsers(id: string) {
 	id = suidToUuid(id);
 	return getExamQuestionsChoicesSubmissionsUsersQuery.execute({ id });
+}
+
+export async function getExams() {
+	return getExamsQuery.execute();
 }
 
 export async function getExamsAvailable(userId: string) {

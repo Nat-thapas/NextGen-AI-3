@@ -1,50 +1,54 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
-import { sessions } from '$lib/server/db/schema';
+import { sessions, users } from '$lib/server/db/schema';
 import { generateToken } from '$lib/server/db/token';
 
-const createSessionQuery = db.insert(sessions).values({
-	token: sql.placeholder('token'),
-	userId: sql.placeholder('userId'),
-	firstLoginIp: sql.placeholder('firstLoginIp'),
-	firstLoginUserAgent: sql.placeholder('firstLoginUserAgent'),
-	lastUseIp: sql.placeholder('lastUseIp'),
-	lastUseUserAgent: sql.placeholder('lastUseUserAgent')
-});
-
-const getSessionWithUserQuery = db.query.sessions
-	.findFirst({
-		columns: {
-			token: true,
-			updatedAt: true
-		},
-		where: eq(sessions.token, sql.placeholder<string>('token')),
-		with: {
-			user: {
-				columns: {
-					id: true,
-					role: true,
-					email: true,
-					hashedPassword: true,
-					transcriptId: true
-				}
-			}
-		}
+const createSessionQuery = db
+	.insert(sessions)
+	.values({
+		token: sql.placeholder('token'),
+		userId: sql.placeholder('userId'),
+		firstLoginIp: sql.placeholder('firstLoginIp'),
+		firstLoginUserAgent: sql.placeholder('firstLoginUserAgent'),
+		lastUseIp: sql.placeholder('lastUseIp'),
+		lastUseUserAgent: sql.placeholder('lastUseUserAgent')
 	})
-	.prepare('get_session_with_user');
+	.prepare('create_session');
 
-const updateSessionQuery = db
+const updateSessionWithUserReturningQuery = db
 	.update(sessions)
 	.set({
 		lastUseIp: sql.placeholder<string>('ip'),
 		lastUseUserAgent: sql.placeholder<string>('userAgent'),
 		updatedAt: sql`now()`
 	})
-	.where(eq(sessions.token, sql.placeholder<string>('token')))
-	.prepare('update_session');
+	.from(users)
+	.where(
+		and(
+			eq(sessions.token, sql.placeholder('token')),
+			eq(users.id, sessions.userId),
+			sql`${sessions.updatedAt} > now() - (${sql.placeholder('sessionLifetime')} || ' seconds')::INTERVAL`
+		)
+	)
+	.returning({
+		session: {
+			token: sessions.token,
+			updatedAt: sessions.updatedAt
+		},
+		user: {
+			id: users.id,
+			role: users.role,
+			email: users.email,
+			prefix: users.prefix,
+			name: users.name,
+			hashedPassword: users.hashedPassword,
+			transcriptId: users.transcriptId
+		}
+	})
+	.prepare('update_session_with_user_returning');
 
 const deleteSessionQuery = db
 	.delete(sessions)
@@ -63,12 +67,15 @@ export async function createSession(data: {
 	return createSessionQuery.execute(data);
 }
 
-export async function getSessionWithUser(token: string) {
-	return getSessionWithUserQuery.execute({ token });
-}
-
-export async function updateSession(data: { token: string; ip: string; userAgent: string }) {
-	return updateSessionQuery.execute(data);
+export async function updateSessionWithUserReturning(
+	token: string,
+	ip: string,
+	userAgent: string,
+	sessionLifetime: number
+) {
+	return (
+		await updateSessionWithUserReturningQuery.execute({ token, ip, userAgent, sessionLifetime })
+	)[0];
 }
 
 export async function deleteSession(token: string) {

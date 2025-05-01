@@ -9,7 +9,6 @@ import { suidToUuid } from '$lib/server/db/suid';
 const createAnnouncementQuery = db
 	.insert(announcements)
 	.values({
-		authorId: sql.placeholder('authorId'),
 		title: sql.placeholder('title'),
 		markdown: sql.placeholder('markdown'),
 		html: sql.placeholder('html')
@@ -20,7 +19,6 @@ const createAnnouncementWithIdQuery = db
 	.insert(announcements)
 	.values({
 		id: sql.placeholder('id'),
-		authorId: sql.placeholder('authorId'),
 		title: sql.placeholder('title'),
 		markdown: sql.placeholder('markdown'),
 		html: sql.placeholder('html')
@@ -30,7 +28,6 @@ const createAnnouncementWithIdQuery = db
 const getAnnouncementQuery = db.query.announcements
 	.findFirst({
 		columns: {
-			authorId: false,
 			markdown: false
 		},
 		where: eq(announcements.id, sql.placeholder('id'))
@@ -40,7 +37,6 @@ const getAnnouncementQuery = db.query.announcements
 const getAnnouncementsQuery = db.query.announcements
 	.findMany({
 		columns: {
-			authorId: false,
 			markdown: false,
 			html: false
 		},
@@ -49,18 +45,12 @@ const getAnnouncementsQuery = db.query.announcements
 	})
 	.prepare('get_announcements');
 
-export async function createAnnouncement(data: {
-	authorId: string;
-	title: string;
-	markdown: string;
-	html: string;
-}) {
+export async function createAnnouncement(data: { title: string; markdown: string; html: string }) {
 	return createAnnouncementQuery.execute(data);
 }
 
 export async function createAnnouncementWithId(data: {
 	id: string;
-	authorId: string;
 	title: string;
 	markdown: string;
 	html: string;
