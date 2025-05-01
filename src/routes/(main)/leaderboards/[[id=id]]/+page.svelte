@@ -33,7 +33,6 @@
 
 	const createLeaderboardForm = superForm(data.createLeaderboardForm, {
 		validators: zodClient(createLeaderboardFormSchema),
-		resetForm: false,
 		delayMs: configConstants.forms.delay,
 		timeoutMs: configConstants.forms.timeout,
 		onUpdated({ form }) {
@@ -42,12 +41,10 @@
 					case 'success':
 						toast.success(form.message.text);
 						isCreateLeaderboardDialogOpen = false;
-						createLeaderboardForm.reset();
 						break;
 					case 'info':
 						toast.info(form.message.text);
 						isCreateLeaderboardDialogOpen = false;
-						createLeaderboardForm.reset();
 						break;
 					case 'warning':
 						toast.warning(form.message.text);
@@ -76,7 +73,6 @@
 
 	const updateLeaderboardForm = superForm(data.updateLeaderboardForm, {
 		validators: zodClient(updateLeaderboardFormSchema),
-		resetForm: false,
 		delayMs: configConstants.forms.delay,
 		timeoutMs: configConstants.forms.timeout,
 		onUpdated({ form }) {
@@ -85,12 +81,10 @@
 					case 'success':
 						toast.success(form.message.text);
 						isUpdateLeaderboardDialogOpen = false;
-						updateLeaderboardForm.reset();
 						break;
 					case 'info':
 						toast.info(form.message.text);
 						isUpdateLeaderboardDialogOpen = false;
-						updateLeaderboardForm.reset();
 						break;
 					case 'warning':
 						toast.warning(form.message.text);
@@ -132,7 +126,6 @@
 
 	const deleteLeaderboardForm = superForm(data.deleteLeaderboardForm, {
 		validators: zodClient(deleteLeaderboardFormSchema),
-		resetForm: false,
 		delayMs: configConstants.forms.delay,
 		timeoutMs: configConstants.forms.timeout,
 		onUpdated({ form }) {
@@ -141,12 +134,10 @@
 					case 'success':
 						toast.success(form.message.text);
 						isDeleteLeaderboardDialogOpen = false;
-						deleteLeaderboardForm.reset();
 						break;
 					case 'info':
 						toast.info(form.message.text);
 						isDeleteLeaderboardDialogOpen = false;
-						deleteLeaderboardForm.reset();
 						break;
 					case 'warning':
 						toast.warning(form.message.text);

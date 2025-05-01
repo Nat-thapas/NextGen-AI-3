@@ -12,14 +12,14 @@
 	let {
 		user,
 		exam,
-		onDownloadClick,
+		onCalculateClick,
 		color,
 		isExamAvailable,
 		timeZone
 	}: {
 		user: OwnUserPartial | undefined;
 		exam: Exam;
-		onDownloadClick: () => any;
+		onCalculateClick: () => any;
 		color: 'green' | 'blue' | 'amber' | 'gray' | 'red';
 		isExamAvailable: boolean;
 		timeZone: string;
@@ -60,7 +60,7 @@
 	<div class="mr-4 flex h-28 w-16 flex-col items-center justify-center gap-2">
 		{#if isRoleAtLeast(user?.role, roles.teacher)}
 			<button
-				onclick={onDownloadClick}
+				onclick={onCalculateClick}
 				class="flex h-10 w-10 items-center justify-center rounded-full bg-accent-foreground">
 				<Calculator class="text-white" />
 			</button>

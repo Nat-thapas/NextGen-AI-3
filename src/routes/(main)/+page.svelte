@@ -67,10 +67,12 @@
 					case 'success':
 						toast.success(form.message.text);
 						isCreateAnnouncementFormDialogOpen = false;
+						createAnnouncementForm.reset();
 						break;
 					case 'info':
 						toast.info(form.message.text);
 						isCreateAnnouncementFormDialogOpen = false;
+						createAnnouncementForm.reset();
 						break;
 					case 'warning':
 						toast.warning(form.message.text);

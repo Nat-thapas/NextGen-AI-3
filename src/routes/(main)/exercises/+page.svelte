@@ -70,6 +70,7 @@
 	const calculateScoreForm = superForm(data.calculateScoreForm, {
 		validators: zodClient(calculateScoreFormSchema),
 		resetForm: false,
+		invalidateAll: false,
 		delayMs: configConstants.forms.delay,
 		timeoutMs: configConstants.forms.longTimeout,
 		onUpdated({ form }) {
@@ -107,6 +108,7 @@
 	const uploadScoreForm = superForm(data.uploadScoreForm, {
 		validators: zodClient(uploadScoreFormSchema),
 		resetForm: false,
+		invalidateAll: false,
 		delayMs: configConstants.forms.delay,
 		timeoutMs: configConstants.forms.longTimeout,
 		onUpdated({ form }) {
@@ -148,6 +150,11 @@
 		$uploadScoreFormData.examId = exam.id;
 		isCalculateScoreDialogOpen = true;
 	}
+
+	$effect(() => {
+		console.log('cal', $calculateScoreFormData.examId);
+		console.log('upl', $uploadScoreFormData.examId);
+	});
 </script>
 
 <svelte:head>
@@ -368,7 +375,7 @@
 			<ExamCard
 				user={data.user}
 				{exam}
-				onDownloadClick={(): void => showCalculateScoreDialog(exam)}
+				onCalculateClick={(): void => showCalculateScoreDialog(exam)}
 				color={exam.attempted ? 'blue' : 'green'}
 				isExamAvailable={true}
 				timeZone={data.timeZone} />
@@ -382,7 +389,7 @@
 			<ExamCard
 				user={data.user}
 				{exam}
-				onDownloadClick={(): void => showCalculateScoreDialog(exam)}
+				onCalculateClick={(): void => showCalculateScoreDialog(exam)}
 				color="amber"
 				isExamAvailable={isRoleAtLeast(data.user?.role, roles.teacher)}
 				timeZone={data.timeZone} />
@@ -396,7 +403,7 @@
 			<ExamCard
 				user={data.user}
 				{exam}
-				onDownloadClick={(): void => showCalculateScoreDialog(exam)}
+				onCalculateClick={(): void => showCalculateScoreDialog(exam)}
 				color="gray"
 				isExamAvailable={isRoleAtLeast(data.user?.role, roles.teacher)}
 				timeZone={data.timeZone} />
@@ -410,7 +417,7 @@
 			<ExamCard
 				user={data.user}
 				{exam}
-				onDownloadClick={(): void => showCalculateScoreDialog(exam)}
+				onCalculateClick={(): void => showCalculateScoreDialog(exam)}
 				color="red"
 				isExamAvailable={isRoleAtLeast(data.user?.role, roles.teacher)}
 				timeZone={data.timeZone} />
