@@ -33,31 +33,31 @@
 		class:bg-amber-500={color === 'amber'}
 		class:bg-gray-500={color === 'gray'}
 		class:bg-rose-500={color === 'red'}
-		class="h-28 w-3 rounded-l-xl">
+		class="h-28 w-2 rounded-l-xl md:w-3">
 	</div>
-	<div class="flex w-36 flex-col items-center justify-center gap-1">
+	<div class="flex w-24 flex-col items-center justify-center gap-1 md:w-36">
 		<span>Due</span>
-		<span class="text-lg font-semibold text-primary-foreground">
+		<span class="text-sm font-semibold text-primary-foreground md:text-lg">
 			{formatDate(exam.closeAt, { locale: 'en-GB', timeZone })}
 		</span>
-		<span class="text-primary-foreground">
+		<span class="text-sm text-primary-foreground md:text-base">
 			{formatTime(exam.closeAt, { locale: 'en-GB', timeZone })}
 		</span>
 	</div>
 	<div class="my-2 h-24 w-0.5 bg-primary"></div>
 	<div class="flex w-0 flex-grow flex-col justify-center gap-1 px-4 py-2">
 		<span
-			class="block overflow-hidden text-ellipsis text-nowrap text-lg font-semibold text-primary-foreground">
+			class="block overflow-hidden text-ellipsis text-nowrap font-semibold text-primary-foreground md:text-lg">
 			{exam.title}
 		</span>
-		<span class="block overflow-hidden text-ellipsis text-nowrap text-lg">
+		<span class="block overflow-hidden text-ellipsis text-nowrap md:text-lg">
 			{exam.description}
 		</span>
-		<span class="block overflow-hidden text-ellipsis text-nowrap">
-			Begins at: {formatDateTime(exam.openAt, { locale: 'en-GB', timeZone })}
+		<span class="block overflow-hidden text-ellipsis text-nowrap text-sm md:text-base">
+			Open: {formatDateTime(exam.openAt, { locale: 'en-GB', timeZone })}
 		</span>
 	</div>
-	<div class="mr-4 flex h-28 w-16 flex-col items-center justify-center gap-2">
+	<div class="mr-4 flex h-28 w-8 flex-col items-center justify-center gap-2 md:w-16">
 		{#if isRoleAtLeast(user?.role, roles.teacher)}
 			<button
 				onclick={onCalculateClick}

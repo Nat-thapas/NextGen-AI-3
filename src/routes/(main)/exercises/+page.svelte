@@ -156,7 +156,7 @@
 	<title>CE Next Gen AI - Exercises</title>
 </svelte:head>
 
-<div class="mx-auto mt-6 max-w-7xl px-16">
+<div class="mx-auto mt-6 max-w-7xl px-4 md:px-16">
 	<div class="mb-6 flex items-center justify-center gap-4">
 		{#if isRoleAtLeast(data.user?.role, roles.teacher)}
 			<Dialog.Root bind:open={isCreateExamDialogOpen}>
@@ -363,9 +363,9 @@
 				</Dialog.Content>
 			</Dialog.Root>
 		{/if}
-		<h1 class="text-center text-5xl font-semibold">Exercises</h1>
+		<h1 class="text-center text-3xl font-semibold md:text-5xl">Exercises</h1>
 	</div>
-	<h2 class="mb-2 text-3xl font-semibold">Available</h2>
+	<h2 class="mb-2 text-xl font-semibold md:text-3xl">Available</h2>
 	<div class="mb-8 space-y-4">
 		{#each data.availableExams as exam (exam.id)}
 			<ExamCard
@@ -379,7 +379,7 @@
 			<span class="block w-full text-center">No exercise available</span>
 		{/each}
 	</div>
-	<h2 class="mb-2 text-3xl font-semibold">Upcoming</h2>
+	<h2 class="mb-2 text-xl font-semibold md:text-3xl">Upcoming</h2>
 	<div class="mb-8 space-y-4">
 		{#each data.upcomingExams as exam (exam.id)}
 			<ExamCard
@@ -393,7 +393,7 @@
 			<span class="block w-full text-center">No exercise upcoming</span>
 		{/each}
 	</div>
-	<h2 class="mb-2 text-3xl font-semibold">Completed</h2>
+	<h2 class="mb-2 text-xl font-semibold md:text-3xl">Completed</h2>
 	<div class="mb-8 space-y-4">
 		{#each data.completedExams as exam (exam.id)}
 			<ExamCard
@@ -407,7 +407,7 @@
 			<span class="block w-full text-center">No exercise completed</span>
 		{/each}
 	</div>
-	<h2 class="mb-2 text-3xl font-semibold">Expired</h2>
+	<h2 class="mb-2 text-xl font-semibold md:text-3xl">Expired</h2>
 	<div class="mb-8 space-y-4">
 		{#each data.expiredExams as exam (exam.id)}
 			<ExamCard
