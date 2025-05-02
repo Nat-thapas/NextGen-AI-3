@@ -33,6 +33,12 @@ const getUserByVerificationTokenQuery = db.query.users
 	})
 	.prepare('get_user_by_verification_token');
 
+const getUserByPasswordResetTokenQuery = db.query.users
+	.findFirst({
+		where: eq(users.passwordResetToken, sql.placeholder('passwordResetToken'))
+	})
+	.prepare('get_user_by_password_reset_token');
+
 const updateUserVerificationTokenQuery = db
 	.update(users)
 	.set({
@@ -43,6 +49,17 @@ const updateUserVerificationTokenQuery = db
 	})
 	.where(eq(users.id, sql.placeholder('id')))
 	.prepare('update_user_verification_token');
+
+const updateUserPasswordResetTokenQuery = db
+	.update(users)
+	.set({
+		passwordResetToken: sql.placeholder('passwordResetToken'),
+		passwordResetTokenGeneratedAt: sql`now()`,
+		lastEmailSentAt: sql`now()`,
+		updatedAt: sql`now()`
+	})
+	.where(eq(users.id, sql.placeholder('id')))
+	.prepare('update_user_password_reset_token');
 
 const updateUserProfileQuery = db
 	.update(users)
@@ -118,11 +135,6 @@ export async function createUser(role: string, email: string, verificationToken:
 	return createUserQuery.execute({ role, email, verificationToken });
 }
 
-export async function updateUserVerificationToken(id: string, verificationToken: string) {
-	id = suidToUuid(id);
-	return updateUserVerificationTokenQuery.execute({ id, verificationToken });
-}
-
 export async function getUser(id: string) {
 	id = suidToUuid(id);
 	return getUserQuery.execute({ id });
@@ -134,6 +146,20 @@ export async function getUserByEmail(email: string) {
 
 export async function getUserByVerificationToken(verificationToken: string) {
 	return getUserByVerificationTokenQuery.execute({ verificationToken });
+}
+
+export async function getUserByPasswordResetToken(passwordResetToken: string) {
+	return getUserByPasswordResetTokenQuery.execute({ passwordResetToken });
+}
+
+export async function updateUserVerificationToken(id: string, verificationToken: string) {
+	id = suidToUuid(id);
+	return updateUserVerificationTokenQuery.execute({ id, verificationToken });
+}
+
+export async function updateUserPasswordResetToken(id: string, passwordResetToken: string) {
+	id = suidToUuid(id);
+	return updateUserPasswordResetTokenQuery.execute({ id, passwordResetToken });
 }
 
 export async function updateUserProfile(data: {

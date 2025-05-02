@@ -6,7 +6,7 @@ export const createLeaderboardFormSchema = z.object({
 	order: z
 		.string()
 		.min(1, 'Order is required')
-		.regex(/^[0-9]{1,15}$/, 'Order must be an integer')
+		.regex(/^-?[0-9]{1,15}$/, 'Order must be an integer')
 });
 
 export type CreateLeaderboardFormSchema = typeof createLeaderboardFormSchema;
@@ -18,7 +18,7 @@ export const updateLeaderboardFormSchema = z.object({
 	order: z
 		.string()
 		.min(1, 'Order is required')
-		.regex(/^[0-9]{1,15}$/, 'Order must be an integer')
+		.regex(/^-?[0-9]{1,15}$/, 'Order must be an integer')
 });
 
 export type UpdateLeaderboardFormSchema = typeof updateLeaderboardFormSchema;

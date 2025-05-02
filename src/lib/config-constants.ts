@@ -22,7 +22,9 @@ export const configConstants = {
 		emailCooldown: 900, // seconds
 		registrationLinkTimeout: 900, // seconds: from email sent to clicking button
 		registrationSetPasswordTimeout: 1200, // seconds: from email sent to password submit
-		registrationUpdateProfileTimeout: 3600 // seconds: from email sent to profile update
+		registrationUpdateProfileTimeout: 3600, // seconds: from email sent to profile update
+		passwordResetLinkTimeout: 900, // seconds: from email sent to clicking button
+		passwordResetResetTimeout: 1200 // seconds: from email sent to password submit
 	},
 	sessions: {
 		tokenEntropy: 256
