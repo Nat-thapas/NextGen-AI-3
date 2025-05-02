@@ -85,6 +85,7 @@
 		"argon2": "^0.43.0",
 		"pg": "^8.15.6",
 		"pg-native": "^3.4.5",
+		"sharp": "^0.34.1",
 		"unzipper": "^0.12.3"
 	},
 	"pnpm": {
@@ -95,7 +96,8 @@
 		"onlyBuiltDependencies": [
 			"argon2",
 			"esbuild",
-			"libpq"
+			"libpq",
+			"sharp"
 		]
 	}
 }

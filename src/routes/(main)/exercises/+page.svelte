@@ -150,11 +150,6 @@
 		$uploadScoreFormData.examId = exam.id;
 		isCalculateScoreDialogOpen = true;
 	}
-
-	$effect(() => {
-		console.log('cal', $calculateScoreFormData.examId);
-		console.log('upl', $uploadScoreFormData.examId);
-	});
 </script>
 
 <svelte:head>
@@ -309,6 +304,7 @@
 							</Form.Button>
 							<a
 								href={`${base}/api/exams/${$calculateScoreFormData.examId}/score.xlsx`}
+								download="score.xlsx"
 								class="button-gradient flex h-10 w-0 flex-grow items-center justify-center gap-2 rounded-xl px-4 text-lg font-semibold text-white drop-shadow-lg">
 								Download
 							</a>

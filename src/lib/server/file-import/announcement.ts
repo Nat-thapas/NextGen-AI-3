@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import { join } from 'node:path';
 
 import mimeTypes from 'mime-types';
+import sharp from 'sharp';
 import unzipper from 'unzipper';
 
 import { base } from '$app/paths';
@@ -34,18 +35,40 @@ export async function importAnnouncement(title: string, file: File): Promise<voi
 				}
 				markdown = (await compressed.buffer()).toString();
 			} else {
-				const mimeType = mimeTypes.lookup(compressed.path) || 'application/octet-stream';
-				const extension = getExtension(compressed.path, mimeType);
+				let buffer = await compressed.buffer();
+				let size = buffer.length;
+				let mimeType = mimeTypes.lookup(compressed.path) || 'application/octet-stream';
+				let extension = getExtension(compressed.path, mimeType);
+
+				if (
+					[
+						'image/bmp',
+						'image/vnd.microsoft.icon',
+						'image/jpeg',
+						'image/png',
+						'image/tiff',
+						'image/webp'
+					].includes(mimeType)
+				) {
+					try {
+						buffer = await sharp(buffer, {
+							autoOrient: true
+						})
+							.avif({ quality: 75, effort: 7, chromaSubsampling: '4:4:4' })
+							.toBuffer();
+						size = buffer.length;
+						mimeType = 'image/avif';
+						extension = '.avif';
+					} catch {} // eslint-disable-line no-empty
+				}
+
 				const file = await createFileReturning({
-					size: compressed.uncompressedSize,
+					size,
 					mimeType,
 					extension,
 					referenceId: id
 				});
-				await fs.writeFile(
-					join(env.FILE_STORAGE_PATH, file.id + file.extension),
-					compressed.stream()
-				);
+				await fs.writeFile(join(env.FILE_STORAGE_PATH, file.id + file.extension), buffer);
 				assets[compressed.path] = `${base}/api/files/${file.id + file.extension}`;
 			}
 		}

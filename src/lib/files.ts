@@ -13,7 +13,7 @@ export function getExtension(name: string, mimeType: string): string {
 		}
 	}
 
-	return '.' + mimeTypes.extension(mimeType) || '.dat';
+	return '.' + (mimeTypes.extension(mimeType) || 'dat');
 }
 
 export function mimeTypesToExtensions(mimes?: string | null): string {

@@ -269,14 +269,11 @@
 						if (errors instanceof Array) {
 							toast.error(errors.join(', '));
 						} else if (errors instanceof Object) {
-							console.log(errors);
 							const errs: string[] = [];
 							for (const [index, value] of Object.entries(errors)) {
-								console.log(index, value);
 								// @ts-expect-error Value is string[]
 								errs.push(`${index}: ${value.join(', ')}`);
 							}
-							console.log(errs);
 							toast.error(errs.join(', '));
 						}
 					} catch {

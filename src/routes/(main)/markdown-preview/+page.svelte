@@ -112,7 +112,6 @@
 			const savedRenderThrottlingEnabled = localStorage.getItem(
 				'markdown-preview-render-throttling'
 			);
-			console.log(savedRenderThrottlingEnabled);
 			if (savedRenderThrottlingEnabled !== null)
 				renderThrottlingEnabled = savedRenderThrottlingEnabled === 'true';
 		} catch (err) {

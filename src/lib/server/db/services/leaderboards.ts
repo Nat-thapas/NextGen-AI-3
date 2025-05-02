@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, or, sql } from 'drizzle-orm';
 
+import { roles } from '$lib/enums';
 import { db } from '$lib/server/db';
 import { leaderboards, leaderboardsToExams, submissions, users } from '$lib/server/db/schema';
 
@@ -35,7 +36,12 @@ const getLeaderboardScoresQuery = db
 	.innerJoin(leaderboardsToExams, eq(leaderboardsToExams.leaderboardId, leaderboards.id))
 	.innerJoin(submissions, eq(submissions.examId, leaderboardsToExams.examId))
 	.innerJoin(users, eq(users.id, submissions.userId))
-	.where(eq(leaderboards.id, sql.placeholder('id')))
+	.where(
+		and(
+			eq(leaderboards.id, sql.placeholder('id')),
+			or(eq(users.role, roles.registrant), eq(users.role, roles.student))
+		)
+	)
 	.groupBy(users.id)
 	.orderBy(desc(sql`score`))
 	.limit(sql.placeholder('limit'))
