@@ -19,6 +19,9 @@ importers:
       argon2:
         specifier: ^0.43.0
         version: 0.43.0
+      difflib:
+        specifier: ^0.2.4
+        version: 0.2.4
       node-cron:
         specifier: ^3.0.3
         version: 3.0.3
@@ -107,9 +110,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      difflib:
-        specifier: ^0.2.4
-        version: 0.2.4
       drizzle-kit:
         specifier: 0.31.0
         version: 0.31.0

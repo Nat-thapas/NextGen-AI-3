@@ -26,7 +26,7 @@ COPY . ./
 RUN pnpm run build
 
 
-FROM gcr.io/distroless/nodejs22-debian12:nonroot AS prod
+FROM gcr.io/distroless/nodejs22-debian12 AS prod
 
 WORKDIR /app
 

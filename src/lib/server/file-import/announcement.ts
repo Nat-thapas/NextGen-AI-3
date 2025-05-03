@@ -8,6 +8,7 @@ import unzipper from 'unzipper';
 import { base } from '$app/paths';
 import { env } from '$env/dynamic/private';
 
+import { configConstants } from '$lib/config-constants';
 import { getExtension } from '$lib/files';
 import { renderMarkdown } from '$lib/markdown';
 import { createAnnouncementWithId } from '$lib/server/db/services/announcements';
@@ -41,6 +42,7 @@ export async function importAnnouncement(title: string, file: File): Promise<voi
 				let extension = getExtension(compressed.path, mimeType);
 
 				if (
+					configConstants.assets.enableImageOptimization &&
 					[
 						'image/bmp',
 						'image/vnd.microsoft.icon',

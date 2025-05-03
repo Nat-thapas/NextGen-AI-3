@@ -46,5 +46,8 @@ export const configConstants = {
 	},
 	announcements: {
 		maxTitleLength: 1024
+	},
+	assets: {
+		enableImageOptimization: false
 	}
 } as const;

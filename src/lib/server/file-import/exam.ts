@@ -85,6 +85,7 @@ export async function importExam(
 				let extension = getExtension(compressed.path, mimeType);
 
 				if (
+					configConstants.assets.enableImageOptimization &&
 					[
 						'image/bmp',
 						'image/vnd.microsoft.icon',
