@@ -19,6 +19,9 @@ importers:
       argon2:
         specifier: ^0.43.0
         version: 0.43.0
+      node-cron:
+        specifier: ^3.0.3
+        version: 3.0.3
       pg:
         specifier: ^8.15.6
         version: 8.15.6(pg-native@3.4.5)
@@ -146,9 +149,6 @@ importers:
       mime-types:
         specifier: ^3.0.1
         version: 3.0.1
-      node-cron:
-        specifier: ^3.0.3
-        version: 3.0.3
       node-xlsx:
         specifier: ^0.24.0
         version: 0.24.0

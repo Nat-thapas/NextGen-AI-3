@@ -5,6 +5,7 @@ services:
     build: .
     container_name: ce-nextgen-ai-2-sveltekit
     volumes:
+      - ./databases/postgres/socket:/var/run/postgresql
       - ./files:/app/files
     ports:
       - 5173:5173
@@ -24,6 +25,7 @@ services:
     image: postgres:17
     container_name: ce-nextgen-ai-2-postgres
     volumes:
+      - ./databases/postgres/socket:/var/run/postgresql
       - ./databases/postgres/data:/var/lib/postgresql/data
       - ./databases/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./databases/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
