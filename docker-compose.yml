@@ -37,8 +37,6 @@ services:
         '-c',
         'hba_file=/etc/postgresql/pg_hba.conf'
       ]
-    expose:
-      - 5432
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-ce-nextgen-ai-2}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
