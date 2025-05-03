@@ -19,7 +19,7 @@
 	}: {
 		user: OwnUserPartial | undefined;
 		exam: Exam;
-		onCalculateClick: () => any;
+		onCalculateClick: () => unknown;
 		color: 'green' | 'blue' | 'amber' | 'gray' | 'red';
 		isExamAvailable: boolean;
 		timeZone: string;

@@ -27,7 +27,6 @@ export const GET: RequestHandler = async ({ params }) => {
 	}
 
 	const path = join(env.FILE_STORAGE_PATH, file.id + file.extension);
-
 	const dispositionInline = shouldDispositionInline(file.mimeType);
 
 	try {

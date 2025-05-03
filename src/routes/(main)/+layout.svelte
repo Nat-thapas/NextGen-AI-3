@@ -1,7 +1,6 @@
 <script lang="ts">
 	import {
 		BookOpen,
-		Component,
 		FileCode,
 		House,
 		LogIn,
@@ -10,10 +9,8 @@
 		NotebookPen,
 		Target,
 		Trophy,
-		User,
-		type IconProps
+		User
 	} from '@lucide/svelte';
-	import Rows_3 from '@lucide/svelte/icons/rows-3';
 	import { onMount } from 'svelte';
 
 	import { enhance } from '$app/forms';

@@ -145,7 +145,7 @@
 
 	let scoreFile = fileProxy(uploadScoreForm, 'file');
 
-	function showCalculateScoreDialog(exam: Exam) {
+	function showCalculateScoreDialog(exam: Exam): void {
 		$calculateScoreFormData.examId = exam.id;
 		$uploadScoreFormData.examId = exam.id;
 		isCalculateScoreDialogOpen = true;

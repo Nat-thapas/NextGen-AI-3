@@ -1,4 +1,3 @@
-import { WrapText } from '@lucide/svelte';
 import xlsx from 'xlsx-js-style';
 
 import { base } from '$app/paths';

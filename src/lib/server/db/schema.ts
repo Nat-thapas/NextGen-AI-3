@@ -138,7 +138,7 @@ export const exams = pgTable(
 	(table) => [index().on(table.openAt, table.closeAt), index().on(table.closeAt)]
 );
 
-export const examsRelation = relations(exams, ({ one, many }) => ({
+export const examsRelation = relations(exams, ({ many }) => ({
 	questions: many(questions),
 	submissions: many(submissions)
 }));

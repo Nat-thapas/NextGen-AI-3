@@ -114,7 +114,7 @@
 		name: string;
 		order: number;
 		exams: { id: string }[];
-	}) {
+	}): void {
 		$updateLeaderboardFormData.id = leaderboard.id;
 		$updateLeaderboardFormData.name = leaderboard.name;
 		$updateLeaderboardFormData.order = leaderboard.order.toString();
@@ -162,7 +162,7 @@
 		delayed: deleteLeaderboardDelayed
 	} = deleteLeaderboardForm;
 
-	function openDeleteLeaderboardDialog(id: string) {
+	function openDeleteLeaderboardDialog(id: string): void {
 		$deleteLeaderboardFormData.id = id;
 		isDeleteLeaderboardDialogOpen = true;
 	}
@@ -387,7 +387,7 @@
 				class="flex items-center gap-2 rounded-full border border-gray-400 px-4 py-2">
 				{#if isRoleAtLeast(data.user?.role, roles.teacher)}
 					<button
-						onclick={(event) => {
+						onclick={(event): void => {
 							event.preventDefault();
 							openUpdateLeaderboardDialog(leaderboard);
 						}}
@@ -395,7 +395,7 @@
 						<Pencil />
 					</button>
 					<button
-						onclick={(event) => {
+						onclick={(event): void => {
 							event.preventDefault();
 							openDeleteLeaderboardDialog(leaderboard.id);
 						}}

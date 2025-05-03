@@ -25,8 +25,16 @@ services:
     container_name: ce-nextgen-ai-2-postgres
     volumes:
       - ./databases/postgres/data:/var/lib/postgresql/data
-      - ./databases/postgres/config.conf:/etc/postgresql/postgresql.conf
-    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+      - ./databases/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./databases/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    command:
+      [
+        'postgres',
+        '-c',
+        'config_file=/etc/postgresql/postgresql.conf',
+        '-c',
+        'hba_file=/etc/postgresql/pg_hba.conf'
+      ]
     expose:
       - 5432
     environment:
