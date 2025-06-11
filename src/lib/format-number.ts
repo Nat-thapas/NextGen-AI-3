@@ -6,8 +6,10 @@ export function formatNumber(
 	digits: number = 3
 ): string {
 	if (num === 0) {
-		return '0';
+		return '0'.concat(space ? " " : "");
 	}
+	const isNegative = num < 0;
+	num = Math.abs(num);
 	if (num > below && num < above) {
 		return num.toLocaleString('en-US', { maximumFractionDigits: digits });
 	}
@@ -37,7 +39,7 @@ export function formatNumber(
 	const trailingZerosRegexp = /\.0+$|(?<=\.[0-9]*[1-9])0+$/;
 	const exponentialTrailingZerosRegexp = /\.0+(?=e)|(?<=\.[0-9]*[1-9])0+(?=e)/;
 	const item = lookup.findLast((item) => num >= item.value && num < item.value * 1e3);
-	return item
+	return (isNegative ? '-' : '') + (item
 		? (num / item.value)
 				.toFixed(digits)
 				.replace(trailingZerosRegexp, '')
@@ -45,7 +47,7 @@ export function formatNumber(
 		: num
 				.toExponential(digits)
 				.replace(exponentialTrailingZerosRegexp, '')
-				.concat(space ? ' ' : '');
+				.concat(space ? ' ' : ''));
 }
 
 export function formatNumberOptional(
@@ -69,8 +71,10 @@ export function formatBinary(
 	digits: number = 3
 ): string {
 	if (num === 0) {
-		return '0';
+		return '0'.concat(space ? " " : "");
 	}
+	const isNegative = num < 0;
+	num = Math.abs(num);
 	if (num > below && num < above) {
 		return num.toLocaleString('en-US', { maximumFractionDigits: digits });
 	}
@@ -100,7 +104,7 @@ export function formatBinary(
 	const trailingZerosRegexp = /\.0+$|(?<=\.[0-9]*[1-9])0+$/;
 	const exponentialTrailingZerosRegexp = /\.0+(?=e)|(?<=\.[0-9]*[1-9])0+(?=e)/;
 	const item = lookup.findLast((item) => num >= item.value && num < item.value * 1024);
-	return item
+	return (isNegative ? '-' : '') + (item
 		? (num / item.value)
 				.toFixed(digits)
 				.replace(trailingZerosRegexp, '')
@@ -108,7 +112,7 @@ export function formatBinary(
 		: num
 				.toExponential(digits)
 				.replace(exponentialTrailingZerosRegexp, '')
-				.concat(space ? ' ' : '');
+				.concat(space ? ' ' : ''));
 }
 
 export function formatBinaryOptional(
