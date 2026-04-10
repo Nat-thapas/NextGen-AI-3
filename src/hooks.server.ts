@@ -39,6 +39,18 @@ export const init: ServerInit = async () => {
 		timezone: 'UTC',
 		runOnInit: true
 	});
+
+	process.on('sveltekit:shutdown', async (reason) => {
+		console.log(`Shutting down server, reason: ${reason}`);
+
+		if (env.SOCKET_PATH) {
+			try {
+				await fs.promises.unlink(env.SOCKET_PATH);
+			} catch {} // eslint-disable-line no-empty
+		}
+
+		await db.$client.end();
+	});
 };
 
 function isRouteProtected(route: string | null): boolean {
