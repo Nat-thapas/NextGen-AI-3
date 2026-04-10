@@ -252,7 +252,7 @@
 									<Input
 										{...props}
 										bind:value={$formData.schoolName}
-										placeholder="เตรียมอุดมศึกษา"
+										placeholder="ลาดกระบังวิทยา"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
