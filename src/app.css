@@ -4,7 +4,7 @@
 
 @layer base {
 	:root {
-		--background: 280 100% 98%;
+		--background: 210 80% 98%;
 		--foreground: 0 0% 3.9%;
 		--muted: 0 0% 96.1%;
 		--muted-foreground: 0 0% 45.1%;
@@ -14,12 +14,12 @@
 		--card-foreground: 0 0% 3.9%;
 		--border: 0 0% 89.8%;
 		--input: 0 0% 89.8%;
-		--primary: 278 100% 95%;
-		--primary-foreground: 261 50% 39%;
-		--secondary: 278 100% 95%;
-		--secondary-foreground: 271 91% 82%;
-		--accent: 275 88% 74%;
-		--accent-foreground: 268 96% 63%;
+		--primary: 210 100% 95%;
+		--primary-foreground: 220 43% 11%;
+		--secondary: 214 30% 95%;
+		--secondary-foreground: 211 100% 66%;
+		--accent: 211 100% 45%;
+		--accent-foreground: 211 100% 66%;
 		--destructive: 0 72.2% 50.6%;
 		--destructive-foreground: 0 0% 98%;
 		--ring: 0 0% 3.9%;
@@ -46,20 +46,24 @@
 	}
 
 	.button-gradient {
-		background: linear-gradient(210deg, #ffd0f0 -13.25%, #9a46fb 99.85%);
+		background: linear-gradient(90deg, #006FFB 0%, #007AFF 100%);
 	}
 
 	.title-gradient {
-		background: linear-gradient(90deg, #9a46fb 0%, #e4cafe 100%);
+		background: linear-gradient(90deg, #00438C 0%, #006FFB 100%);
 		background-clip: text;
 		-webkit-background-clip: text;
 		color: transparent;
 	}
 
 	.text-gradient {
-		background: linear-gradient(90deg, #cf8ef5 0%, #bc80fc 100%);
+		background: linear-gradient(90deg, #00438C 0%, #006FFB 100%);
 		background-clip: text;
 		-webkit-background-clip: text;
 		color: transparent;
+	}
+
+	.box-shadow {
+		box-shadow: 4px 4px 30px 0 rgba(131, 190, 255, 0.60);
 	}
 }

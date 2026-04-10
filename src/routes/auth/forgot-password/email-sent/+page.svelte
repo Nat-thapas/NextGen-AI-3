@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 
-	import banner from '$lib/images/banner/banner-512.avif';
+	import banner from '$lib/images/banner/banner-512.png';
 	import email from '$lib/images/email.avif';
 	import robots_phone from '$lib/images/robots-phone.avif';
 </script>

@@ -13,7 +13,7 @@
 
 	import { formSchema } from './schema';
 
-	import banner from '$lib/images/banner/banner-512.avif';
+	import banner from '$lib/images/banner/banner-512.png';
 	import robots_phone from '$lib/images/robots-phone.avif';
 
 	let { data } = $props();

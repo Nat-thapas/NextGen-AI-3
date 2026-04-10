@@ -21,7 +21,7 @@
 	import { roles } from '$lib/enums';
 	import { isRoleAtLeast } from '$lib/roles';
 
-	import banner from '$lib/images/banner/banner-512.avif';
+	import banner from '$lib/images/banner/banner-512.png';
 
 	let { data, children } = $props();
 
@@ -88,15 +88,15 @@
 		</div>
 	{:else}
 		<div class="hidden w-48 items-center justify-end gap-4 lg:flex">
-			<a
+			<!-- <a
 				href="{base}/auth/login"
 				class="font-semibold text-secondary-foreground transition-colors hover:text-primary-foreground">
 				Login
-			</a>
+			</a> -->
 			<a
 				href="{base}/auth/register"
 				class="button-gradient rounded-full px-4 py-2 font-semibold text-white drop-shadow-md transition-colors">
-				Register
+				สมัครเข้าร่วมค่าย
 			</a>
 		</div>
 	{/if}

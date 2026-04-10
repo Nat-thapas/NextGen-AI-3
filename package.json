@@ -77,15 +77,14 @@
 		"vite": "~6.3.3",
 		"vitest": "~3.1.2",
 		"xlsx-js-style": "~1.2.0",
-		"zod": "~3.24.3"
+		"zod": "^3.25.0"
 	},
 	"dependencies": {
 		"argon2": "~0.43.0",
 		"difflib": "~0.2.4",
 		"node-cron": "~3.0.3",
 		"pg": "~8.15.6",
-		"pg-native": "~3.4.5",
-		"sharp": "~0.34.1",
+		"sharp": "^0.34.5",
 		"unzipper": "~0.12.3"
 	},
 	"pnpm": {
@@ -96,8 +95,7 @@
 		"onlyBuiltDependencies": [
 			"argon2",
 			"esbuild",
-			"libpq",
-			"sharp"
+			"libpq"
 		]
 	}
 }
