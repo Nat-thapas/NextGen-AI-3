@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
@@ -23,11 +26,30 @@ async function pruneSessions(): Promise<void> {
 }
 
 export const init: ServerInit = async () => {
+	if (env.SOCKET_PATH) {
+		process.umask(0);
+		const socketDirectory = path.dirname(env.SOCKET_PATH);
+		if (!fs.existsSync(socketDirectory)) {
+			fs.mkdirSync(socketDirectory, { recursive: true });
+		}
+	}
 	await migrate(db, { migrationsFolder: 'drizzle' });
 	await db.execute(sql.raw(`ALTER DATABASE "${env.POSTGRES_DB}" SET timezone TO 'UTC'`));
 	cron.schedule('0 21 * * *', pruneSessions, {
 		timezone: 'UTC',
 		runOnInit: true
+	});
+
+	process.on('sveltekit:shutdown', async (reason) => {
+		console.log(`Shutting down server, reason: ${reason}`);
+
+		if (env.SOCKET_PATH) {
+			try {
+				await fs.promises.unlink(env.SOCKET_PATH);
+			} catch {} // eslint-disable-line no-empty
+		}
+
+		await db.$client.end();
 	});
 };
 
@@ -43,6 +65,10 @@ function isRouteBypassed(route: string | null): boolean {
 	if (route === null) return true;
 	if (route.startsWith('/api/(public)')) return true;
 	return false;
+}
+
+function isRouteApi(route: string | null): boolean {
+	return route?.startsWith('/api') ?? false;
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -86,20 +112,37 @@ export const handle: Handle = async ({ event, resolve }) => {
 				throw redirect(
 					303,
 					setToastParams(
-						`${base}/auth/login?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
+						`${base}/?next=${encodeURIComponent(event.url.pathname + event.url.search)}`,
 						'Your session have expired',
 						'Please login again to access the page.',
-						'warning'
+						'error'
 					)
 				);
 			}
 			throw redirect(
 				303,
 				setToastParams(
-					`${base}/auth/login?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
+					`${base}/?next=${encodeURIComponent(event.url.pathname + event.url.search)}`,
 					'You have to login to access the page',
 					undefined,
-					'warning'
+					'error'
+				)
+			);
+		}
+
+		if (
+			!isRouteApi(event.route.id) &&
+			user &&
+			!user.registered &&
+			event.route.id != '/auth/register'
+		) {
+			throw redirect(
+				303,
+				setToastParams(
+					`${base}/auth/register?next=${encodeURIComponent(event.url.pathname + event.url.search)}`,
+					'Please fill the form to register your account',
+					undefined,
+					'info'
 				)
 			);
 		}

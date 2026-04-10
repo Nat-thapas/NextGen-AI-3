@@ -1,4 +1,4 @@
-import { isNotNull, relations, sql } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
 	boolean,
 	doublePrecision,
@@ -47,47 +47,30 @@ export const questionTypes = pgEnum('question_types', ['choices', 'checkboxes', 
 //   - scale: perform sequence matching to estimate how correct the answer is (warning: this is not very accurate) and give score based on that
 export const scoringTypes = pgEnum('scoring_types', ['exact', 'regex', 'and', 'or', 'scale']);
 
-export const users = pgTable(
-	'users',
-	{
-		id: suid()
-			.default(sql`gen_random_uuid()`)
-			.primaryKey(),
-		role: roles().notNull(),
-		email: text().unique().notNull(),
-		hashedPassword: text(),
-		registrationComplete: boolean().default(false).notNull(),
-		verificationToken: text(),
-		verificationTokenGeneratedAt: timestamp({ precision: 6, withTimezone: true })
-			.default(new Date(0))
-			.notNull(),
-		passwordResetToken: text(),
-		passwordResetTokenGeneratedAt: timestamp({ precision: 6, withTimezone: true })
-			.default(new Date(0))
-			.notNull(),
-		lastEmailSentAt: timestamp({ precision: 6, withTimezone: true }).default(new Date(0)).notNull(),
-		prefix: text(),
-		name: text(),
-		nickname: text(),
-		phoneNumber: text(),
-		schoolName: text(),
-		grade: integer(),
-		transcriptId: suid().references(() => files.id, {
-			onUpdate: 'cascade',
-			onDelete: 'set null'
-		}),
-		addressProvince: text(),
-		addressDistrict: text(),
-		addressSubDistrict: text(),
-		addressPostcode: text(),
-		addressDetail: text(),
-		...timeStamps
-	},
-	(table) => [
-		index().on(table.verificationToken).where(isNotNull(table.verificationToken)),
-		index().on(table.passwordResetToken).where(isNotNull(table.passwordResetToken))
-	]
-);
+export const users = pgTable('users', {
+	id: suid()
+		.default(sql`gen_random_uuid()`)
+		.primaryKey(),
+	role: roles().notNull(),
+	email: text().unique().notNull(),
+	registered: boolean().notNull(),
+	prefix: text(),
+	name: text(),
+	nickname: text(),
+	phoneNumber: text(),
+	schoolName: text(),
+	grade: text(),
+	transcriptId: suid().references(() => files.id, {
+		onUpdate: 'cascade',
+		onDelete: 'set null'
+	}),
+	addressProvince: text(),
+	addressDistrict: text(),
+	addressSubDistrict: text(),
+	addressPostcode: text(),
+	addressDetail: text(),
+	...timeStamps
+});
 
 export const usersRelation = relations(users, ({ one }) => ({
 	transcript: one(files, {

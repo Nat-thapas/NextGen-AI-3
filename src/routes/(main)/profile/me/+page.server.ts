@@ -2,7 +2,6 @@ import fs from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { error } from '@sveltejs/kit';
-import argon2 from 'argon2';
 import { fail, message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
@@ -12,13 +11,12 @@ import { getExtension } from '$lib/files';
 import { createFileReturning, deleteFile, getFile } from '$lib/server/db/services/files';
 import {
 	getUser,
-	updateUserPassword,
 	updateUserProfile,
 	updateUserProfileWithTranscript
 } from '$lib/server/db/services/users';
 
 import type { Actions, PageServerLoad } from './$types';
-import { changePasswordFormSchema, updateProfileFormSchema } from './schema';
+import { updateProfileFormSchema } from './schema';
 
 export const load: PageServerLoad = async (event) => {
 	const eventUser = event.locals.user;
@@ -53,7 +51,6 @@ export const load: PageServerLoad = async (event) => {
 			zod(updateProfileFormSchema),
 			{ errors: false }
 		),
-		changePasswordForm: await superValidate(zod(changePasswordFormSchema)),
 		transcript: user.transcriptId ? await getFile(user.transcriptId) : undefined
 	};
 };
@@ -119,7 +116,7 @@ export const actions: Actions = {
 				nickname: form.data.nickname,
 				phoneNumber: form.data.phoneNumber,
 				schoolName: form.data.schoolName,
-				grade: Number(form.data.grade),
+				grade: form.data.grade,
 				addressProvince: form.data.addressProvince,
 				addressDistrict: form.data.addressDistrict,
 				addressSubDistrict: form.data.addressSubDistrict,
@@ -131,33 +128,6 @@ export const actions: Actions = {
 		return message(form, {
 			type: 'success',
 			text: 'Profile updated successfully'
-		});
-	},
-
-	'change-password': async (event) => {
-		const form = await superValidate(event.request, zod(changePasswordFormSchema));
-		if (!form.valid) return fail(400, { form });
-
-		const user = event.locals.user;
-
-		if (!user) {
-			error(401, {
-				message: 'You have to be logged in to access this page'
-			});
-		}
-
-		if (!(await argon2.verify(user.hashedPassword!, form.data.currentPassword))) {
-			form.errors.currentPassword = ['Invalid password'];
-			return fail(400, { form });
-		}
-
-		const hashedPassword = await argon2.hash(form.data.newPassword);
-
-		await updateUserPassword(user.id, hashedPassword);
-
-		return message(form, {
-			type: 'success',
-			text: 'Password updated successfully'
 		});
 	}
 };

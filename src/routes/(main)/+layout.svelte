@@ -1,16 +1,5 @@
 <script lang="ts">
-	import {
-		BookOpen,
-		FileCode,
-		House,
-		LogIn,
-		LogOut,
-		Menu,
-		NotebookPen,
-		Target,
-		Trophy,
-		User
-	} from '@lucide/svelte';
+	import { BookOpen, FileCode, House, LogIn, LogOut, Menu, User } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 
 	import { enhance } from '$app/forms';
@@ -28,9 +17,9 @@
 	let pathname = $derived(page.url.pathname);
 
 	const navs: [string, string, typeof BookOpen][] = [
-		[`${base}/exercises`, 'Exercises', BookOpen],
-		[`${base}/challenges`, 'Challenges', Target],
-		[`${base}/leaderboards`, 'Leaderboards', Trophy]
+		// [`${base}/exercises`, 'Exercises', BookOpen],
+		// [`${base}/challenges`, 'Challenges', Target],
+		// [`${base}/leaderboards`, 'Leaderboards', Trophy]
 	];
 
 	onMount(() => {
@@ -89,14 +78,9 @@
 	{:else}
 		<div class="hidden w-48 items-center justify-end gap-4 lg:flex">
 			<a
-				href="{base}/auth/login"
-				class="font-semibold text-secondary-foreground transition-colors hover:text-primary-foreground">
-				Login
-			</a>
-			<a
-				href="{base}/auth/register"
+				href="{base}/auth/oauth/google?next={page.url.searchParams.get('next') ?? `${base}/`}"
 				class="button-gradient rounded-full px-4 py-2 font-semibold text-white drop-shadow-md transition-colors">
-				Register
+				Register / Login
 			</a>
 		</div>
 	{/if}
@@ -175,18 +159,10 @@
 					<DropdownMenu.Separator />
 					<DropdownMenu.Item class="p-0 hover:bg-secondary">
 						<a
-							href="{base}/auth/login"
+							href="{base}/auth/oauth/google?next={page.url.searchParams.get('next') ?? `${base}/`}"
 							class="flex w-full items-center gap-2 p-2 text-base font-semibold text-primary-foreground transition-colors">
 							<LogIn />
-							Login
-						</a>
-					</DropdownMenu.Item>
-					<DropdownMenu.Item class="p-0 hover:bg-secondary">
-						<a
-							href="{base}/auth/register"
-							class="flex w-full items-center gap-2 p-2 text-base font-semibold text-primary-foreground transition-colors">
-							<NotebookPen />
-							Register
+							Register / Login
 						</a>
 					</DropdownMenu.Item>
 				</DropdownMenu.Group>

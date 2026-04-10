@@ -124,7 +124,7 @@
 		</p>
 		{#if data.user === undefined}
 			<a
-				href="{base}/auth/register"
+				href="{base}/auth/oauth/google?next={page.url.searchParams.get('next') ?? `${base}/`}"
 				class="button-gradient rounded-full px-6 py-2 text-xl font-semibold text-white drop-shadow-md transition-colors">
 				Join Us
 			</a>
@@ -449,7 +449,7 @@
 			<a href="https://kmitl.ac.th/" class="h-32 w-32">
 				<img src={kmitl} width="256" height="257" alt="KMITL logo" class="h-32 w-32" />
 			</a>
-			<a href="https://ce.kmitl.ac.th/" class="h-32 w-32">
+			<a href="https://www.ce.kmitl.ac.th/" class="h-32 w-32">
 				<img src={ce} width="256" height="257" alt="CE-KMITL logo" class="h-32 w-32" />
 			</a>
 		</div>

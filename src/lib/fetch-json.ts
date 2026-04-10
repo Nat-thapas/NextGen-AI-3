@@ -1,8 +1,32 @@
-import { HttpMethod } from '$lib/enums';
+import { getErrorMessage } from '$lib/error';
 import { setSearchParams, type ParamValue } from '$lib/url';
+
+type HttpMethod =
+	| 'GET'
+	| 'HEAD'
+	| 'POST'
+	| 'PUT'
+	| 'DELETE'
+	| 'CONNECT'
+	| 'OPTIONS'
+	| 'TRACE'
+	| 'PATCH';
+
+const HttpMethod = {
+	GET: 'GET',
+	HEAD: 'HEAD',
+	POST: 'POST',
+	PUT: 'PUT',
+	DELETE: 'DELETE',
+	CONNECT: 'CONNECT',
+	OPTIONS: 'OPTIONS',
+	TRACE: 'TRACE',
+	PATCH: 'PATCH'
+} as const;
 
 export class ResponseError {
 	status: number;
+	error: unknown;
 	message?: string | string[];
 	errors?: Record<
 		string,
@@ -11,6 +35,7 @@ export class ResponseError {
 
 	constructor(
 		status: number,
+		error?: unknown,
 		message?: string | string[],
 		errors?: Record<
 			string,
@@ -18,22 +43,20 @@ export class ResponseError {
 		>[]
 	) {
 		this.status = status;
+		this.error = error;
 		this.message = message ?? 'Unknown error';
 		this.errors = errors ?? [];
 	}
 }
 
 export class FetchJson {
-	private readonly fetch: (
-		input: RequestInfo | URL,
-		init?: RequestInit | undefined
-	) => Promise<Response>;
+	private readonly fetch: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 	private readonly baseUrl: string;
 	private bearerToken: string | null;
 
 	constructor(
-		fetch: (input: RequestInfo | URL, init?: RequestInit | undefined) => Promise<Response>,
-		baseUrl: string,
+		fetch: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>,
+		baseUrl: string = '',
 		bearerToken: string | null = null
 	) {
 		this.fetch = fetch;
@@ -62,7 +85,7 @@ export class FetchJson {
 	}
 
 	private normalizePath(path: string): string {
-		if (!path.startsWith('/')) {
+		if (this.baseUrl && !path.startsWith('/')) {
 			path = '/' + path;
 		}
 		return path;
@@ -75,7 +98,7 @@ export class FetchJson {
 	): Promise<T> {
 		path = this.normalizePath(path);
 
-		const url = setSearchParams(path, params);
+		const url = setSearchParams(this.baseUrl + path, params);
 
 		const response = await this.fetch(url, {
 			headers: this.addHeaders(headers)
@@ -93,23 +116,26 @@ export class FetchJson {
 		}
 
 		if (!response.ok) {
-			throw new ResponseError(response.status, responseData?.message, responseData?.errors);
+			throw new ResponseError(response.status, responseData, getErrorMessage(responseData));
 		}
 
 		return responseData;
 	}
 
 	private async postLike<T>(
-		method: HttpMethod.POST | HttpMethod.PUT | HttpMethod.PATCH | HttpMethod.DELETE,
+		method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
 		path: string,
-		body: Record<string, unknown> = {},
+		body: string | Record<string, string> = {},
 		headers: Record<string, string> = {}
 	): Promise<T> {
 		path = this.normalizePath(path);
 
 		const url = this.baseUrl + path;
 
-		const isBodyEmpty = Object.keys(body).length === 0 && body.constructor === Object;
+		const isBodyEmpty =
+			typeof body === 'string' || body instanceof String
+				? !!body
+				: Object.keys(body).length === 0 && body.constructor === Object;
 
 		const fetchInit: RequestInit = {
 			method
@@ -117,11 +143,19 @@ export class FetchJson {
 
 		if (!isBodyEmpty) {
 			fetchInit.headers = this.addHeaders({
-				'Content-Type': 'application/json',
+				'Content-Type': 'application/json; charset=utf-8',
 				...headers
 			});
 
-			fetchInit.body = JSON.stringify(body);
+			if (fetchInit.headers['Content-Type'].startsWith('application/json')) {
+				fetchInit.body = JSON.stringify(body);
+			} else if (
+				fetchInit.headers['Content-Type'].startsWith('application/x-www-form-urlencoded')
+			) {
+				fetchInit.body = new URLSearchParams(body);
+			} else {
+				fetchInit.body = String(body);
+			}
 		} else {
 			fetchInit.headers = this.addHeaders(headers);
 		}
@@ -140,7 +174,7 @@ export class FetchJson {
 		}
 
 		if (!response.ok) {
-			throw new ResponseError(response.status, responseData?.message, responseData?.errors);
+			throw new ResponseError(response.status, responseData, getErrorMessage(responseData));
 		}
 
 		return responseData;
@@ -148,7 +182,7 @@ export class FetchJson {
 
 	async post<T>(
 		path: string,
-		body: Record<string, unknown> = {},
+		body: Record<string, string> = {},
 		headers: Record<string, string> = {}
 	): Promise<T> {
 		return this.postLike<T>(HttpMethod.POST, path, body, headers);
@@ -156,7 +190,7 @@ export class FetchJson {
 
 	async put<T>(
 		path: string,
-		body: Record<string, unknown> = {},
+		body: Record<string, string> = {},
 		headers: Record<string, string> = {}
 	): Promise<T> {
 		return this.postLike<T>(HttpMethod.PUT, path, body, headers);
@@ -164,7 +198,7 @@ export class FetchJson {
 
 	async patch<T>(
 		path: string,
-		body: Record<string, unknown> = {},
+		body: Record<string, string> = {},
 		headers: Record<string, string> = {}
 	): Promise<T> {
 		return this.postLike<T>(HttpMethod.PATCH, path, body, headers);

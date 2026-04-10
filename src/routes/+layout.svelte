@@ -66,6 +66,6 @@
 	});
 </script>
 
-<Toaster theme="light" duration={5000} richColors closeButton />
+<Toaster theme="light" duration={5000} position="top-center" richColors closeButton />
 
 {@render children()}

@@ -42,9 +42,9 @@ const updateSessionWithUserReturningQuery = db
 			id: users.id,
 			role: users.role,
 			email: users.email,
+			registered: users.registered,
 			prefix: users.prefix,
 			name: users.name,
-			hashedPassword: users.hashedPassword,
 			transcriptId: users.transcriptId
 		}
 	})
