@@ -21,10 +21,10 @@ export const formSchema = z.object({
 		)
 		.regex(
 			/^[ a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
-			'Name must only contains English or Thai character'
+			'Name must only contain English or Thai character'
 		)
 		.refine((val) => !/^ /.test(val) && !/ $/.test(val), {
-			message: 'Name must not contains space at beginning or end'
+			message: 'Name must not contain space at beginning or end'
 		}),
 	nickname: z
 		.string()
@@ -35,10 +35,10 @@ export const formSchema = z.object({
 		)
 		.regex(
 			/^[ a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
-			'Nickname must only contains English or Thai character'
+			'Nickname must only contain English or Thai character'
 		)
 		.refine((val) => !/^ /.test(val) && !/ $/.test(val), {
-			message: 'Nickname must not contains space at beginning or end'
+			message: 'Nickname must not contain space at beginning or end'
 		}),
 	phoneNumber: z
 		.string()
@@ -56,10 +56,10 @@ export const formSchema = z.object({
 		)
 		.regex(
 			/^[ a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
-			'School name must only contains English or Thai character'
+			'School name must only contain English or Thai character'
 		)
 		.refine((val) => !/^ /.test(val) && !/ $/.test(val), {
-			message: 'School name must not contains space at beginning or end'
+			message: 'School name must not contain space at beginning or end'
 		}),
 	grade: z.string().min(1, 'Education is required'),
 	transcript: z
@@ -75,7 +75,7 @@ export const formSchema = z.object({
 		)
 		.regex(
 			/^[a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
-			'Province must only contains English or Thai character'
+			'Province must only contain English or Thai character'
 		),
 	addressDistrict: z
 		.string()
@@ -86,7 +86,7 @@ export const formSchema = z.object({
 		)
 		.regex(
 			/^[a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
-			'Distric must only contains English or Thai character'
+			'Distric must only contain English or Thai character'
 		),
 	addressSubDistrict: z
 		.string()
@@ -97,7 +97,7 @@ export const formSchema = z.object({
 		)
 		.regex(
 			/^[a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
-			'Sub-district must only contains English or Thai character'
+			'Sub-district must only contain English or Thai character'
 		),
 	addressPostcode: z
 		.string()
@@ -115,10 +115,10 @@ export const formSchema = z.object({
 		)
 		.regex(
 			/^[ a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
-			'Detail must only contains English or Thai character'
+			'Detail must only contain English or Thai character'
 		)
 		.refine((val) => !/^ /.test(val) && !/ $/.test(val), {
-			message: 'Detail must not contains space at beginning or end'
+			message: 'Detail must not contain space at beginning or end'
 		})
 });
 
