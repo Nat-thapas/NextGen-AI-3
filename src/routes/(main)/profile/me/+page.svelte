@@ -282,7 +282,7 @@
 							<Form.FieldErrors />
 						</Form.Field>
 					</div>
-					<div class="w-64 grow px-2 sm:px-4">
+					<div class="w-72 grow px-2 sm:px-4">
 						<Form.Field form={updateProfileForm} name="transcript" class="mb-4 w-full">
 							<Form.Control>
 								{#snippet children({ props })}
