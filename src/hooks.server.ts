@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
@@ -23,6 +26,13 @@ async function pruneSessions(): Promise<void> {
 }
 
 export const init: ServerInit = async () => {
+	if (env.SOCKET_PATH) {
+		process.umask(0);
+		const socketDirectory = path.dirname(env.SOCKET_PATH);
+		if (!fs.existsSync(socketDirectory)) {
+			fs.mkdirSync(socketDirectory, { recursive: true });
+		}
+	}
 	await migrate(db, { migrationsFolder: 'drizzle' });
 	await db.execute(sql.raw(`ALTER DATABASE "${env.POSTGRES_DB}" SET timezone TO 'UTC'`));
 	cron.schedule('0 21 * * *', pruneSessions, {
