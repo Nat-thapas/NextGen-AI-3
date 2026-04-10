@@ -16,14 +16,28 @@ export const updateProfileFormSchema = z.object({
 		.max(
 			configConstants.users.maxNameLength,
 			`Name must be at most ${configConstants.users.maxNameLength} characters long`
-		),
+		)
+		.regex(
+			/^[ a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
+			'Name must only contains English or Thai character'
+		)
+		.refine((val) => !/^ /.test(val) && !/ $/.test(val), {
+			message: 'Name must not contains space at beginning or end'
+		}),
 	nickname: z
 		.string()
 		.min(1, 'Nickname is required')
 		.max(
 			configConstants.users.maxNicknameLength,
 			`Nickname must be at most ${configConstants.users.maxNicknameLength} characters long`
-		),
+		)
+		.regex(
+			/^[ a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
+			'Nickname must only contains English or Thai character'
+		)
+		.refine((val) => !/^ /.test(val) && !/ $/.test(val), {
+			message: 'Nickname must not contains space at beginning or end'
+		}),
 	phoneNumber: z
 		.string()
 		.length(
@@ -37,7 +51,14 @@ export const updateProfileFormSchema = z.object({
 		.max(
 			configConstants.users.maxSchoolNameLength,
 			`School name must be at most ${configConstants.users.maxSchoolNameLength} characters long`
-		),
+		)
+		.regex(
+			/^[ a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
+			'School name must only contains English or Thai character'
+		)
+		.refine((val) => !/^ /.test(val) && !/ $/.test(val), {
+			message: 'School name must not contains space at beginning or end'
+		}),
 	grade: z.string().min(1, 'Grade is required'),
 	transcript: z
 		.instanceof(File, { message: 'Please upload a file' })
@@ -50,6 +71,10 @@ export const updateProfileFormSchema = z.object({
 		.max(
 			configConstants.users.maxAddressProvinceLength,
 			`Province must be at most ${configConstants.users.maxAddressProvinceLength} characters long`
+		)
+		.regex(
+			/^[a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
+			'Province must only contains English or Thai character'
 		),
 	addressDistrict: z
 		.string()
@@ -57,6 +82,10 @@ export const updateProfileFormSchema = z.object({
 		.max(
 			configConstants.users.maxAddressDistrictLength,
 			`District must be at most ${configConstants.users.maxAddressDistrictLength} characters long`
+		)
+		.regex(
+			/^[a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
+			'Distric must only contains English or Thai character'
 		),
 	addressSubDistrict: z
 		.string()
@@ -64,6 +93,10 @@ export const updateProfileFormSchema = z.object({
 		.max(
 			configConstants.users.maxAddressSubDistrictLength,
 			`Sub-district must be at most ${configConstants.users.maxAddressSubDistrictLength} characters long`
+		)
+		.regex(
+			/^[a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
+			'Sub-district must only contains English or Thai character'
 		),
 	addressPostcode: z
 		.string()
@@ -79,6 +112,13 @@ export const updateProfileFormSchema = z.object({
 			configConstants.users.maxAddressDetailLength,
 			`Detail must be at most ${configConstants.users.maxAddressDetailLength} characters long`
 		)
+		.regex(
+			/^[ a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
+			'Detail must only contains English or Thai character'
+		)
+		.refine((val) => !/^ /.test(val) && !/ $/.test(val), {
+			message: 'Detail must not contains space at beginning or end'
+		})
 });
 
 export type UpdateProfileFormSchema = typeof updateProfileFormSchema;

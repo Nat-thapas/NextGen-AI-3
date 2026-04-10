@@ -102,6 +102,7 @@
 									<Input
 										{...props}
 										bind:value={$formData.name}
+										placeholder="สมชาย บุญรอด"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -118,6 +119,7 @@
 									<Input
 										{...props}
 										bind:value={$formData.nickname}
+										placeholder="เขียว"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -132,6 +134,7 @@
 									<Input
 										{...props}
 										bind:value={$formData.phoneNumber}
+										placeholder="0987654321"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -167,6 +170,7 @@
 									<Input
 										{...props}
 										bind:value={$formData.addressDetail}
+										placeholder="39/743 ซอยหัวหิน 102"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -181,6 +185,7 @@
 									<Input
 										{...props}
 										bind:value={$formData.addressSubDistrict}
+										placeholder="หนองแก"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -197,6 +202,7 @@
 									<Input
 										{...props}
 										bind:value={$formData.addressDistrict}
+										placeholder="หัวหิน"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -211,6 +217,7 @@
 									<Input
 										{...props}
 										bind:value={$formData.addressProvince}
+										placeholder="ประจวบคีรีขันธ์"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -225,6 +232,7 @@
 									<Input
 										{...props}
 										bind:value={$formData.addressPostcode}
+										placeholder="77110"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -244,6 +252,7 @@
 									<Input
 										{...props}
 										bind:value={$formData.schoolName}
+										placeholder="เตรียมอุดมศึกษา"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>

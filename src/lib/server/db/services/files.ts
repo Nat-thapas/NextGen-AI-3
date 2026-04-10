@@ -94,6 +94,10 @@ export async function getFile(id: string) {
 	return getFileQuery.execute({ id });
 }
 
+export async function getFileUuid(id: string) {
+	return getFileQuery.execute({ id });
+}
+
 export async function deleteFile(id: string) {
 	id = suidToUuid(id);
 	return deleteFileQuery.execute({ id });

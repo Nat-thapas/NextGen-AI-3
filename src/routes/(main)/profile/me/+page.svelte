@@ -108,6 +108,7 @@
 									<Input
 										{...props}
 										bind:value={$updateProfileFormData.name}
+										placeholder="สมชาย บุญรอด"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -124,6 +125,7 @@
 									<Input
 										{...props}
 										bind:value={$updateProfileFormData.nickname}
+										placeholder="เขียว"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -138,6 +140,7 @@
 									<Input
 										{...props}
 										bind:value={$updateProfileFormData.phoneNumber}
+										placeholder="0987654321"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -164,6 +167,7 @@
 									<Input
 										{...props}
 										bind:value={$updateProfileFormData.addressDetail}
+										placeholder="39/743 ซอยหัวหิน 102"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -178,6 +182,7 @@
 									<Input
 										{...props}
 										bind:value={$updateProfileFormData.addressSubDistrict}
+										placeholder="หนองแก"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -194,6 +199,7 @@
 									<Input
 										{...props}
 										bind:value={$updateProfileFormData.addressDistrict}
+										placeholder="หัวหิน"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -208,6 +214,7 @@
 									<Input
 										{...props}
 										bind:value={$updateProfileFormData.addressProvince}
+										placeholder="ประจวบคีรีขันธ์"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -222,6 +229,7 @@
 									<Input
 										{...props}
 										bind:value={$updateProfileFormData.addressPostcode}
+										placeholder="77110"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -241,6 +249,7 @@
 									<Input
 										{...props}
 										bind:value={$updateProfileFormData.schoolName}
+										placeholder="เตรียมอุดมศึกษา"
 										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
@@ -277,14 +286,15 @@
 						<Form.Field form={updateProfileForm} name="transcript" class="mb-4 w-full">
 							<Form.Control>
 								{#snippet children({ props })}
-									<div class="flex items-center gap-2">
+									<div class="flex items-center justify-between">
 										<Form.Label class="text-lg text-secondary-foreground">Transcript</Form.Label>
 										{#if data.transcript}
 											<a
 												href={`${base}/api/files/${data.transcript.id}/transcript${data.transcript.extension}`}
-												target="_blank">
-												<Download
-													class="text-secondary-foreground transition-colors hover:text-primary-foreground" />
+												target="_blank"
+												class="flex items-center gap-2 text-secondary-foreground hover:text-primary-foreground">
+												<span>View uploaded file</span>
+												<Download class="transition-colors" />
 											</a>
 										{/if}
 									</div>

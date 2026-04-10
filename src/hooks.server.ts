@@ -112,7 +112,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 				throw redirect(
 					303,
 					setToastParams(
-						`${base}/?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
+						`${base}/?next=${encodeURIComponent(event.url.pathname + event.url.search)}`,
 						'Your session have expired',
 						'Please login again to access the page.',
 						'error'
@@ -122,7 +122,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			throw redirect(
 				303,
 				setToastParams(
-					`${base}/?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
+					`${base}/?next=${encodeURIComponent(event.url.pathname + event.url.search)}`,
 					'You have to login to access the page',
 					undefined,
 					'error'
@@ -139,7 +139,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			throw redirect(
 				303,
 				setToastParams(
-					`${base}/auth/register?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
+					`${base}/auth/register?next=${encodeURIComponent(event.url.pathname + event.url.search)}`,
 					'Please fill the form to register your account',
 					undefined,
 					'info'

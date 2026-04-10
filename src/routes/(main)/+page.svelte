@@ -449,7 +449,7 @@
 			<a href="https://kmitl.ac.th/" class="h-32 w-32">
 				<img src={kmitl} width="256" height="257" alt="KMITL logo" class="h-32 w-32" />
 			</a>
-			<a href="https://ce.kmitl.ac.th/" class="h-32 w-32">
+			<a href="https://www.ce.kmitl.ac.th/" class="h-32 w-32">
 				<img src={ce} width="256" height="257" alt="CE-KMITL logo" class="h-32 w-32" />
 			</a>
 		</div>

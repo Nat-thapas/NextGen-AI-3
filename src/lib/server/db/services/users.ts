@@ -119,7 +119,7 @@ export async function updateUserProfile(data: {
 	nickname: string;
 	phoneNumber: string;
 	schoolName: string;
-	grade: number;
+	grade: string;
 	addressProvince: string;
 	addressDistrict: string;
 	addressSubDistrict: string;

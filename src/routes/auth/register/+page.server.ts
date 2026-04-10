@@ -24,7 +24,7 @@ export const load: PageServerLoad = async (event) => {
 		redirect(
 			303,
 			setToastParams(
-				`${base}/?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
+				`${base}/?next=${encodeURIComponent(event.url.pathname + event.url.search)}`,
 				'You have to login to access the page',
 				undefined,
 				'error'
@@ -65,7 +65,7 @@ export const actions: Actions = {
 			redirect(
 				303,
 				setToastParams(
-					`${base}/?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
+					`${base}/?next=${encodeURIComponent(event.url.pathname + event.url.search)}`,
 					'You have to login to access the page',
 					undefined,
 					'error'
