@@ -127,7 +127,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			throw redirect(
 				303,
 				setToastParams(
-					`${base}/auth/register/?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
+					`${base}/auth/register?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
 					'Please fill the form to register your account',
 					undefined,
 					'info'

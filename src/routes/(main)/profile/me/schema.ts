@@ -38,7 +38,7 @@ export const updateProfileFormSchema = z.object({
 			configConstants.users.maxSchoolNameLength,
 			`School name must be at most ${configConstants.users.maxSchoolNameLength} characters long`
 		),
-	grade: z.string().length(1, 'Grade is required'),
+	grade: z.string().min(1, 'Grade is required'),
 	transcript: z
 		.instanceof(File, { message: 'Please upload a file' })
 		.refine((f) => f.size < 10_000_000, 'File size must be at most 10 MB')

@@ -238,7 +238,7 @@
 					<Form.Field form={updateProfileForm} name="grade" class="mb-4 w-full">
 						<Form.Control>
 							{#snippet children({ props })}
-								<Form.Label class="text-lg text-secondary-foreground">Grade</Form.Label>
+								<Form.Label class="text-lg text-secondary-foreground">Education</Form.Label>
 								<Select.Root
 									type="single"
 									bind:value={$updateProfileFormData.grade}
@@ -248,12 +248,11 @@
 										class="rounded-xl border-2 border-secondary-foreground bg-white text-lg font-medium !text-primary-foreground">
 										{$updateProfileFormData.grade
 											? $updateProfileFormData.grade
-											: 'Select your grade'}
+											: 'Select your education'}
 									</Select.Trigger>
 									<Select.Content>
-										<Select.Item value="4" label="4" />
-										<Select.Item value="5" label="5" />
-										<Select.Item value="6" label="6" />
+										<Select.Item value="ม.6" label="ม.6" />
+										<Select.Item value="ปวช." label="ปวช." />
 									</Select.Content>
 								</Select.Root>
 							{/snippet}
