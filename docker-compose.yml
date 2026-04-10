@@ -1,9 +1,9 @@
-name: 'ce-nextgen-ai-2'
+name: 'nextgen-ai-3'
 
 services:
   sveltekit:
     build: .
-    container_name: ce-nextgen-ai-2-sveltekit
+    container_name: nextgen-ai-3-sveltekit
     volumes:
       - ./databases/postgres/socket:/var/run/postgresql
       - ./files:/app/files
@@ -23,7 +23,7 @@ services:
 
   postgres:
     image: postgres:17
-    container_name: ce-nextgen-ai-2-postgres
+    container_name: nextgen-ai-3-postgres
     volumes:
       - ./databases/postgres/socket:/var/run/postgresql
       - ./databases/postgres/data:/var/lib/postgresql/data
@@ -38,9 +38,9 @@ services:
         'hba_file=/etc/postgresql/pg_hba.conf'
       ]
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-ce-nextgen-ai-2}
+      POSTGRES_USER: ${POSTGRES_USER:-nextgen-ai-3}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-      POSTGRES_DB: ${POSTGRES_DB:-ce-nextgen-ai-2}
+      POSTGRES_DB: ${POSTGRES_DB:-nextgen-ai-3}
     shm_size: 4GB
     healthcheck:
       test:
@@ -50,7 +50,7 @@ services:
           '-U',
           '${POSTGRES_USER:-postgres}',
           '-d',
-          '${POSTGRES_DB:-ce-nextgen-ai-2}'
+          '${POSTGRES_DB:-nextgen-ai-3}'
         ]
       start_period: 10s
       start_interval: 1s

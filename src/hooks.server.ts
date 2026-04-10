@@ -45,6 +45,10 @@ function isRouteBypassed(route: string | null): boolean {
 	return false;
 }
 
+function isRouteApi(route: string | null): boolean {
+	return route?.startsWith('/api') ?? false;
+}
+
 export const handle: Handle = async ({ event, resolve }) => {
 	const timeZone = event.cookies.get('time-zone') ?? env.DEFAULT_TIME_ZONE;
 	if (isTimeZoneValid(timeZone)) {
@@ -86,20 +90,37 @@ export const handle: Handle = async ({ event, resolve }) => {
 				throw redirect(
 					303,
 					setToastParams(
-						`${base}/auth/login?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
+						`${base}/?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
 						'Your session have expired',
 						'Please login again to access the page.',
-						'warning'
+						'error'
 					)
 				);
 			}
 			throw redirect(
 				303,
 				setToastParams(
-					`${base}/auth/login?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
+					`${base}/?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
 					'You have to login to access the page',
 					undefined,
-					'warning'
+					'error'
+				)
+			);
+		}
+
+		if (
+			!isRouteApi(event.route.id) &&
+			user &&
+			!user.registered &&
+			event.route.id != '/auth/register'
+		) {
+			throw redirect(
+				303,
+				setToastParams(
+					`${base}/auth/register/?next=${encodeURIComponent(event.url.pathname + event.url.search + event.url.hash)}`,
+					'Please fill the form to register your account',
+					undefined,
+					'info'
 				)
 			);
 		}

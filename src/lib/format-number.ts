@@ -6,7 +6,7 @@ export function formatNumber(
 	digits: number = 3
 ): string {
 	if (num === 0) {
-		return '0'.concat(space ? " " : "");
+		return '0'.concat(space ? ' ' : '');
 	}
 	const isNegative = num < 0;
 	num = Math.abs(num);
@@ -39,15 +39,18 @@ export function formatNumber(
 	const trailingZerosRegexp = /\.0+$|(?<=\.[0-9]*[1-9])0+$/;
 	const exponentialTrailingZerosRegexp = /\.0+(?=e)|(?<=\.[0-9]*[1-9])0+(?=e)/;
 	const item = lookup.findLast((item) => num >= item.value && num < item.value * 1e3);
-	return (isNegative ? '-' : '') + (item
-		? (num / item.value)
-				.toFixed(digits)
-				.replace(trailingZerosRegexp, '')
-				.concat((space ? ' ' : '') + item.symbol)
-		: num
-				.toExponential(digits)
-				.replace(exponentialTrailingZerosRegexp, '')
-				.concat(space ? ' ' : ''));
+	return (
+		(isNegative ? '-' : '') +
+		(item
+			? (num / item.value)
+					.toFixed(digits)
+					.replace(trailingZerosRegexp, '')
+					.concat((space ? ' ' : '') + item.symbol)
+			: num
+					.toExponential(digits)
+					.replace(exponentialTrailingZerosRegexp, '')
+					.concat(space ? ' ' : ''))
+	);
 }
 
 export function formatNumberOptional(
@@ -71,7 +74,7 @@ export function formatBinary(
 	digits: number = 3
 ): string {
 	if (num === 0) {
-		return '0'.concat(space ? " " : "");
+		return '0'.concat(space ? ' ' : '');
 	}
 	const isNegative = num < 0;
 	num = Math.abs(num);
@@ -104,15 +107,18 @@ export function formatBinary(
 	const trailingZerosRegexp = /\.0+$|(?<=\.[0-9]*[1-9])0+$/;
 	const exponentialTrailingZerosRegexp = /\.0+(?=e)|(?<=\.[0-9]*[1-9])0+(?=e)/;
 	const item = lookup.findLast((item) => num >= item.value && num < item.value * 1024);
-	return (isNegative ? '-' : '') + (item
-		? (num / item.value)
-				.toFixed(digits)
-				.replace(trailingZerosRegexp, '')
-				.concat((space ? ' ' : '') + item.symbol)
-		: num
-				.toExponential(digits)
-				.replace(exponentialTrailingZerosRegexp, '')
-				.concat(space ? ' ' : ''));
+	return (
+		(isNegative ? '-' : '') +
+		(item
+			? (num / item.value)
+					.toFixed(digits)
+					.replace(trailingZerosRegexp, '')
+					.concat((space ? ' ' : '') + item.symbol)
+			: num
+					.toExponential(digits)
+					.replace(exponentialTrailingZerosRegexp, '')
+					.concat(space ? ' ' : ''))
+	);
 }
 
 export function formatBinaryOptional(

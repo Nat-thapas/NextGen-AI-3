@@ -27,6 +27,17 @@ const createFileReturningQuery = db
 	.returning()
 	.prepare('create_file_with_reference_returning');
 
+const createFileWithIdQuery = db
+	.insert(files)
+	.values({
+		id: sql.placeholder('id'),
+		size: sql.placeholder('size'),
+		mimeType: sql.placeholder('mimeType'),
+		extension: sql.placeholder('extension'),
+		referenceId: sql.placeholder('referenceId')
+	})
+	.prepare('create_file_with_reference');
+
 const getFileQuery = db.query.files
 	.findFirst({
 		where: eq(files.id, sql.placeholder('id'))
@@ -66,6 +77,16 @@ export async function createFileReturning(data: {
 	referenceId: string;
 }) {
 	return (await createFileReturningQuery.execute(data))[0];
+}
+
+export async function createFileWithId(data: {
+	id: string;
+	size: number;
+	mimeType: string;
+	extension: string;
+	referenceId: string;
+}) {
+	return createFileWithIdQuery.execute(data);
 }
 
 export async function getFile(id: string) {
