@@ -87,18 +87,19 @@
 			</form>
 		</div>
 	{:else}
-		<div class="hidden w-48 items-center justify-end gap-4 lg:flex">
-			<!-- <a
+	<div class="hidden w-48 items-center justify-end gap-4 lg:flex">
+	<!-- <a
 				href="{base}/auth/login"
 				class="font-semibold text-secondary-foreground transition-colors hover:text-primary-foreground">
 				Login
 			</a> -->
-			<a
-				href="{base}/auth/register"
-				class="button-gradient rounded-full px-4 py-2 font-semibold text-white drop-shadow-md transition-colors">
-				สมัครเข้าร่วมค่าย
-			</a>
-		</div>
+    <a
+        href="{base}/auth/register"
+        class="button-gradient rounded-full px-4 py-2 font-semibold text-white drop-shadow-md transition-all duration-300 hover:scale-105 hover:brightness-110 hover:shadow-[4px_4px_20px_0_rgba(131,190,255,0.60)]">
+        สมัครเข้าร่วมค่าย
+    </a>
+</div>
+
 	{/if}
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger class="block text-secondary-foreground lg:hidden">

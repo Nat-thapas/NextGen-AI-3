@@ -33,6 +33,10 @@
 	import robot_trophy from '$lib/images/robot-trophy.avif';
 	import robot_wand from '$lib/images/aura.png';
 	import robots_mobile from '$lib/images/robots-mobile.avif';
+	import hero3 from '$lib/images/hero3.png';
+	import hero4 from '$lib/images/hero4.png';
+	import hero5 from '$lib/images/hero5.png';
+	import hero6 from '$lib/images/hero6.png';
 
 	let { data } = $props();
 
@@ -44,6 +48,16 @@ const agendas: [number, Date, Date | null, string][] = [
     [4, new Date(2026, 6, 25), new Date(2026, 6, 26), 'Team-based Onsite Workshop'],
     [5, new Date(2026, 8, 4), new Date(2026, 8, 7), 'Final Hackathon']
 ];
+
+	const heroImages = [robots, hero3, hero4, hero5, hero6];
+	let currentImageIndex = $state(0);
+	$effect(() => {
+		const interval = setInterval(() => {
+			currentImageIndex = (currentImageIndex + 1) % heroImages.length;
+		}, 3500);
+
+		return () => clearInterval(interval); 
+	});
 
 	const requirements: string[] = [
 		'นักเรียนที่กำลังศึกษาอยู่ในชั้นมัธยมศึกษาปีที่ 6 หรือ ปวช. 3 ปีการศึกษา 2569',
@@ -105,11 +119,11 @@ const agendas: [number, Date, Date | null, string][] = [
 <svelte:head>
 	<title>Next Gen AI - Home</title>
 </svelte:head>
+
 <div class="mb-8 mt-8 flex flex-col-reverse justify-between gap-4 md:mb-24 md:flex-row md:items-center">
     
     <div class="relative md:ml-16 w-full md:w-[55%] lg:w-[50%] xl:w-[45%]">
-		<!-- <div class="absolute -right-20 bottom-20 -z-10 h-[600px] w-[600px] rounded-full bg-[#3395FF]/15 blur-[150px]"></div> -->
-        <h1 class="px-8  mb-4 text-4xl font-bold !leading-tight md:px-0 md:text-5xl title-gradient">
+        <h1 class="px-8 mb-4 text-4xl font-bold !leading-tight md:px-0 md:text-5xl title-gradient">
             NEXTGEN AI CAMP
             <br />
         </h1>
@@ -126,27 +140,41 @@ const agendas: [number, Date, Date | null, string][] = [
             <a
                 href="{base}/auth/register"
                 class="button-gradient rounded-full mx-8 px-6 py-2 text-xl font-semibold text-white drop-shadow-md transition-colors md:mx-0">
-                Join Us
+                สมัครเข้าร่วมค่าย	
             </a>
         {/if}
     </div>
     
-    <img
-        src={robots}
-        width="691"
-        height="811"
-        alt="Robots"
-        class="hidden h-auto w-50% md:block md:w-[27%] lg:w-[35%] md:mr-16 rounded-xl object-cover drop-shadow-md" 
-    />
+    <div class="relative mb-8 w-full px-8 md:mb-0 md:block md:w-[45%] lg:w-[40%] xl:w-[35%] md:mr-16 md:px-0">
         
-    <img
-        src={robots}
-        width="640"
-        height="640"
-        alt="Robots"
-        class="  mb-8  h-auto w-full px-8  md:hidden" 
-    />
+        <div class="overflow-hidden rounded-xl drop-shadow-md aspect-square w-full bg-transparent">
+            <div 
+                class="flex h-full w-full transition-transform duration-700 ease-in-out"
+                style="transform: translateX(-{currentImageIndex * 100}%);"
+            >
+                {#each heroImages as img, i}
+                    <img
+                        src={img}
+                        alt="NextGen AI Camp Highlight {i + 1}"
+                        class="h-full w-full flex-shrink-0 object-cover"
+                    />
+                {/each}
+            </div>
+        </div>
+
+        <div class="absolute -bottom-6 left-0 right-0 flex justify-center gap-2 md:-bottom-8">
+            {#each heroImages as _, i}
+                <button
+                    class="h-2.5 w-2.5 rounded-full transition-all duration-300 {currentImageIndex === i ? 'bg-[#006FE8] w-6' : 'bg-gray-300 hover:bg-gray-400'}"
+                    onclick={() => currentImageIndex = i}
+                    aria-label="Go to slide {i + 1}"
+                ></button>
+            {/each}
+        </div>
+        
+    </div>
 </div>
+
 <div class="mx-4 mb-16 md:mx-0 md:mb-32">
     <div class="hidden flex-col items-center justify-center relative md:flex">
         <h2 class="text-4xl font-semibold text-gradient py-2 mb-8">สิ่งที่น้องๆ จะได้รับ</h2>
@@ -190,7 +218,7 @@ const agendas: [number, Date, Date | null, string][] = [
                 Community
             </h3>
             <p class="text-center leading-relaxed text-primary-foreground md:text-xl">
-                ได้รู้จักเพื่อนใหม่ที่มีความสนใจเดียวกัน <br/> และพี่ ๆ ที่พร้อมให้คำแนะนำ
+                ได้รู้จักเพื่อนใหม่ที่มีความสนใจเดียวกัน และพี่ ๆ ที่พร้อมให้คำแนะนำ
             </p>
         </div>
 
@@ -468,7 +496,7 @@ const agendas: [number, Date, Date | null, string][] = [
                     </defs>
                 </svg>
                 
-                <span class="text-sm font-medium leading-relaxed text-primary-foreground">
+                <span class="text-sm  leading-relaxed text-primary-foreground">
                     อาคารปฏิบัติการรวมวิศวกรรมศาสตร์ 2 (ECC) เลขที่ 1 ซอยฉลองกรุง 1 <br />แขวงลาดกระบัง เขตลาดกระบัง
                     กรุงเทพมหานคร 10520
                 </span>
