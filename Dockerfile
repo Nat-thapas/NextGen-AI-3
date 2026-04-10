@@ -5,7 +5,9 @@ WORKDIR /app
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-RUN apt-get update && apt-get install --no-install-recommends -y libc6-dev gcc g++ make python3 libpq-dev && rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install --no-install-recommends -y libc6-dev gcc g++ make python3 libpq-dev
 RUN npm install -g pnpm
 
 
