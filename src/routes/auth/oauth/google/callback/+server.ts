@@ -155,5 +155,17 @@ export const GET: RequestHandler = async (event) => {
 		next = '/' + next;
 	}
 
-	redirect(303, setToastParams(next, 'เข้าสู่ระบบสำเร็จ', undefined, 'success'));
+	if (!user.registered) {
+		redirect(
+			303,
+			setToastParams(
+				`${base}/auth/register?next=${encodeURIComponent(next)}`,
+				'Please fill the form to register your account',
+				undefined,
+				'info'
+			)
+		);
+	}
+
+	redirect(303, setToastParams(next, 'Login successful', undefined, 'success'));
 };
