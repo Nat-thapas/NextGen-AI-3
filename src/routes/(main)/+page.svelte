@@ -247,7 +247,7 @@ const agendas: [number, Date, Date | null, string][] = [
 </div>
 
 
-<div class="mx-4 mb-16 md:mx-0 md:mb-32">
+<div class="mx-4 mb-16  md:mx-8 md:mb-32">
     <h2 class="mb-8 py-2 text-center text-3xl font-semibold text-gradient md:mb-8 md:text-4xl ">
         คุณสมบัติผู้สมัคร
     </h2>

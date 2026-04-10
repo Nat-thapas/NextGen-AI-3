@@ -28,9 +28,9 @@
 	let pathname = $derived(page.url.pathname);
 
 	const navs: [string, string, typeof BookOpen][] = [
-		[`${base}/exercises`, 'Exercises', BookOpen],
-		[`${base}/challenges`, 'Challenges', Target],
-		[`${base}/leaderboards`, 'Leaderboards', Trophy]
+		// [`${base}/exercises`, 'Exercises', BookOpen],
+		// [`${base}/challenges`, 'Challenges', Target],
+		// [`${base}/leaderboards`, 'Leaderboards', Trophy]
 	];
 
 	onMount(() => {
