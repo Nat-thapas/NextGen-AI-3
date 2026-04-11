@@ -145,7 +145,7 @@
 		<p class="mb-8 px-8 text-xl leading-relaxed text-primary-foreground md:px-0 md:text-lg">
 			NextGen AI เป็นโครงการอบรมเชิงปฏิบัติการด้านปัญญาประดิษฐ์ (AI)
 			ที่มุ่งเน้นการถ่ายทอดองค์ความรู้ทั้งภาคทฤษฎีและภาคปฏิบัติผ่านกิจกรรม Workshop อย่างเข้มข้น
-			เนื้อหาถูกออกแบบให้มีความยืดหยุ่น เพื่อรองรับผู้เรียนทุกระดับพื้นฐาน โดยมีพี่ ๆ
+			เนื้อหาถูกออกแบบให้มีความยืดหยุ่น เพื่อรองรับผู้เรียนทุกระดับพื้นฐาน โดยมีพี่ๆ
 			คอยให้คำปรึกษาและดูแลตลอดกระบวนการเรียนรู้
 			วัตถุประสงค์เพื่อส่งเสริมทักษะทางเทคโนโลยีและเตรียมความพร้อมสำหรับการศึกษาต่อในระดับอุดมศึกษา
 		</p>
@@ -232,7 +232,7 @@
 			class="flex w-full flex-col items-center justify-center rounded-xl bg-white p-8 drop-shadow-lg transition-transform hover:scale-[1.02]">
 			<h3 class="mb-4 text-xl font-bold text-accent md:text-3xl">Community</h3>
 			<p class="text-center leading-relaxed text-primary-foreground md:text-xl">
-				ได้รู้จักเพื่อนใหม่ที่มีความสนใจเดียวกัน และพี่ ๆ ที่พร้อมให้คำแนะนำ
+				ได้รู้จักเพื่อนใหม่ที่มีความสนใจเดียวกัน และพี่ๆ ที่พร้อมให้คำแนะนำ
 			</p>
 		</div>
 	</div>
