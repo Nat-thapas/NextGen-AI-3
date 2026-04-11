@@ -175,7 +175,7 @@
 </script>
 
 <svelte:head>
-	<title>CE Next Gen AI - Leaderboards</title>
+	<title>NextGen AI - Leaderboards</title>
 </svelte:head>
 
 <div class="mx-auto mt-6 max-w-7xl px-16">

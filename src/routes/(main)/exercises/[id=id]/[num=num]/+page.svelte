@@ -210,7 +210,7 @@
 </script>
 
 <svelte:head>
-	<title>CE Next Gen AI - {data.exam.title}</title>
+	<title>NextGen AI - {data.exam.title}</title>
 </svelte:head>
 
 <div class="mx-auto mt-4 max-w-screen-2xl px-16">

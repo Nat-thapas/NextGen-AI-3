@@ -129,7 +129,7 @@
 </script>
 
 <svelte:head>
-	<title>Next Gen AI - Home</title>
+	<title>NextGen AI - Home</title>
 </svelte:head>
 
 <div

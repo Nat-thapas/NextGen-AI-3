@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>CE Next Gen AI - Uploading Contents</title>
+	<title>NextGen AI - Uploading Contents</title>
 </svelte:head>
 
 <div class="mx-auto mt-6 max-w-7xl px-16">

@@ -125,7 +125,7 @@
 </script>
 
 <svelte:head>
-	<title>CE Next Gen AI - Markdown Preview</title>
+	<title>NextGen AI - Markdown Preview</title>
 </svelte:head>
 
 <div style="height: calc(100dvh - 8rem);" class="mx-16 mt-4 flex rounded-xl bg-white">
