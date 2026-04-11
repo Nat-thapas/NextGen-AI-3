@@ -51,7 +51,7 @@
 </script>
 
 <svelte:head>
-	<title>CE Next Gen AI - Register</title>
+	<title>NextGen AI - Register</title>
 </svelte:head>
 
 <div class="flex w-full justify-center">

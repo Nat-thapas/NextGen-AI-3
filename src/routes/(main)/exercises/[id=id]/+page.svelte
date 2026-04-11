@@ -96,7 +96,7 @@
 </script>
 
 <svelte:head>
-	<title>CE Next Gen AI - {data.exam.title}</title>
+	<title>NextGen AI - {data.exam.title}</title>
 </svelte:head>
 
 <div class="mx-auto mt-6 max-w-7xl px-16">

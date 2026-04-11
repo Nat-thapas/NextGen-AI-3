@@ -57,7 +57,7 @@
 </script>
 
 <svelte:head>
-	<title>CE Next Gen AI - My Profile</title>
+	<title>NextGen AI - My Profile</title>
 </svelte:head>
 
 <div class="flex w-full justify-center">
