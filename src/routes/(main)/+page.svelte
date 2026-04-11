@@ -131,10 +131,9 @@ const agendas: [number, Date, Date | null, string][] = [
             From Fundamental to Frontier
         </h2>
         <p class="px-8 mb-8 text-xl leading-relaxed text-primary-foreground md:px-0 md:text-lg">
-            กิจกรรมค่ายปัญญาประดิษฐ์ที่เปิดโอกาสให้คุณได้เรียนรู้ สร้างสรรค์ และก้าวสู่ความเป็นผู้นำด้าน
-            AI ในอนาคต พบกับประสบการณ์ที่มากกว่าการเรียน ด้วยเวิร์กชอป มากมาย และการแข่งขันที่ท้าทาย
-            เพื่อค้นหาศักยภาพ ในตัวคุณ ไม่ว่าคุณจะเริ่มต้นเส้นทางสาย AI หรืออยาก พัฒนาทักษะให้เฉียบคมขึ้น
-            นี่คือจุดเริ่มต้นสำหรับคุณ
+            NextGen AI เป็นโครงการอบรมเชิงปฏิบัติการด้านปัญญาประดิษฐ์ (AI) ที่มุ่งเน้นการถ่ายทอดองค์ความรู้ทั้งภาคทฤษฎีและภาคปฏิบัติผ่านกิจกรรม 
+            Workshop อย่างเข้มข้น เนื้อหาถูกออกแบบให้มีความยืดหยุ่น เพื่อรองรับผู้เรียนทุกระดับพื้นฐาน โดยมีพี่ ๆ คอยให้คำปรึกษาและดูแลตลอดกระบวนการเรียนรู้ 
+            วัตถุประสงค์เพื่อส่งเสริมทักษะทางเทคโนโลยีและเตรียมความพร้อมสำหรับการศึกษาต่อในระดับอุดมศึกษา
         </p>
         {#if data.user === undefined}
             <a
@@ -147,7 +146,7 @@ const agendas: [number, Date, Date | null, string][] = [
     
     <div class="relative mb-8 w-full px-8 md:mb-0 md:block md:w-[45%] lg:w-[40%] xl:w-[35%] md:mr-16 md:px-0">
         
-        <div class="overflow-hidden rounded-xl drop-shadow-md aspect-square w-full bg-transparent">
+        <div class="overflow-hidden rounded-xl drop-shadow-md aspect-[4/3] w-full bg-transparent">
             <div 
                 class="flex h-full w-full transition-transform duration-700 ease-in-out"
                 style="transform: translateX(-{currentImageIndex * 100}%);"
@@ -156,13 +155,13 @@ const agendas: [number, Date, Date | null, string][] = [
                     <img
                         src={img}
                         alt="NextGen AI Camp Highlight {i + 1}"
-                        class="h-full w-full flex-shrink-0 object-cover"
+                        class="aspect-[4/3] w-full flex-shrink-0 object-cover"
                     />
                 {/each}
             </div>
         </div>
 
-        <div class="absolute -bottom-6 left-0 right-0 flex justify-center gap-2 md:-bottom-8">
+        <div class="absolute -bottom-6 left-0 right-0 flex justify-center gap-2 sm:-bottom-8">
             {#each heroImages as _, i}
                 <button
                     class="h-2.5 w-2.5 rounded-full transition-all duration-300 {currentImageIndex === i ? 'bg-[#006FE8] w-6' : 'bg-gray-300 hover:bg-gray-400'}"
@@ -182,8 +181,7 @@ const agendas: [number, Date, Date | null, string][] = [
     </div>
     
     <h2 class="mb-4 text-center relative text-3xl text-gradient font-semibold md:hidden">สิ่งที่น้องๆ จะได้รับ</h2>
-		<!-- <div class="absolute  bottom-20 -z-10 h-[600px] w-[600px] rounded-full bg-[#3395FF]/15 blur-[150px]"></div> -->
-
+		
     <div class="mx-auto grid max-w-4xl grid-cols-1  gap-6 md:grid-cols-2 lg:gap-10 relative">
         
         <div class="flex w-full flex-col items-center justify-center rounded-xl bg-white p-8 drop-shadow-lg transition-transform hover:scale-[1.02]">
@@ -194,6 +192,8 @@ const agendas: [number, Date, Date | null, string][] = [
                 รับโควต้าเข้าเรียนวิศวะคอม สจล. <br/> รอบ Portfolio TCAS 70
             </p>
         </div>
+        <div class="hidden lg:block absolute bottom-20 -z-10 -left-10 h-[500px] w-[500px] rounded-full bg-[#3395FF]/15 blur-[150px]"></div>
+
 
         <div class="flex w-full flex-col items-center justify-center rounded-xl bg-white p-8 drop-shadow-lg transition-transform hover:scale-[1.02]">
             <h3 class="text-accent mb-4 text-xl font-bold md:text-3xl">
@@ -228,12 +228,11 @@ const agendas: [number, Date, Date | null, string][] = [
 <div class="mx-4 mb-16 md:mx-0 md:mb-32 relative">
     <div class="hidden flex-col items-center justify-center relative md:flex">
         <h2 class="text-4xl font-semibold text-gradient py-2 mb-8">กำหนดการ</h2>
-	<!-- <div class="absolute -right-20 bottom-20 -z-10 h-[600px] w-[600px] rounded-full bg-[#3395FF]/15 blur-[150px]"></div> -->
+	
     </div>
     
     <h2 class="mb-4 text-center relative text-3xl text-gradient font-semibold md:hidden">กำหนดการ</h2>
-		<!-- <div class="absolute  bottom-20 -z-10 h-[600px] w-[600px] rounded-full bg-[#3395FF]/15 blur-[150px]"></div> -->
-
+	
     <div class="md:mx-16"> 
         <div class="relative mx-auto w-auto max-w-7xl rounded-xl bg-white px-8 pb-4 pt-12 drop-shadow-lg  ">
             <img
@@ -250,7 +249,6 @@ const agendas: [number, Date, Date | null, string][] = [
                 class="absolute -top-4 right-16 h-8 w-fit md:-top-8 md:h-16" />
             {#each agendas as agenda (agenda[0])}
     <div class="mb-4 flex flex-col md:mb-2 md:flex-row md:items-start">
-        
         <div class="mb-1 flex flex-wrap items-center text-primary-foreground md:mb-0 md:flex-nowrap">
             <span class="block w-auto font-medium md:w-28 md:font-normal md:text-lg">
                 {formatDate(agenda[1], { timeZone: 'UTC' })}
@@ -296,7 +294,7 @@ const agendas: [number, Date, Date | null, string][] = [
                 class="h-auto w-full max-w-md rounded-2xl object-cover drop-shadow-xl lg:max-w-lg" 
             />
         </div>
-		<!-- <div class="absolute -right-20 bottom-20 -z-10 h-[600px] w-[600px] rounded-full bg-[#3395FF]/20 blur-[150px]"></div> -->
+		
         {#snippet requirementIcon(index: number)}
             <div class="flex-shrink-0">
                 {#if index === 0}
@@ -397,12 +395,11 @@ const agendas: [number, Date, Date | null, string][] = [
             
            <div class="hidden flex-col items-center justify-center relative md:flex">
         <h2 class="text-4xl font-semibold text-gradient py-2 mb-8">ประกาศ</h2>
-	<!-- <div class="absolute -right-20 bottom-20 -z-10 h-[600px] w-[600px] rounded-full bg-[#3395FF]/15 blur-[150px]"></div> -->
+	  
     </div>
     
     <h2 class="mb-4 text-center relative text-3xl text-gradient font-semibold md:hidden">ประกาศ</h2>
-		<!-- <div class="absolute  bottom-20 -z-10 h-[600px] w-[600px] rounded-full bg-[#3395FF]/15 blur-[150px]"></div> -->
-
+	
         </div>
     </div>
 
@@ -417,16 +414,16 @@ const agendas: [number, Date, Date | null, string][] = [
                         class="block overflow-hidden text-ellipsis text-nowrap font-semibold text-primary-foreground md:text-lg">
                         {announcement.title}
                     </span>
-                    <span class="text-sm text-secondary-foreground md:text-base">
+                    <span class="text-sm text-accent md:text-base">
                         {formatDateTime(announcement.createdAt, {
                             timeZone: data.timeZone
                         })}
                     </span>
                 </div>
-                <ChevronRight size={32} class="text-secondary-foreground" />
+                <ChevronRight size={32} class="text-accent" />
             </a>
         {:else}
-            <span class="block text-center text-lg text-secondary-foreground md:text-xl">
+            <span class="block text-center text-lg text-accent md:text-xl">
                 ไม่มีประกาศ 
             </span>
         {/each}
@@ -436,16 +433,17 @@ const agendas: [number, Date, Date | null, string][] = [
                 href={moreAnnouncementsLink}
                 data-sveltekit-replacestate
                 data-sveltekit-noscroll
-                class="mx-auto !mt-8 block text-center text-lg text-primary-foreground underline hover:text-secondary-foreground transition-colors">
+                class="mx-auto !mt-8 block text-center text-lg text-primary-foreground underline hover:text-accent transition-colors">
                 ดูเพิ่มเติม
             </a>
         {/if}
+        
     </div>
 </div>
 
 <footer class="mt-auto w-full pt-8 md:pt-[24px]">
     <div class="mx-auto flex w-full max-w-[1728px] flex-col items-start gap-[16px] px-4 md:px-[96px]">
-        
+       
         <h2 class="text-md font-bold text-black md:text-sm">
             ภาควิชาวิศวกรรมคอมพิวเตอร์ คณะวิศวกรรมศาสตร์ สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง
         </h2>
