@@ -27,7 +27,7 @@
 	});
 </script>
 
-<nav class="mx-4 mt-4 flex h-16 items-center justify-between gap-8 sm:mx-16">
+<nav class="mx-4 mt-4 flex h-16 items-center justify-between gap-8 sm:mx-8">
 	<a href="{base}/" class="h-fit w-fit flex-shrink-0">
 		<img src={banner} width="512" height="133" alt="Banner" class="h-fit w-48" />
 	</a>

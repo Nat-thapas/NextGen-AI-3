@@ -131,14 +131,15 @@
 			From Fundamental to Frontier
 		</h2>
 		<p class="mb-8 px-8 text-xl leading-relaxed text-primary-foreground md:px-0 md:text-lg">
-			กิจกรรมค่ายปัญญาประดิษฐ์ที่เปิดโอกาสให้คุณได้เรียนรู้ สร้างสรรค์ และก้าวสู่ความเป็นผู้นำด้าน
-			AI ในอนาคต พบกับประสบการณ์ที่มากกว่าการเรียน ด้วยเวิร์กชอป มากมาย และการแข่งขันที่ท้าทาย
-			เพื่อค้นหาศักยภาพ ในตัวคุณ ไม่ว่าคุณจะเริ่มต้นเส้นทางสาย AI หรืออยาก พัฒนาทักษะให้เฉียบคมขึ้น
-			นี่คือจุดเริ่มต้นสำหรับคุณ
+			NextGen AI เป็นโครงการอบรมเชิงปฏิบัติการด้านปัญญาประดิษฐ์ (AI)
+			ที่มุ่งเน้นการถ่ายทอดองค์ความรู้ทั้งภาคทฤษฎีและภาคปฏิบัติผ่านกิจกรรม Workshop อย่างเข้มข้น
+			เนื้อหาถูกออกแบบให้มีความยืดหยุ่น เพื่อรองรับผู้เรียนทุกระดับพื้นฐาน โดยมีพี่ ๆ
+			คอยให้คำปรึกษาและดูแลตลอดกระบวนการเรียนรู้
+			วัตถุประสงค์เพื่อส่งเสริมทักษะทางเทคโนโลยีและเตรียมความพร้อมสำหรับการศึกษาต่อในระดับอุดมศึกษา
 		</p>
 		{#if data.user === undefined}
 			<a
-				href="{base}/auth/register"
+				href="{base}/auth/oauth/google?next={page.url.searchParams.get('next') ?? `${base}/`}"
 				class="button-gradient mx-8 rounded-full px-6 py-2 text-xl font-semibold text-white drop-shadow-md transition-colors md:mx-0">
 				สมัครเข้าร่วมค่าย
 			</a>
@@ -147,21 +148,21 @@
 
 	<div
 		class="relative mb-8 w-full px-8 md:mb-0 md:mr-16 md:block md:w-[45%] md:px-0 lg:w-[40%] xl:w-[35%]">
-		<div class="aspect-square w-full overflow-hidden rounded-xl bg-transparent drop-shadow-md">
+		<div class="aspect-[4/3] w-full overflow-hidden rounded-xl bg-transparent drop-shadow-md">
 			<div
 				class="flex h-full w-full transition-transform duration-700 ease-in-out"
 				style="transform: translateX(-{currentImageIndex * 100}%);">
-				{#each heroImages as img, i (img)}
+				{#each heroImages as img, i}
 					<img
 						src={img}
 						alt="NextGen AI Camp Highlight {i + 1}"
-						class="h-full w-full flex-shrink-0 object-cover" />
+						class="aspect-[4/3] w-full flex-shrink-0 object-cover" />
 				{/each}
 			</div>
 		</div>
 
-		<div class="absolute -bottom-6 left-0 right-0 flex justify-center gap-2 md:-bottom-8">
-			{#each heroImages as img, i (img)}
+		<div class="absolute -bottom-6 left-0 right-0 flex justify-center gap-2 sm:-bottom-8">
+			{#each heroImages as _, i}
 				<button
 					class="h-2.5 w-2.5 rounded-full transition-all duration-300 {currentImageIndex === i
 						? 'w-6 bg-[#006FE8]'
@@ -183,7 +184,6 @@
 	<h2 class="text-gradient relative mb-4 text-center text-3xl font-semibold md:hidden">
 		สิ่งที่น้องๆ จะได้รับ
 	</h2>
-	<!-- <div class="absolute  bottom-20 -z-10 h-[600px] w-[600px] rounded-full bg-[#3395FF]/15 blur-[150px]"></div> -->
 
 	<div class="relative mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2 lg:gap-10">
 		<div
@@ -193,6 +193,9 @@
 				รับโควต้าเข้าเรียนวิศวะคอม สจล. <br />
 				รอบ Portfolio TCAS 70
 			</p>
+		</div>
+		<div
+			class="absolute -left-10 bottom-20 -z-10 hidden h-[500px] w-[500px] rounded-full bg-[#3395FF]/15 blur-[150px] lg:block">
 		</div>
 
 		<div
@@ -226,11 +229,9 @@
 <div class="relative mx-4 mb-16 md:mx-0 md:mb-32">
 	<div class="relative hidden flex-col items-center justify-center md:flex">
 		<h2 class="text-gradient mb-8 py-2 text-4xl font-semibold">กำหนดการ</h2>
-		<!-- <div class="absolute -right-20 bottom-20 -z-10 h-[600px] w-[600px] rounded-full bg-[#3395FF]/15 blur-[150px]"></div> -->
 	</div>
 
 	<h2 class="text-gradient relative mb-4 text-center text-3xl font-semibold md:hidden">กำหนดการ</h2>
-	<!-- <div class="absolute  bottom-20 -z-10 h-[600px] w-[600px] rounded-full bg-[#3395FF]/15 blur-[150px]"></div> -->
 
 	<div class="md:mx-16">
 		<div
@@ -290,7 +291,7 @@
 				alt="Applicant Requirements"
 				class="h-auto w-full max-w-md rounded-2xl object-cover drop-shadow-xl lg:max-w-lg" />
 		</div>
-		<!-- <div class="absolute -right-20 bottom-20 -z-10 h-[600px] w-[600px] rounded-full bg-[#3395FF]/20 blur-[150px]"></div> -->
+
 		{#snippet requirementIcon(index: number)}
 			<div class="flex-shrink-0">
 				{#if index === 0}
@@ -431,13 +432,11 @@
 
 			<div class="relative hidden flex-col items-center justify-center md:flex">
 				<h2 class="text-gradient mb-8 py-2 text-4xl font-semibold">ประกาศ</h2>
-				<!-- <div class="absolute -right-20 bottom-20 -z-10 h-[600px] w-[600px] rounded-full bg-[#3395FF]/15 blur-[150px]"></div> -->
 			</div>
 
 			<h2 class="text-gradient relative mb-4 text-center text-3xl font-semibold md:hidden">
 				ประกาศ
 			</h2>
-			<!-- <div class="absolute  bottom-20 -z-10 h-[600px] w-[600px] rounded-full bg-[#3395FF]/15 blur-[150px]"></div> -->
 		</div>
 	</div>
 
@@ -452,18 +451,16 @@
 						class="block overflow-hidden text-ellipsis text-nowrap font-semibold text-primary-foreground md:text-lg">
 						{announcement.title}
 					</span>
-					<span class="text-sm text-secondary-foreground md:text-base">
+					<span class="text-sm text-accent md:text-base">
 						{formatDateTime(announcement.createdAt, {
 							timeZone: data.timeZone
 						})}
 					</span>
 				</div>
-				<ChevronRight size={32} class="text-secondary-foreground" />
+				<ChevronRight size={32} class="text-accent" />
 			</a>
 		{:else}
-			<span class="block text-center text-lg text-secondary-foreground md:text-xl">
-				ไม่มีประกาศ
-			</span>
+			<span class="block text-center text-lg text-accent md:text-xl">ไม่มีประกาศ</span>
 		{/each}
 
 		{#if data.moreAnnouncementsAvailable}
@@ -471,7 +468,7 @@
 				href={moreAnnouncementsLink}
 				data-sveltekit-replacestate
 				data-sveltekit-noscroll
-				class="mx-auto !mt-8 block text-center text-lg text-primary-foreground underline transition-colors hover:text-secondary-foreground">
+				class="mx-auto !mt-8 block text-center text-lg text-primary-foreground underline transition-colors hover:text-accent">
 				ดูเพิ่มเติม
 			</a>
 		{/if}
