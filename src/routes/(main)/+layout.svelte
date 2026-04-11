@@ -10,7 +10,7 @@
 	import { roles } from '$lib/enums';
 	import { isRoleAtLeast } from '$lib/roles';
 
-	import banner from '$lib/images/banner/banner-512.avif';
+	import banner from '$lib/images/banner/banner-512.png';
 
 	let { data, children } = $props();
 
@@ -80,7 +80,7 @@
 			<a
 				href="{base}/auth/oauth/google?next={page.url.searchParams.get('next') ?? `${base}/`}"
 				class="button-gradient rounded-full px-4 py-2 font-semibold text-white drop-shadow-md transition-colors">
-				Register / Login
+				สมัครเข้าร่วมค่าย
 			</a>
 		</div>
 	{/if}
