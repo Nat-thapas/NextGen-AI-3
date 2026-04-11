@@ -114,8 +114,8 @@ export const formSchema = z.object({
 			`Detail must be at most ${configConstants.users.maxAddressDetailLength} characters long`
 		)
 		.regex(
-			/^[ 0-9a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
-			'Detail must only contain English or Thai characters or numbers'
+			/^[ 0-9\.\/a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
+			'Detail must only contain English or Thai characters, numbers, dots, slashes or spaces'
 		)
 		.refine((val) => !/^ /.test(val) && !/ $/.test(val), {
 			message: 'Detail must not contain space at beginning or end'

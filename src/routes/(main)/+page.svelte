@@ -21,6 +21,8 @@
 
 	import bell from '$lib/images/bell.avif';
 	import binder from '$lib/images/binder.avif';
+	import ce_logo from '$lib/images/ce-big-logo.png';
+	import engineering_logo from '$lib/images/engineering-logo.png';
 	import robots from '$lib/images/hero2.png';
 	import hero3 from '$lib/images/hero3.png';
 	import hero4 from '$lib/images/hero4.png';
@@ -485,14 +487,14 @@
 	</div>
 </div>
 
-<footer class="mt-auto w-full pt-8 md:pt-[24px]">
-	<div class="mx-auto flex w-full max-w-[1728px] flex-col items-start gap-[16px] px-4 md:px-[96px]">
+<footer class="mt-auto flex w-full flex-wrap justify-center gap-x-16 gap-y-8 pt-8 md:pt-[24px]">
+	<div class="flex flex-col items-start gap-4 px-4">
 		<h2 class="text-md font-bold text-black md:text-sm">
 			ภาควิชาวิศวกรรมคอมพิวเตอร์ คณะวิศวกรรมศาสตร์ สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง
 		</h2>
 
-		<div class=" grid w-full grid-cols-1 gap-4 md:grid-cols-2 md:gap-16">
-			<div class="flex flex-col gap-4">
+		<div class="flex flex-wrap gap-x-8 gap-y-4">
+			<div class="flex w-fit flex-col gap-4">
 				<a
 					href="https://www.facebook.com/profile.php?id=61559737934327"
 					class="flex items-center justify-start gap-4">
@@ -556,7 +558,7 @@
 
 			<a
 				href="https://maps.app.goo.gl/5MFUS5E8khvjwVFP6"
-				class="flex items-start justify-start gap-4">
+				class="flex w-fit items-start justify-start gap-4">
 				<svg
 					class="mt-1 flex-shrink-0"
 					xmlns="http://www.w3.org/2000/svg"
@@ -587,5 +589,14 @@
 				</span>
 			</a>
 		</div>
+	</div>
+
+	<div class="flex gap-4">
+		<a href="https://www.ce.kmitl.ac.th/" class="size-32">
+			<img src={ce_logo} alt="KMITL Computer Engineering logo" class="size-full rounded-full" />
+		</a>
+		<a href="https://www.eng.kmitl.ac.th/" class="size-32">
+			<img src={engineering_logo} alt="KMITL School of Engineering logo" class="size-full" />
+		</a>
 	</div>
 </footer>
