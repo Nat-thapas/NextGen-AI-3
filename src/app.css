@@ -22,7 +22,7 @@
 		--accent-foreground: 211 100% 66%;
 		--destructive: 0 72.2% 50.6%;
 		--destructive-foreground: 0 0% 98%;
-		--ring:217.2 91.2% 59.8%;
+		--ring: 217.2 91.2% 59.8%;
 		--radius: 0.5rem;
 		--sidebar-background: 0 0% 98%;
 		--sidebar-foreground: 240 5.3% 26.1%;
@@ -46,24 +46,24 @@
 	}
 
 	.button-gradient {
-		background: linear-gradient(90deg, #006FFB 0%, #007AFF 100%);
+		background: linear-gradient(90deg, #006ffb 0%, #007aff 100%);
 	}
 
 	.title-gradient {
-		background: linear-gradient(90deg, #00438C 0%, #006FFB 100%);
+		background: linear-gradient(90deg, #00438c 0%, #006ffb 100%);
 		background-clip: text;
 		-webkit-background-clip: text;
 		color: transparent;
 	}
 
 	.text-gradient {
-		background: linear-gradient(90deg, #00438C 0%, #006FFB 100%);
+		background: linear-gradient(90deg, #00438c 0%, #006ffb 100%);
 		background-clip: text;
 		-webkit-background-clip: text;
 		color: transparent;
 	}
 
 	.box-shadow {
-		box-shadow: 4px 4px 30px 0 rgba(131, 190, 255, 0.60);
+		box-shadow: 4px 4px 30px 0 rgba(131, 190, 255, 0.6);
 	}
 }

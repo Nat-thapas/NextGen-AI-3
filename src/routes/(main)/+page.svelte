@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChevronRight, Facebook, Instagram, LoaderCircle, Pin, Plus } from '@lucide/svelte';
+	import { ChevronRight, LoaderCircle, Plus } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { fileProxy, superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
@@ -19,7 +19,6 @@
 
 	import { createAnnouncementFormSchema } from './schema';
 
-	import robot_wand from '$lib/images/aura.png';
 	import bell from '$lib/images/bell.avif';
 	import binder from '$lib/images/binder.avif';
 	import robots from '$lib/images/hero2.png';
@@ -28,8 +27,6 @@
 	import hero5 from '$lib/images/hero5.png';
 	import hero6 from '$lib/images/hero6.png';
 	import robot_love_thing from '$lib/images/qualify.png';
-	import robot_trophy from '$lib/images/robot-trophy.avif';
-	import robots_mobile from '$lib/images/robots-mobile.avif';
 
 	let { data } = $props();
 
@@ -54,8 +51,8 @@
 
 	const heroImages = [robots, hero3, hero4, hero5, hero6];
 	let currentImageIndex = $state(0);
-	$effect(() => {
-		const interval = setInterval(() => {
+	$effect((): (() => void) => {
+		const interval = setInterval((): void => {
 			currentImageIndex = (currentImageIndex + 1) % heroImages.length;
 		}, 3500);
 
@@ -154,7 +151,7 @@
 			<div
 				class="flex h-full w-full transition-transform duration-700 ease-in-out"
 				style="transform: translateX(-{currentImageIndex * 100}%);">
-				{#each heroImages as img, i}
+				{#each heroImages as img, i (img)}
 					<img
 						src={img}
 						alt="NextGen AI Camp Highlight {i + 1}"
@@ -164,12 +161,12 @@
 		</div>
 
 		<div class="absolute -bottom-6 left-0 right-0 flex justify-center gap-2 md:-bottom-8">
-			{#each heroImages as _, i}
+			{#each heroImages as img, i (img)}
 				<button
 					class="h-2.5 w-2.5 rounded-full transition-all duration-300 {currentImageIndex === i
 						? 'w-6 bg-[#006FE8]'
 						: 'bg-gray-300 hover:bg-gray-400'}"
-					onclick={() => (currentImageIndex = i)}
+					onclick={(): number => (currentImageIndex = i)}
 					aria-label="Go to slide {i + 1}">
 				</button>
 			{/each}

@@ -57,7 +57,7 @@
 <div class="flex w-full justify-center">
 	<div
 		class="m-4 w-0 max-w-6xl grow rounded-2xl bg-white p-4 drop-shadow-xl sm:m-8 sm:px-16 sm:py-8">
-		<h1 class="mb-4 text-center text-4xl font-semibold">Profile</h1>
+		<h1 class="text-gradient mb-4 text-center text-4xl font-semibold">Profile</h1>
 		<form method="POST" enctype="multipart/form-data" use:enhance>
 			<Form.Field {form} name="next">
 				<Form.Control>
