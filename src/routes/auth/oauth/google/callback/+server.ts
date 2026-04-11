@@ -9,7 +9,11 @@ import { configConstants } from '$lib/config-constants';
 import { roles } from '$lib/enums';
 import { FetchJson } from '$lib/fetch-json';
 import { createSession } from '$lib/server/db/services/sessions';
-import { createUserReturning, getUserByEmail } from '$lib/server/db/services/users';
+import {
+	createUserReturning,
+	getStudentcount,
+	getUserByEmail
+} from '$lib/server/db/services/users';
 import { generateToken } from '$lib/server/db/token';
 import type { User } from '$lib/server/interfaces/user';
 import { setToastParams } from '$lib/toast';
@@ -87,6 +91,8 @@ async function authenticate(event: RequestEvent): Promise<{ user: User; next: st
 		);
 	}
 
+	let tokenData: TokenData;
+
 	try {
 		const fetchJson = new FetchJson(fetch, 'https://oauth2.googleapis.com');
 		const response = await fetchJson.post<TokenResponse>(
@@ -103,15 +109,7 @@ async function authenticate(event: RequestEvent): Promise<{ user: User; next: st
 			}
 		);
 
-		const tokenData = jwtDecode<TokenData>(response.id_token);
-
-		let user: User | undefined = await getUserByEmail(tokenData.email);
-
-		if (!user) {
-			user = await createUserReturning(roles.student, tokenData.email);
-		}
-
-		return { user, next };
+		tokenData = jwtDecode<TokenData>(response.id_token);
 	} catch (err) {
 		console.error('An error occurred in Google code exchange flow');
 		console.error(err);
@@ -125,6 +123,33 @@ async function authenticate(event: RequestEvent): Promise<{ user: User; next: st
 			)
 		);
 	}
+
+	let user: User | undefined = await getUserByEmail(tokenData.email);
+
+	if (!user) {
+		if (
+			!tokenData.email.endsWith('@' + env.STAFF_EMAIL_SERVER) &&
+			(await getStudentcount()) >= parseInt(env.STUDENT_LIMIT)
+		) {
+			redirect(
+				303,
+				setToastParams(
+					`${base}/`,
+					'ขออภัย ขณะนี้มีผู้สมัครครบตามจำนวนที่กำหนดแล้ว',
+					undefined,
+					'error'
+				)
+			);
+		}
+
+		if (tokenData.email.endsWith('@' + env.STAFF_EMAIL_SERVER)) {
+			user = await createUserReturning(roles.staff, tokenData.email);
+		} else {
+			user = await createUserReturning(roles.student, tokenData.email);
+		}
+	}
+
+	return { user, next };
 }
 
 export const GET: RequestHandler = async (event) => {

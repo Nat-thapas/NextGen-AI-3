@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { eq, sql } from 'drizzle-orm';
+import { count, eq, sql } from 'drizzle-orm';
 
+import { roles } from '$lib/enums';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
 import { suidToUuid } from '$lib/server/db/suid';
@@ -34,6 +35,12 @@ const getUserByEmailQuery = db.query.users
 		where: eq(users.email, sql.placeholder('email'))
 	})
 	.prepare('get_user_by_email');
+
+const getStudentCountQuery = db
+	.select({ count: count() })
+	.from(users)
+	.where(eq(users.role, roles.student))
+	.prepare('get_student_count');
 
 const updateUserProfileQuery = db
 	.update(users)
@@ -110,6 +117,10 @@ export async function getUser(id: string) {
 
 export async function getUserByEmail(email: string) {
 	return getUserByEmailQuery.execute({ email });
+}
+
+export async function getStudentcount() {
+	return (await getStudentCountQuery.execute())[0].count;
 }
 
 export async function updateUserProfile(data: {
