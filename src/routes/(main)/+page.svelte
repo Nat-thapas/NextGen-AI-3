@@ -44,9 +44,9 @@ const agendas: [number, Date, Date | null, string][] = [
     [0, new Date(2026, 3, 13), new Date(2026, 3, 27), 'เปิดรับสมัคร (Registeration)'],
     [1, new Date(2026, 4, 4), new Date(2026, 4, 24), 'ปูพื้นฐาน (Foundation)'],
     [2, new Date(2026, 4, 31), null, 'สอบวัดพื้นฐาน (Onsite Assessment)'],
-    [3, new Date(2026, 5, 8), new Date(2026, 6, 19), 'พัฒนาความรู้เชิงลึก (Advanced Learning phase)'],
-    [4, new Date(2026, 6, 25), new Date(2026, 6, 26), 'ช่วงฝึกปฏิบัติแบบทีม (Team-based Onsite Workshop)'],
-    [5, new Date(2026, 8, 4), new Date(2026, 8, 7), 'ช่วงการแข่งขัน (Final Hackathon)']
+    [3, new Date(2026, 5, 8), new Date(2026, 6, 19), 'พัฒนาความรู้เชิงลึก (Advanced Learning)'],
+    [4, new Date(2026, 6, 25), new Date(2026, 6, 26), 'ฝึกปฏิบัติแบบทีม (Team-based Onsite Workshop)'],
+    [5, new Date(2026, 8, 4), new Date(2026, 8, 7), 'การแข่งขัน Hackathon (Final Individual Hackathon)']
 ];
 
 	const heroImages = [robots, hero3, hero4, hero5, hero6];
