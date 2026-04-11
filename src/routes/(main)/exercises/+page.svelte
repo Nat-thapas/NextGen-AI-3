@@ -185,7 +185,7 @@
 									<Input
 										{...props}
 										bind:value={$createExamFormData.title}
-										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -197,7 +197,7 @@
 									<Input
 										{...props}
 										bind:value={$createExamFormData.description}
-										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -210,7 +210,7 @@
 										{...props}
 										type="datetime-local"
 										bind:value={$createExamFormData.openAt}
-										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -223,7 +223,7 @@
 										{...props}
 										type="datetime-local"
 										bind:value={$createExamFormData.closeAt}
-										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -237,7 +237,7 @@
 									<Input
 										{...props}
 										bind:value={$createExamFormData.timeLimit}
-										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -253,7 +253,7 @@
 										bind:files={$examFile}
 										type="file"
 										accept="application/zip, application/zip-compressed, application/x-zip-compressed, multipart/x-zip"
-										class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-secondary-foreground bg-white px-2 py-1.5 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-secondary-foreground file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
+										class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-secondary-foreground bg-white px-2 py-1.5 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-neutral-300 file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -345,7 +345,7 @@
 										bind:files={$scoreFile}
 										type="file"
 										accept="application/vnd.ms-excel, application/msexcel, application/x-msexcel, application/x-ms-excel, application/x-excel, application/x-dos_ms_excel, application/xls, application/x-xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-										class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-secondary-foreground bg-white px-2 py-1.5 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-secondary-foreground file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
+										class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-secondary-foreground bg-white px-2 py-1.5 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-neutral-300 file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />

@@ -198,7 +198,7 @@
 									<Input
 										{...props}
 										bind:value={$createLeaderboardFormData.name}
-										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -213,7 +213,7 @@
 									<Input
 										{...props}
 										bind:value={$createLeaderboardFormData.order}
-										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -278,7 +278,7 @@
 									<Input
 										{...props}
 										bind:value={$updateLeaderboardFormData.name}
-										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -293,7 +293,7 @@
 									<Input
 										{...props}
 										bind:value={$updateLeaderboardFormData.order}
-										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white px-3 py-1 !text-base font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />

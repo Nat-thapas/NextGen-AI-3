@@ -73,7 +73,7 @@
 					Personal Information
 				</span>
 				<div class="flex flex-wrap">
-					<div class="w-64 px-2 sm:px-4">
+					<div class="w-64 grow px-2 sm:px-4">
 						<Form.Field {form} name="prefix" class="mb-4 w-full">
 							<Form.Control>
 								{#snippet children({ props })}
@@ -94,7 +94,7 @@
 							<Form.FieldErrors />
 						</Form.Field>
 					</div>
-					<div class="w-96 grow px-2 sm:px-4">
+					<div class="w-96 grow-[999] px-2 sm:px-4">
 						<Form.Field {form} name="name" class="mb-4 w-full">
 							<Form.Control>
 								{#snippet children({ props })}
@@ -103,7 +103,7 @@
 										{...props}
 										bind:value={$formData.name}
 										placeholder="สมชาย บุญรอด"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -120,7 +120,7 @@
 										{...props}
 										bind:value={$formData.nickname}
 										placeholder="เขียว"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -135,7 +135,7 @@
 										{...props}
 										bind:value={$formData.phoneNumber}
 										placeholder="0987654321"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -151,7 +151,7 @@
 										type="email"
 										bind:value={$formData.email}
 										readonly
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -171,7 +171,7 @@
 										{...props}
 										bind:value={$formData.addressDetail}
 										placeholder="39/743 ซอยหัวหิน 102"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -186,7 +186,7 @@
 										{...props}
 										bind:value={$formData.addressSubDistrict}
 										placeholder="หนองแก"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -203,7 +203,7 @@
 										{...props}
 										bind:value={$formData.addressDistrict}
 										placeholder="หัวหิน"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -218,7 +218,7 @@
 										{...props}
 										bind:value={$formData.addressProvince}
 										placeholder="ประจวบคีรีขันธ์"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -233,7 +233,7 @@
 										{...props}
 										bind:value={$formData.addressPostcode}
 										placeholder="77110"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -253,7 +253,7 @@
 										{...props}
 										bind:value={$formData.schoolName}
 										placeholder="ลาดกระบังวิทยา"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-neutral-300" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -292,7 +292,7 @@
 										bind:files={$file}
 										type="file"
 										accept="application/pdf"
-										class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-secondary-foreground bg-white px-2 py-1.5 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-secondary-foreground file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
+										class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-secondary-foreground bg-white px-2 py-1.5 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-neutral-300 file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />

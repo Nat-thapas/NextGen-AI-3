@@ -31,20 +31,30 @@
 	let { data } = $props();
 
 	const agendas: [number, Date, Date | null, string][] = [
-		[0, new Date(2026, 3, 13), new Date(2026, 3, 27), 'เปิดรับสมัคร (Registeration)'],
-		[1, new Date(2026, 4, 4), new Date(2026, 4, 24), 'ปูพื้นฐาน (Foundation)'],
-		[2, new Date(2026, 4, 31), null, 'สอบวัดพื้นฐาน (Onsite Assessment)'],
-		[3, new Date(2026, 5, 8), new Date(2026, 6, 19), 'พัฒนาความรู้เชิงลึก (Advanced Learning)'],
+		[
+			0,
+			new Date(Date.UTC(2026, 3, 13)),
+			new Date(Date.UTC(2026, 3, 27)),
+			'เปิดรับสมัคร (Registeration)'
+		],
+		[1, new Date(Date.UTC(2026, 4, 4)), new Date(Date.UTC(2026, 4, 24)), 'ปูพื้นฐาน (Foundation)'],
+		[2, new Date(Date.UTC(2026, 4, 31)), null, 'สอบวัดพื้นฐาน (Onsite Assessment)'],
+		[
+			3,
+			new Date(Date.UTC(2026, 5, 8)),
+			new Date(Date.UTC(2026, 6, 19)),
+			'พัฒนาความรู้เชิงลึก (Advanced Learning)'
+		],
 		[
 			4,
-			new Date(2026, 6, 25),
-			new Date(2026, 6, 26),
+			new Date(Date.UTC(2026, 6, 25)),
+			new Date(Date.UTC(2026, 6, 26)),
 			'ฝึกปฏิบัติแบบทีม (Team-based Onsite Workshop)'
 		],
 		[
 			5,
-			new Date(2026, 8, 4),
-			new Date(2026, 8, 7),
+			new Date(Date.UTC(2026, 8, 4)),
+			new Date(Date.UTC(2026, 8, 7)),
 			'การแข่งขัน Hackathon (Final Individual Hackathon)'
 		]
 	];
@@ -397,7 +407,7 @@
 										<Input
 											{...props}
 											bind:value={$createAnnouncementFormData.title}
-											class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+											class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-neutral-300" />
 									{/snippet}
 								</Form.Control>
 								<Form.FieldErrors />
@@ -413,7 +423,7 @@
 											bind:files={$announcementFile}
 											type="file"
 											accept="application/zip, application/zip-compressed, application/x-zip-compressed, multipart/x-zip"
-											class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-secondary-foreground bg-white px-2 py-1.5 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-secondary-foreground file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
+											class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-secondary-foreground bg-white px-2 py-1.5 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-neutral-300 file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
 									{/snippet}
 								</Form.Control>
 								<Form.FieldErrors />
