@@ -522,7 +522,7 @@
 							</defs>
 						</svg>
 					</div>
-					<span class="text-sm text-primary-foreground">NextGen AI</span>
+					<span class="text-sm text-primary-foreground">NextGen AI Camp</span>
 				</a>
 
 				<a
