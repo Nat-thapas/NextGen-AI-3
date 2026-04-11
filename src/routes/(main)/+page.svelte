@@ -35,11 +35,21 @@
 
 	const agendas: [number, Date, Date | null, string][] = [
 		[0, new Date(2026, 3, 13), new Date(2026, 3, 27), 'เปิดรับสมัคร (Registeration)'],
-		[1, new Date(2026, 4, 4), new Date(2026, 4, 24), 'Foundation'],
-		[2, new Date(2026, 4, 31), null, 'Onsite Assessment'],
-		[3, new Date(2026, 5, 8), new Date(2026, 6, 19), 'Advanced Learning phase'],
-		[4, new Date(2026, 6, 25), new Date(2026, 6, 26), 'Team-based Onsite Workshop'],
-		[5, new Date(2026, 8, 4), new Date(2026, 8, 7), 'Final Hackathon']
+		[1, new Date(2026, 4, 4), new Date(2026, 4, 24), 'ปูพื้นฐาน (Foundation)'],
+		[2, new Date(2026, 4, 31), null, 'สอบวัดพื้นฐาน (Onsite Assessment)'],
+		[3, new Date(2026, 5, 8), new Date(2026, 6, 19), 'พัฒนาความรู้เชิงลึก (Advanced Learning)'],
+		[
+			4,
+			new Date(2026, 6, 25),
+			new Date(2026, 6, 26),
+			'ฝึกปฏิบัติแบบทีม (Team-based Onsite Workshop)'
+		],
+		[
+			5,
+			new Date(2026, 8, 4),
+			new Date(2026, 8, 7),
+			'การแข่งขัน Hackathon (Final Individual Hackathon)'
+		]
 	];
 
 	const heroImages = [robots, hero3, hero4, hero5, hero6];
@@ -241,22 +251,25 @@
 				alt="Binder decoration"
 				class="absolute -top-4 right-16 h-8 w-fit md:-top-8 md:h-16" />
 			{#each agendas as agenda (agenda[0])}
-				<div class="mb-2 flex">
-					<span class="block w-36 text-primary-foreground md:w-28 md:text-lg">
-						{formatDate(agenda[1], { timeZone: 'UTC' })}
-					</span>
-					{#if agenda[2] !== null}
-						<span class="mx-2 hidden w-4 text-center text-primary-foreground md:block md:text-lg">
-							-
+				<div class="mb-4 flex flex-col md:mb-2 md:flex-row md:items-start">
+					<div
+						class="mb-1 flex flex-wrap items-center text-primary-foreground md:mb-0 md:flex-nowrap">
+						<span class="block w-auto font-medium md:w-28 md:text-lg md:font-normal">
+							{formatDate(agenda[1], { timeZone: 'UTC' })}
 						</span>
-						<span class="mr-16 hidden w-28 text-primary-foreground md:block md:text-lg">
-							{formatDate(agenda[2], { timeZone: 'UTC' })}
-						</span>
-					{:else}
-						<span class="mr-16 hidden w-36 md:block"></span>
-					{/if}
+
+						{#if agenda[2] !== null}
+							<span class="mx-2 block w-auto text-center md:w-4 md:text-lg">-</span>
+							<span class="block w-auto font-medium md:mr-16 md:w-28 md:text-lg md:font-normal">
+								{formatDate(agenda[2], { timeZone: 'UTC' })}
+							</span>
+						{:else}
+							<span class="hidden md:mr-16 md:block md:w-36"></span>
+						{/if}
+					</div>
+
 					<span
-						class="block w-0 flex-grow overflow-hidden text-ellipsis text-nowrap text-primary-foreground md:text-lg">
+						class="block w-full flex-grow break-words leading-relaxed text-accent md:w-0 md:text-lg">
 						{agenda[3]}
 					</span>
 				</div>
