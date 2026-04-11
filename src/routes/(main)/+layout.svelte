@@ -76,7 +76,12 @@
 			</form>
 		</div>
 	{:else}
-		<div class="hidden w-48 items-center justify-end gap-4 lg:flex">
+		<div class="hidden w-64 items-center justify-end gap-4 lg:flex">
+			<a
+				href="{base}/auth/oauth/google?next={page.url.searchParams.get('next') ?? `${base}/`}"
+				class="font-semibold text-secondary-foreground transition-colors hover:text-primary-foreground">
+				Login
+			</a>
 			<a
 				href="{base}/auth/oauth/google?next={page.url.searchParams.get('next') ?? `${base}/`}"
 				class="button-gradient rounded-full px-4 py-2 font-semibold text-white drop-shadow-md transition-colors">

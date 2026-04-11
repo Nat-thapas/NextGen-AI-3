@@ -69,7 +69,7 @@
 			action="?/update-profile"
 			enctype="multipart/form-data"
 			use:updateProfileEnhance>
-			<div class="mb-4 rounded-xl border-2 border-secondary-foreground p-4">
+			<div class="mb-4 rounded-xl border-2 border-sidebar-border p-4">
 				<span class="mb-4 block text-xl font-semibold text-primary-foreground">
 					Personal Information
 				</span>
@@ -85,7 +85,7 @@
 										name={props.name}>
 										<Select.Trigger
 											{...props}
-											class="rounded-xl border-2 border-secondary-foreground bg-white text-lg font-medium !text-primary-foreground">
+											class="rounded-xl border-2 border-sidebar-border bg-white text-lg font-medium !text-primary-foreground">
 											{$updateProfileFormData.prefix
 												? $updateProfileFormData.prefix
 												: 'Select your prefix'}
@@ -109,7 +109,7 @@
 										{...props}
 										bind:value={$updateProfileFormData.name}
 										placeholder="สมชาย บุญรอด"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-sidebar-border bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -126,7 +126,7 @@
 										{...props}
 										bind:value={$updateProfileFormData.nickname}
 										placeholder="เขียว"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-sidebar-border bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -141,22 +141,22 @@
 										{...props}
 										bind:value={$updateProfileFormData.phoneNumber}
 										placeholder="0987654321"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-sidebar-border bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
 						</Form.Field>
 					</div>
 					<div class="w-64 grow px-2 sm:px-4">
-						<span class="mb-2 block text-lg font-semibold text-secondary-foreground">Email</span>
+						<span class="mb-2 block text-lg text-secondary-foreground">Email</span>
 						<input
 							value={data.user?.email}
 							readonly
-							class="h-10 w-full rounded-xl border-2 border-secondary-foreground bg-white px-3 !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+							class="h-10 w-full rounded-xl border-2 border-sidebar-border bg-white px-3 !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 					</div>
 				</div>
 			</div>
-			<div class="mb-4 rounded-xl border-2 border-secondary-foreground p-4">
+			<div class="mb-4 rounded-xl border-2 border-sidebar-border p-4">
 				<span class="mb-4 block text-xl font-semibold text-primary-foreground">Address</span>
 				<div class="flex flex-wrap">
 					<div class="w-96 grow px-2 sm:px-4">
@@ -168,7 +168,7 @@
 										{...props}
 										bind:value={$updateProfileFormData.addressDetail}
 										placeholder="39/743 ซอยหัวหิน 102"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-sidebar-border bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -183,7 +183,7 @@
 										{...props}
 										bind:value={$updateProfileFormData.addressSubDistrict}
 										placeholder="หนองแก"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-sidebar-border bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -200,7 +200,7 @@
 										{...props}
 										bind:value={$updateProfileFormData.addressDistrict}
 										placeholder="หัวหิน"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-sidebar-border bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -215,7 +215,7 @@
 										{...props}
 										bind:value={$updateProfileFormData.addressProvince}
 										placeholder="ประจวบคีรีขันธ์"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-sidebar-border bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -230,7 +230,7 @@
 										{...props}
 										bind:value={$updateProfileFormData.addressPostcode}
 										placeholder="77110"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-sidebar-border bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -238,7 +238,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="mb-4 rounded-xl border-2 border-secondary-foreground p-4">
+			<div class="mb-4 rounded-xl border-2 border-sidebar-border p-4">
 				<span class="mb-4 block text-xl font-semibold text-primary-foreground">Education</span>
 				<div class="flex flex-wrap">
 					<div class="w-64 grow px-2 sm:px-4">
@@ -250,7 +250,7 @@
 										{...props}
 										bind:value={$updateProfileFormData.schoolName}
 										placeholder="ลาดกระบังวิทยา"
-										class="rounded-xl border-2 border-secondary-foreground bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
+										class="rounded-xl border-2 border-sidebar-border bg-white !text-lg font-medium text-primary-foreground placeholder:text-secondary-foreground" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
@@ -267,7 +267,7 @@
 										name={props.name}>
 										<Select.Trigger
 											{...props}
-											class="rounded-xl border-2 border-secondary-foreground bg-white text-lg font-medium !text-primary-foreground">
+											class="rounded-xl border-2 border-sidebar-border bg-white text-lg font-medium !text-primary-foreground">
 											{$updateProfileFormData.grade
 												? $updateProfileFormData.grade
 												: 'Select your education'}
@@ -286,7 +286,7 @@
 						<Form.Field form={updateProfileForm} name="transcript" class="mb-4 w-full">
 							<Form.Control>
 								{#snippet children({ props })}
-									<div class="flex items-center justify-between">
+									<div class="flex items-center justify-between gap-4">
 										<Form.Label class="text-lg text-secondary-foreground">Transcript</Form.Label>
 										{#if data.transcript}
 											<a
@@ -303,7 +303,7 @@
 										bind:files={$file}
 										type="file"
 										accept="application/pdf"
-										class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-secondary-foreground bg-white px-2 py-1.5 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-secondary-foreground file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
+										class="flex h-10 w-full cursor-pointer rounded-xl border-2 border-sidebar-border bg-white px-2 py-1.5 !text-base font-medium text-primary-foreground ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium file:text-secondary-foreground file:transition-colors placeholder:text-secondary-foreground file:hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm" />
 								{/snippet}
 							</Form.Control>
 							<Form.FieldErrors />
