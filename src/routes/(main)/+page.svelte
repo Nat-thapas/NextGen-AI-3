@@ -149,13 +149,6 @@
 			คอยให้คำปรึกษาและดูแลตลอดกระบวนการเรียนรู้
 			วัตถุประสงค์เพื่อส่งเสริมทักษะทางเทคโนโลยีและเตรียมความพร้อมสำหรับการศึกษาต่อในระดับอุดมศึกษา
 		</p>
-		{#if data.user === undefined}
-			<a
-				href="{base}/auth/oauth/google?next={page.url.searchParams.get('next') ?? `${base}/`}"
-				class="button-gradient mx-8 rounded-full px-6 py-2 text-xl font-semibold text-white drop-shadow-md transition-colors md:mx-0">
-				สมัครเข้าร่วมค่าย
-			</a>
-		{/if}
 	</div>
 
 	<div
