@@ -195,8 +195,7 @@
 			class="flex w-full flex-col items-center justify-center rounded-xl bg-white p-8 drop-shadow-lg transition-transform hover:scale-[1.02]">
 			<h3 class="mb-4 text-xl font-bold text-accent md:text-3xl">10 อันดับแรก</h3>
 			<p class="text-center leading-relaxed text-primary-foreground md:text-xl">
-				รับโควต้าเข้าเรียนวิศวะคอม สจล. <br />
-				รอบ Portfolio TCAS 70
+				ในรอบ Final Individual Hackathon จะได้รับโควต้าเข้าเรียนวิศวะคอม สจล. รอบ Portfolio TCAS 70
 			</p>
 		</div>
 		<div
@@ -207,8 +206,7 @@
 			class="flex w-full flex-col items-center justify-center rounded-xl bg-white p-8 drop-shadow-lg transition-transform hover:scale-[1.02]">
 			<h3 class="mb-4 text-xl font-bold text-accent md:text-3xl">50 อันดับแรก</h3>
 			<p class="text-center leading-relaxed text-primary-foreground md:text-xl">
-				ได้รับประกาศนียบัตรรับรอง <br />
-				การเข้าร่วมโครงการ
+				ในรอบ Team-based Onsite Workshop จะได้รับประกาศนียบัตรรับรองการเข้าร่วมโครงการ
 			</p>
 		</div>
 
