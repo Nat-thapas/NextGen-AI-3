@@ -16,3 +16,8 @@ export const checkboxesSchema = z.object({
 		.array()
 		.optional()
 });
+
+export const codeSchema = z.object({
+	next: z.string(),
+	answer: z.string().optional()
+});

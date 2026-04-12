@@ -52,6 +52,7 @@
 			answer: string | string[] | undefined;
 			answerExists: boolean;
 			acceptedFileTypes: string | undefined;
+			visibleTestcases: { number: number; stdin: string; expectedOut: string; isHidden: boolean }[];
 		};
 		form: ActionData | undefined;
 	} = $props();
@@ -217,6 +218,7 @@
 	<form
 		id="form"
 		method="POST"
+		action="?/saveAnswer"
 		enctype={data.question.questionType === questionTypes.file
 			? 'multipart/form-data'
 			: 'application/x-www-form-urlencoded'}
@@ -524,6 +526,74 @@
 								class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer pt-[19.5rem] text-center text-lg text-primary-foreground file:hidden" />
 						</div>
 					{/if}
+				</div>
+			{:else if data.question.questionType === questionTypes.code}
+				<div class="flex flex-col gap-4">
+					<div class="flex flex-col overflow-hidden rounded-lg border border-border drop-shadow-sm">
+						<div class="flex items-center justify-between bg-zinc-900 px-4 py-2 text-zinc-300">
+							<span class="font-mono text-sm font-semibold">Python 3.12</span>
+							<button
+								type="submit"
+								formaction="?/runCode"
+								class="flex items-center gap-2 rounded bg-primary px-4 py-1 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+								▶ Run Code
+							</button>
+						</div>
+						<textarea
+							name="answer"
+							bind:value={answer}
+							placeholder="Write your Python code here..."
+							class="min-h-[300px] w-full resize-y bg-zinc-950 p-4 font-mono text-sm text-zinc-100 focus:outline-none"
+							spellcheck="false"></textarea>
+					</div>
+
+					<div class="mt-4 flex flex-col gap-4">
+						<h3 class="text-lg font-bold text-foreground">Visible Test Cases</h3>
+
+						{#if data.visibleTestcases.length === 0}
+							<p class="text-sm text-muted-foreground">No visible test cases for this question.</p>
+						{/if}
+
+						{#each data.visibleTestcases as tc, i}
+							{@const result = form?.runResults?.find((r) => r.testcaseNumber === tc.number)}
+							<div class="flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+								<div class="flex items-center justify-between bg-muted px-4 py-2">
+									<span class="font-semibold text-muted-foreground">Test Case {i + 1}</span>
+									{#if result}
+										{#if result.passed}
+											<span class="rounded bg-green-500/20 px-2 py-1 text-xs font-bold text-green-600 dark:text-green-400">Passed</span>
+										{:else}
+											<span class="rounded bg-red-500/20 px-2 py-1 text-xs font-bold text-red-600 dark:text-red-400">
+												Failed ({result.status})
+											</span>
+										{/if}
+									{/if}
+								</div>
+								<div class="grid grid-cols-1 gap-px bg-border md:grid-cols-2">
+									<div class="flex flex-col gap-px bg-border">
+										<div class="bg-card p-3">
+											<p class="mb-1 text-xs font-semibold text-muted-foreground">Input (stdin):</p>
+											<pre class="whitespace-pre-wrap font-mono text-sm">{tc.stdin}</pre>
+										</div>
+										<div class="bg-card p-3">
+											<p class="mb-1 text-xs font-semibold text-muted-foreground">Expected Output:</p>
+											<pre class="whitespace-pre-wrap font-mono text-sm text-green-600 dark:text-green-400">{tc.expectedOut}</pre>
+										</div>
+									</div>
+									<div class="bg-card p-3">
+										<p class="mb-1 text-xs font-semibold text-muted-foreground">Actual Output:</p>
+										{#if result}
+											<pre class="h-full whitespace-pre-wrap font-mono text-sm {result.passed ? 'text-foreground' : 'text-red-500'}">{result.actualOut || '<No Output>'}</pre>
+										{:else}
+											<div class="flex h-full items-center justify-center text-sm text-muted-foreground">
+												Run code to see output
+											</div>
+										{/if}
+									</div>
+								</div>
+							</div>
+						{/each}
+					</div>
 				</div>
 			{:else}
 				<div class="w-full text-center text-lg font-semibold text-red-500">

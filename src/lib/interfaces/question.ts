@@ -1,7 +1,7 @@
 export interface Question {
 	number: number;
 	html: string;
-	questionType: 'choices' | 'checkboxes' | 'text' | 'file';
+	questionType: 'choices' | 'checkboxes' | 'text' | 'file' | 'code';
 	textLengthLimit: number;
 	fileTypes: string | null;
 	fileSizeLimit: number;

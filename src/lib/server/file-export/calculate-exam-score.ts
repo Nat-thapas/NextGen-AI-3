@@ -4,6 +4,7 @@ import { questionTypes, scoringTypes } from '$lib/enums';
 import { getAnswer, updateAnswerCorrectness } from '$lib/server/db/services/answers';
 import { getExamQuestionsChoicesSubmissions } from '$lib/server/db/services/exams';
 import { updateSubmissionScore } from '$lib/server/db/services/submissions';
+import { getTestcases } from '$lib/server/db/services/testcases';
 import { getUser } from '$lib/server/db/services/users';
 
 export function getScore(
@@ -103,8 +104,76 @@ export async function calculateExamScore(examId: string): Promise<void> {
 							throw Error(`Question #${question.number} contains invalid scoring type`);
 						}
 					}
-				}
+				} else if (question.questionType === questionTypes.code) {
+					
+					// 1. Fetch testcases from DB for this question
+					const testcases = await getTestcases(exam.id, question.number);
 
+					if (testcases && testcases.length > 0) {
+						// 2. Prepare cases payload for execution API
+						const casesPayload = testcases.map((tc) => ({
+							input: tc.stdin || ""
+						}));
+
+						const executionPayload = {
+							version: "3.12",
+							submission: answer.answer, // The student's code
+							colored_diagnostics: false,
+							stdio_sets: [
+								{
+									isolation_level: "high", // Or medium based on your needs
+									cases: casesPayload
+								}
+							]
+						};
+
+						try {
+							// 3. Post to execution engine
+							const response = await fetch("http://[::]:6173/python/execute", {
+								method: "POST",
+								headers: { "Content-Type": "application/json" },
+								body: JSON.stringify(executionPayload)
+							});
+
+							if (!response.ok) {
+								throw new Error(`Engine returned status ${response.status}`);
+							}
+
+							const result = await response.json();
+							
+							// 4. Parse the outputs (matching the single stdio_set we sent)
+							const runOutputs = result.outputs?.[0] || [];
+							
+							let correctCount = 0;
+
+							for (let i = 0; i < testcases.length; i++) {
+								const tc = testcases[i];
+								const runOut = runOutputs[i];
+
+								// Ensure it ran successfully ("OK")
+								if (runOut && runOut.status === "OK") {
+									// Sanitize line endings and trim trailing whitespace to prevent \r\n vs \n errors
+									const expected = (tc.expectedOut || "").trim().replace(/\r\n/g, '\n');
+									const actual = (runOut.output || "").trim().replace(/\r\n/g, '\n');
+
+									if (actual === expected) {
+										correctCount += 1;
+									}
+								}
+							}
+
+							// Calculate correctness ratio
+							answer.correctness = correctCount / testcases.length;
+
+						} catch (err) {
+							console.error(`Execution failed for user ${user.id}, question ${question.number}:`, err);
+							// Set to 0 if the API is down or crashes 
+							answer.correctness = 0; 
+						}
+					} else {
+						answer.correctness = 1;
+					}
+				}
 				if (answer.correctness === null) {
 					score += question.defaultScore;
 				} else {

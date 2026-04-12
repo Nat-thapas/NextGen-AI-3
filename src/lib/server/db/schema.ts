@@ -32,7 +32,7 @@ export const roles = pgEnum('role', [
 // checkboxes: multiple choices, pick multiple
 // text: text answer
 // file: upload a file as answer
-export const questionTypes = pgEnum('question_types', ['choices', 'checkboxes', 'text', 'file']);
+export const questionTypes = pgEnum('question_types', ['choices', 'checkboxes', 'text', 'file', 'code']);
 
 // Scoring methods for checkboxes and text questions
 // checkboxes:
@@ -158,7 +158,8 @@ export const questionsRelation = relations(questions, ({ one, many }) => ({
 		references: [exams.id]
 	}),
 	choices: many(choices),
-	answers: many(answers)
+	answers: many(answers),
+	testcases: many(testcases) // ---> ADDED THIS RELATION
 }));
 
 export const choices = pgTable(
@@ -189,6 +190,41 @@ export const choicesRelation = relations(choices, ({ one }) => ({
 		references: [questions.examId, questions.number]
 	})
 }));
+
+// --------------------------------------------------------------------------
+// TESTCASES TABLE (NEWLY ADDED)
+// --------------------------------------------------------------------------
+export const testcases = pgTable(
+	'testcases',
+	{
+		examId: suid().notNull(),
+		questionNumber: integer().notNull(),
+		number: integer().notNull(),
+		stdin: text(),
+		expectedOut: text(),
+		isHidden: boolean().default(true).notNull(),
+		codeTimeLimitMs: integer().default(1000).notNull(),
+		codeMemoryLimitKb: integer().default(4096).notNull(),
+		...timeStamps
+	},
+	(table) => [
+		primaryKey({ columns: [table.examId, table.questionNumber, table.number] }),
+		foreignKey({
+			columns: [table.examId, table.questionNumber],
+			foreignColumns: [questions.examId, questions.number]
+		})
+			.onUpdate('cascade')
+			.onDelete('cascade')
+	]
+);
+
+export const testcasesRelation = relations(testcases, ({ one }) => ({
+	question: one(questions, {
+		fields: [testcases.examId, testcases.questionNumber],
+		references: [questions.examId, questions.number]
+	})
+}));
+// --------------------------------------------------------------------------
 
 export const submissions = pgTable(
 	'submissions',
