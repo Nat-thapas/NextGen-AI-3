@@ -33,6 +33,8 @@ import type { Actions, PageServerLoad } from './$types';
 import { checkboxesSchema, choicesSchema, codeSchema } from './schema';
 import { getTestcases } from '$lib/server/db/services/testcases';
 
+import { EXECUTOR_BASE_URL } from '$env/static/private';
+
 export const load: PageServerLoad = async ({ locals, params }) => {
 	const user = locals.user;
 	const examId = params.id;
@@ -502,7 +504,7 @@ export const actions: Actions = {
 
 		try {
 			// 6. Call the Executor
-			const response = await fetch("http://[::]:6173/python/execute", {
+			const response = await fetch(`${EXECUTOR_BASE_URL}/python/execute`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(executionPayload)
