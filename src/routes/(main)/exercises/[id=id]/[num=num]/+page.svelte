@@ -91,6 +91,8 @@
 	let activeTestcase = $state(0);
 	let activeTab = $state<'testcase' | 'testresult'>('testcase');
 
+	let running = $state(false);
+
 	$effect(() => {
 		const _ = data.question.number;
 		answer = data.answer ?? '';
@@ -343,7 +345,11 @@
 	enctype={data.question.questionType === questionTypes.file
 		? 'multipart/form-data'
 		: 'application/x-www-form-urlencoded'}
-	use:enhance={({ formData, cancel }) => {
+	use:enhance={({ formData, cancel, action }) => {
+		if (action.search === '?/runCode') {
+			running = true;
+		}
+
 		const entries = Array.from(formData.entries()) as Array<[string, FormDataEntryValue]>;
 		for (const [key, value] of entries) {
 			if (key !== 'answer') continue;
@@ -384,16 +390,15 @@
 		}
 
 		return async ({ result, update }): Promise<void> => {
+			running = false;
 			if (result.type === 'failure') {
 				try {
-					// @ts-expect-error It should work, but if it doesn't it's in a try catch
 					const errors = result.data.form.errors.answer;
 					if (errors instanceof Array) {
 						toast.error(errors.join(', '));
 					} else if (errors instanceof Object) {
 						const errs: string[] = [];
 						for (const [index, value] of Object.entries(errors)) {
-							// @ts-expect-error Value is string[]
 							errs.push(`${index}: ${value.join(', ')}`);
 						}
 						toast.error(errs.join(', '));
@@ -439,9 +444,18 @@
 									<RotateCcw size={14} />
 									<span>Reset</span>
 								</button>
-								<button type="submit" formaction="?/runCode" class="editor-run-btn">
-									<Play size={14} />
-									<span>RUN</span>
+								<button
+									type="submit"
+									formaction="?/runCode"
+									class="editor-run-btn"
+									disabled={running}
+									class:running={running}>
+									{#if running}
+										<span>Loading...</span>
+									{:else}
+										<Play size={14} />
+										<span>RUN</span>
+									{/if}
 								</button>
 							</div>
 						</div>
@@ -456,8 +470,7 @@
 								'&': { minHeight: '300px' },
 								'.cm-scroller': { fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }
 							}} />
-						<!-- Hidden textarea keeps answer in sync for form submission -->
-						<textarea name="answer" style="display:none">{typeof answer === 'string' ? answer : ''}</textarea>
+						<input type="hidden" name="answer" value={answer} />
 					</div>
 
 					<!-- Testcase / Test Result toggle box -->
@@ -1133,6 +1146,12 @@
 		color: var(--white);
 		cursor: pointer;
 		transition: opacity 0.15s;
+	}
+
+	.editor-run-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+		background: #667085;
 	}
 
 	.editor-run-btn:hover {
