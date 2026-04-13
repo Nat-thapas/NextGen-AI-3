@@ -86,6 +86,7 @@
 		return data.questions.slice(start - 1, end);
 	});
 
+	let currentQuestionNumber = $state(data.question.number);
 	let answer = $state(data.answer ?? '');
 	let initialAnswer = $state(data.answer ?? '');
 	let activeTestcase = $state(0);
@@ -93,12 +94,14 @@
 
 	let running = $state(false);
 
-	$effect(() => {
-		const _ = data.question.number;
-		answer = data.answer ?? '';
-		initialAnswer = data.answer ?? '';
-		activeTestcase = 0;
-		activeTab = 'testcase';
+	$effect.pre(() => {
+		if (currentQuestionNumber !== data.question.number) {
+			currentQuestionNumber = data.question.number;
+			answer = data.answer ?? '';
+			initialAnswer = data.answer ?? '';
+			activeTestcase = 0;
+			activeTab = 'testcase';
+		}
 	});
 
 	const fetchJson = new FetchJson(fetch, base);
@@ -407,7 +410,7 @@
 					toast.error('Unknown error');
 				}
 			}
-			update();
+			update({ reset: false });
 		};
 	}}>
 	<div class="exam-body">
