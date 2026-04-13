@@ -6,7 +6,9 @@
 		Clock,
 		Download,
 		File as FileIcon,
-		Menu
+		Menu,
+		RotateCcw,
+		Play
 	} from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
@@ -83,6 +85,8 @@
 	});
 
 	let answer = $state(data.answer);
+	let activeTestcase = $state(0);
+	let activeTab = $state<'testcase' | 'testresult'>('testcase');
 
 	$effect(() => {
 		answer = data.answer;
@@ -107,6 +111,9 @@
 
 	let fileInput: HTMLInputElement | undefined = $state();
 	let removeFileVisible = $state(false);
+
+	// Code reset support
+	let initialAnswer = $state(data.answer);
 
 	async function syncNow(): Promise<void> {
 		if (syncing) return;
@@ -196,6 +203,13 @@
 		removeFileVisible = false;
 	});
 
+	// Auto-switch to Test Result tab when run completes
+	$effect(() => {
+		if (form?.runResults && form.runResults.length > 0) {
+			activeTab = 'testresult';
+		}
+	});
+
 	$effect(() => {
 		if (timeLeft < 0 && !isRoleAtLeast(data.user?.role, roles.teacher)) {
 			goto(
@@ -214,151 +228,75 @@
 	<title>CE Next Gen AI - {data.exam.title}</title>
 </svelte:head>
 
-<div class="mx-auto mt-4 max-w-screen-2xl px-16">
-	<form
-		id="form"
-		method="POST"
-		action="?/saveAnswer"
-		enctype={data.question.questionType === questionTypes.file
-			? 'multipart/form-data'
-			: 'application/x-www-form-urlencoded'}
-		use:enhance={({ formData, cancel }) => {
-			for (const [key, value] of formData.entries()) {
-				if (key !== 'answer') {
-					continue;
-				}
+<!-- Top Navigation Bar -->
+<header class="exam-topbar">
+	<div class="exam-topbar-inner">
+		<!-- Logo placeholder -->
+		<div class="exam-logo">
+			<span class="exam-logo-text">CE<span class="logo-accent">Next</span></span>
+		</div>
 
-				if (
-					data.question.questionType === questionTypes.text &&
-					(typeof value === 'string' || value instanceof String)
-				) {
-					if (value.length > data.question.textLengthLimit) {
-						toast.error(`Answer must be at most ${data.question.textLengthLimit} characters long`);
-						cancel();
-						return;
-					}
-				}
-
-				if (
-					data.question.questionType === questionTypes.file &&
-					value instanceof File &&
-					value.name !== '' &&
-					value.size > 0
-				) {
-					if (
-						data.question.fileTypes &&
-						!data.question.fileTypes.split(/ *[,;] */).includes(value.type)
-					) {
-						toast.error(`File must be of a supported types (${data.acceptedFileTypes})`);
-						cancel();
-						return;
-					}
-					if (value.size > data.question.fileSizeLimit * 1000) {
-						toast.error(
-							`File size must be at most ${formatNumber(data.question.fileSizeLimit * 1000)}B`
-						);
-						cancel();
-						return;
-					}
-				}
-			}
-
-			return async ({ result, update }): Promise<void> => {
-				if (result.type === 'failure') {
-					try {
-						// @ts-expect-error It should work, but if it doesn't it's in a try catch
-						const errors = result.data.form.errors.answer;
-						if (errors instanceof Array) {
-							toast.error(errors.join(', '));
-						} else if (errors instanceof Object) {
-							const errs: string[] = [];
-							for (const [index, value] of Object.entries(errors)) {
-								// @ts-expect-error Value is string[]
-								errs.push(`${index}: ${value.join(', ')}`);
-							}
-							toast.error(errs.join(', '));
-						}
-					} catch {
-						toast.error('Unknown error');
-					}
-				}
-				update();
-			};
-		}}>
-		<div class="mb-4 flex justify-between gap-8">
+		<!-- Question navigation -->
+		<nav class="question-nav">
 			<label
-				for="exit-button"
-				class="relative flex h-8 w-32 items-center gap-1 text-lg font-semibold text-secondary-foreground transition-colors hover:text-primary-foreground">
-				<ChevronLeft />Back
+				for="nav-back-btn"
+				class="nav-arrow-btn"
+				class:disabled={data.question.number === 1}>
+				<ChevronLeft size={20} />
 				<input
+					form="form"
 					type="submit"
-					id="exit-button"
+					id="nav-back-btn"
 					name="next"
-					value="exit"
-					class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
+					value={data.question.number - 1}
+					disabled={data.question.number === 1}
+					class="hidden-submit" />
 			</label>
-			<div class="w-0 max-w-2xl flex-grow">
-				<div class="flex items-center justify-between">
-					<span class="mb-2 text-primary-foreground">{percentCompletedString}% Complete</span>
-					<span class="mb-2 text-primary-foreground">
-						{completedCount} of {data.questions.length}
-					</span>
-				</div>
-				<Progress value={percentCompleted} max={100} class="mb-4 h-3" />
-				<div class="flex items-center justify-evenly">
+
+			<div class="question-bubbles">
+				{#each shownQuestions as question (question.number)}
 					<label
-						for="backward-button-top"
-						class:!text-gray-400={data.question.number === 1}
-						class:!bg-gray-300={data.question.number === 1}
-						class:!border-gray-300={data.question.number === 1}
-						class="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-secondary-foreground bg-white p-0 text-secondary-foreground transition-colors">
-						<ChevronLeft size={28} />
+						class="q-bubble"
+						class:answered={question.answers.length > 0 && question.number !== data.question.number}
+						class:current={question.number === data.question.number}>
+						{question.number}
 						<input
+							form="form"
 							type="submit"
-							id="backward-button-top"
 							name="next"
-							value={data.question.number - 1}
-							disabled={data.question.number === 1}
-							class:!cursor-not-allowed={data.question.number === 1}
-							class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
+							value={question.number}
+							class="hidden-submit" />
 					</label>
-					<div class="flex items-center gap-3">
-						{#each shownQuestions as question (question.number)}
-							<input
-								type="submit"
-								name="next"
-								value={question.number}
-								class:!bg-gray-300={question.answers.length > 0 &&
-									question.number !== data.question.number}
-								class:!border-gray-300={question.answers.length > 0 &&
-									question.number !== data.question.number}
-								class:!bg-secondary-foreground={question.number === data.question.number}
-								class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-2 border-secondary-foreground bg-white p-0" />
-						{/each}
-					</div>
-					<label
-						for="forward-button-top"
-						class:!text-gray-400={data.question.number === data.questions.length}
-						class:!bg-gray-300={data.question.number === data.questions.length}
-						class:!border-gray-300={data.question.number === data.questions.length}
-						class="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-secondary-foreground bg-white p-0 text-secondary-foreground transition-colors">
-						<ChevronRight size={28} />
-						<input
-							type="submit"
-							id="forward-button-top"
-							name="next"
-							value={data.question.number + 1}
-							disabled={data.question.number === data.questions.length}
-							class:!cursor-not-allowed={data.question.number === data.questions.length}
-							class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
-					</label>
-				</div>
+				{/each}
 			</div>
+
+			<label
+				for="nav-fwd-btn"
+				class="nav-arrow-btn"
+				class:disabled={data.question.number === data.questions.length}>
+				<ChevronRight size={20} />
+				<input
+					form="form"
+					type="submit"
+					id="nav-fwd-btn"
+					name="next"
+					value={data.question.number + 1}
+					disabled={data.question.number === data.questions.length}
+					class="hidden-submit" />
+			</label>
+		</nav>
+
+		<!-- Right side: time + all questions -->
+		<div class="exam-topbar-right">
+			<div class="time-display" class:urgent={timeLeft <= 60_000}>
+				<Clock size={16} />
+				<span>เวลาที่เหลือ {formatDurationClock(timeLeft / 1000)}</span>
+			</div>
+
 			<Dialog.Root bind:open={questionsDialogOpen}>
-				<Dialog.Trigger
-					type="button"
-					class="flex h-8 w-32 items-center gap-1 text-lg font-semibold text-secondary-foreground transition-colors hover:text-primary-foreground">
-					<Menu />Questions
+				<Dialog.Trigger type="button" class="all-questions-btn">
+					<Menu size={16} />
+					<span>คำถามทั้งหมด</span>
 				</Dialog.Trigger>
 				<Dialog.Content class="max-h-[80dvh] overflow-y-auto">
 					<Dialog.Header>
@@ -367,365 +305,1411 @@
 							List of all questions in this exam
 						</Dialog.Description>
 					</Dialog.Header>
-					<div class="flex flex-wrap gap-3">
+					<div class="flex flex-wrap gap-3 p-4">
 						{#each data.questions as question (question.number)}
-							<input
-								form="form"
-								type="submit"
-								name="next"
-								value={question.number}
-								class:!bg-gray-300={question.answers.length > 0 &&
-									question.number !== data.question.number}
-								class:!border-gray-300={question.answers.length > 0 &&
-									question.number !== data.question.number}
-								class:!bg-secondary-foreground={question.number === data.question.number}
-								class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-2 border-secondary-foreground bg-white p-0" />
+							<label
+								class="q-bubble"
+								class:answered={question.answers.length > 0 && question.number !== data.question.number}
+								class:current={question.number === data.question.number}>
+								{question.number}
+								<input
+									form="form"
+									type="submit"
+									name="next"
+									value={question.number}
+									class="hidden-submit" />
+							</label>
 						{/each}
 					</div>
 				</Dialog.Content>
 			</Dialog.Root>
 		</div>
-		<div class="mx-2 mb-2 flex items-center gap-4">
-			<div
-				class="w-0 flex-grow overflow-hidden text-ellipsis text-nowrap text-xl font-semibold text-primary-foreground">
-				{data.exam.title}
-			</div>
-			<div
-				class:!text-red-500={timeLeft <= 60_000}
-				class="flex w-fit items-center justify-start gap-2 text-lg text-primary-foreground">
-				<Clock />
-				<span>Time left: {formatDurationClock(timeLeft / 1000)}</span>
-			</div>
+	</div>
+
+	<!-- Progress bar row -->
+	<div class="progress-row">
+		<div class="progress-labels">
+			<span>ทำไปแล้ว</span>
+			<span>{percentCompletedString}%</span>
 		</div>
-		<div class="mx-2 mb-4 rounded-xl bg-secondary p-4">
-			<div
-				class="prose prose-lg prose-neutral mb-4 w-full max-w-none overflow-auto rounded-xl bg-white px-4 py-2 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
-				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-				{@html data.question.html}
-			</div>
-			<div class="mb-4 border-b-2 border-secondary-foreground"></div>
-			{#if data.question.questionType === questionTypes.choices}
-				<div class="flex flex-wrap items-stretch gap-4">
-					{#each data.question.choices as choice (choice.number)}
-						<label
-							for={`choice-input-${choice.number}`}
-							class:w-3-columns={data.question.choices.length > 4 ||
-								data.question.choices.length === 3}
-							class="w-2-columns prose prose-lg prose-neutral max-h-64 cursor-pointer overflow-auto rounded-xl bg-white px-4 py-2 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
+		<div class="progress-track">
+			<div class="progress-fill" style="width: {percentCompleted}%"></div>
+		</div>
+	</div>
+</header>
+
+<!-- Main form -->
+<form
+	id="form"
+	method="POST"
+	action="?/saveAnswer"
+	enctype={data.question.questionType === questionTypes.file
+		? 'multipart/form-data'
+		: 'application/x-www-form-urlencoded'}
+	use:enhance={({ formData, cancel }) => {
+		for (const [key, value] of Array.from(formData.entries())) {
+			if (key !== 'answer') continue;
+
+			if (
+				data.question.questionType === questionTypes.text &&
+				(typeof value === 'string' || value instanceof String)
+			) {
+				if (value.length > data.question.textLengthLimit) {
+					toast.error(`Answer must be at most ${data.question.textLengthLimit} characters long`);
+					cancel();
+					return;
+				}
+			}
+
+			if (
+				data.question.questionType === questionTypes.file &&
+				value instanceof File &&
+				value.name !== '' &&
+				value.size > 0
+			) {
+				if (
+					data.question.fileTypes &&
+					!data.question.fileTypes.split(/ *[,;] */).includes(value.type)
+				) {
+					toast.error(`File must be of a supported types (${data.acceptedFileTypes})`);
+					cancel();
+					return;
+				}
+				if (value.size > data.question.fileSizeLimit * 1000) {
+					toast.error(`File size must be at most ${formatNumber(data.question.fileSizeLimit * 1000)}B`);
+					cancel();
+					return;
+				}
+			}
+		}
+
+		return async ({ result, update }): Promise<void> => {
+			if (result.type === 'failure') {
+				try {
+					// @ts-expect-error It should work, but if it doesn't it's in a try catch
+					const errors = result.data.form.errors.answer;
+					if (errors instanceof Array) {
+						toast.error(errors.join(', '));
+					} else if (errors instanceof Object) {
+						const errs: string[] = [];
+						for (const [index, value] of Object.entries(errors)) {
+							// @ts-expect-error Value is string[]
+							errs.push(`${index}: ${value.join(', ')}`);
+						}
+						toast.error(errs.join(', '));
+					}
+				} catch {
+					toast.error('Unknown error');
+				}
+			}
+			update();
+		};
+	}}>
+
+	<div class="exam-body">
+		{#if data.question.questionType === questionTypes.code}
+			<!-- CODE QUESTION: two-panel layout -->
+			<div class="code-layout">
+				<!-- Left panel: question -->
+				<aside class="question-panel">
+					<div class="panel-box">
+						<div class="prose prose-sm prose-neutral w-full max-w-none overflow-auto px-4 py-3 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-							{@html choice.html}
-							<input
-								id={`choice-input-${choice.number}`}
-								type="radio"
-								name="answer"
-								value={choice.number.toString()}
-								bind:group={answer}
-								class="sr-only" />
-						</label>
-					{/each}
-				</div>
-			{:else if data.question.questionType === questionTypes.checkboxes}
-				<div class="flex flex-wrap items-stretch gap-4">
-					{#each data.question.choices as choice (choice.number)}
-						<label
-							for={`choice-input-${choice.number}`}
-							class:w-3-columns={data.question.choices.length > 4 ||
-								data.question.choices.length === 3}
-							class="w-2-columns prose prose-lg prose-neutral max-h-64 cursor-pointer overflow-auto rounded-xl bg-white px-4 py-2 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
-							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-							{@html choice.html}
-							<input
-								id={`choice-input-${choice.number}`}
-								type="checkbox"
-								name="answer"
-								value={choice.number.toString()}
-								bind:group={answer}
-								class="sr-only" />
-						</label>
-					{/each}
-				</div>
-			{:else if data.question.questionType === questionTypes.text}
-				<div class="relative h-64 w-full">
-					<textarea
-						name="answer"
-						bind:value={answer}
-						class="border-1 h-full w-full resize-none overflow-auto rounded-xl border-gray-300 bg-white px-2 py-1 text-lg">
-					</textarea>
-					<span
-						class:!text-primary-foreground={data.question.textLengthLimit - (answer?.length ?? 0) <
-							25 && data.question.textLengthLimit - (answer?.length ?? 0) >= 0}
-						class:!text-red-500={data.question.textLengthLimit - (answer?.length ?? 0) < 0}
-						class="absolute bottom-0.5 right-1 rounded-lg bg-white/80 px-1 py-1 text-secondary-foreground">
-						{answer?.length ?? 0} / {data.question.textLengthLimit}
-					</span>
-				</div>
-			{:else if data.question.questionType === questionTypes.file}
-				<div class="w-full">
-					{#if data.answerExists && typeof answer === 'string'}
-						<div class="relative w-full rounded-xl bg-white p-4">
-							<div
-								class="block w-full rounded-xl border-2 border-dashed border-secondary-foreground">
-								<div
-									class="relative mx-auto my-4 w-fit rounded-lg bg-secondary px-4 py-2 text-primary-foreground">
-									<FileIcon size={128} strokeWidth={1} />
-									<a
-										href={`${base}/api/files/${answer}`}
-										target="_blank"
-										class="mt-2 flex items-center justify-center gap-2 text-lg text-primary-foreground">
-										<Download />
-										{answer.replace(/^.*?\./, 'answer.')}
-									</a>
-									<div class="absolute right-1 top-1">
-										<label for="remove-file-button" class="relative h-6 w-6">
-											<CircleX />
-											<input
-												type="submit"
-												id="remove-file-button"
-												name="next"
-												value="remove-answer"
-												class="absolute bottom-0 left-0 right-0 top-0 h-6 w-6 cursor-pointer bg-transparent text-transparent" />
-										</label>
-									</div>
-								</div>
+							{@html data.question.html}
+						</div>
+					</div>
+				</aside>
+
+				<!-- Right panel: editor + testcases -->
+				<div class="editor-panel">
+					<!-- Code editor box -->
+					<div class="editor-box">
+						<div class="editor-topbar">
+							<div class="editor-lang">
+								<span>Python</span>
+								<ChevronRight size={16} style="transform: rotate(90deg); opacity: 0.5;" />
+							</div>
+							<div class="editor-actions">
+								<button
+									type="button"
+									class="editor-reset-btn"
+									onclick={() => { answer = initialAnswer; }}>
+									<RotateCcw size={14} />
+									<span>Reset</span>
+								</button>
+								<button
+									type="submit"
+									formaction="?/runCode"
+									class="editor-run-btn">
+									<Play size={14} />
+									<span>RUN</span>
+								</button>
 							</div>
 						</div>
-					{:else}
-						<div class="relative h-96 w-full rounded-xl bg-white p-4">
-							<label
-								for="file-input"
-								class="block h-full w-full rounded-xl border-2 border-dashed border-secondary-foreground px-4">
-								<img
-									src={fileIcon}
-									alt="File upload icon"
-									width="512"
-									height="512"
-									class="-my-4 mx-auto w-64" />
-								<span class="mb-1 block text-center text-lg font-semibold text-primary-foreground">
-									Drag & drop a file or <span class="underline">Browse</span>
-								</span>
-								<span
-									class="mb-4 block space-x-2 overflow-hidden text-ellipsis text-nowrap text-center text-lg text-secondary-foreground">
-									{#if data.question.fileTypes === null}
-										<span>Max: {formatNumber(data.question.fileSizeLimit * 1000)}B</span>
-										<span>Accept: any</span>
-									{:else}
-										<span>Max: {formatNumber(data.question.fileSizeLimit * 1000)}B</span>
-										<span>Accept: {data.acceptedFileTypes ?? 'any'}</span>
-									{/if}
-								</span>
-							</label>
-							<input
-								id="file-input"
-								type="file"
+						<div class="editor-content">
+							<div class="line-numbers" aria-hidden="true">
+								{#each Array.from({ length: Math.max(15, (typeof answer === 'string' ? answer.split('\n').length : 1) + 2) }, (_, i) => i + 1) as n}
+									<span>{n}</span>
+								{/each}
+							</div>
+							<textarea
 								name="answer"
-								accept={data.question.fileTypes ?? ''}
-								bind:this={fileInput}
-								oninput={(): void => {
-									removeFileVisible = true;
-								}}
-								class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer pt-[19.5rem] text-center text-lg text-primary-foreground file:hidden" />
+								bind:value={answer}
+								placeholder="Write your Python code here..."
+								class="code-textarea"
+								spellcheck="false"
+								rows={Math.max(15, (typeof answer === 'string' ? answer.split('\n').length : 1) + 2)}
+							></textarea>
 						</div>
-					{/if}
-				</div>
-			{:else if data.question.questionType === questionTypes.code}
-				<div class="flex flex-col gap-4">
-					<div class="flex flex-col overflow-hidden rounded-lg border border-border drop-shadow-sm">
-						<div class="flex items-center justify-between bg-zinc-900 px-4 py-2 text-zinc-300">
-							<span class="font-mono text-sm font-semibold">Python 3.12</span>
-							<button
-								type="submit"
-								formaction="?/runCode"
-								class="flex items-center gap-2 rounded bg-primary px-4 py-1 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
-								▶ Run Code
-							</button>
-						</div>
-						<textarea
-							name="answer"
-							bind:value={answer}
-							placeholder="Write your Python code here..."
-							class="min-h-[300px] w-full resize-y bg-zinc-950 p-4 font-mono text-sm text-zinc-100 focus:outline-none"
-							spellcheck="false"></textarea>
 					</div>
 
-					<div class="mt-4 flex flex-col gap-4">
-						<h3 class="text-lg font-bold text-foreground">Visible Test Cases</h3>
+					<!-- Testcase / Test Result toggle box -->
+					<div class="testcase-box">
+						<!-- Tab header -->
+						<div class="testcase-topbar">
+							<div class="testcase-tabs">
+								<button
+									type="button"
+									class="tc-tab-btn"
+									class:tc-tab-active={activeTab === 'testcase'}
+									onclick={() => activeTab = 'testcase'}>
+									Testcase
+								</button>
+								<span class="tc-divider-line"></span>
+								<button
+									type="button"
+									class="tc-tab-btn"
+									class:tc-tab-active={activeTab === 'testresult'}
+									onclick={() => activeTab = 'testresult'}>
+									Test Result
+								</button>
+							</div>
+						</div>
 
-						{#if data.visibleTestcases.length === 0}
-							<p class="text-sm text-muted-foreground">No visible test cases for this question.</p>
-						{/if}
-
-						{#each data.visibleTestcases as tc, i}
-							{@const result = form?.runResults?.find((r) => r.testcaseNumber === tc.number)}
-							<div class="flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-								<div class="flex items-center justify-between bg-muted px-4 py-2">
-									<span class="font-semibold text-muted-foreground">Test Case {i + 1}</span>
-									{#if result}
-										{#if result.passed}
-											<span class="rounded bg-green-500/20 px-2 py-1 text-xs font-bold text-green-600 dark:text-green-400">Passed</span>
-										{:else}
-											<span class="rounded bg-red-500/20 px-2 py-1 text-xs font-bold text-red-600 dark:text-red-400">
-												Failed ({result.status})
-											</span>
-										{/if}
-									{/if}
+						<!-- ── TESTCASE TAB ── -->
+						{#if activeTab === 'testcase'}
+							{#if data.visibleTestcases.length > 0}
+								<!-- Case selector tabs -->
+								<div class="case-tabs">
+									{#each data.visibleTestcases as tc, i}
+										<button
+											type="button"
+											class="case-tab"
+											class:active={activeTestcase === i}
+											onclick={() => activeTestcase = i}>
+											Case {i + 1}
+										</button>
+									{/each}
 								</div>
-								<div class="grid grid-cols-1 gap-px bg-border md:grid-cols-2">
-									<div class="flex flex-col gap-px bg-border">
-										<div class="bg-card p-3">
-											<p class="mb-1 text-xs font-semibold text-muted-foreground">Input (stdin):</p>
-											<pre class="whitespace-pre-wrap font-mono text-sm">{tc.stdin}</pre>
-										</div>
-										<div class="bg-card p-3">
-											<p class="mb-1 text-xs font-semibold text-muted-foreground">Expected Output:</p>
-											<pre class="whitespace-pre-wrap font-mono text-sm text-green-600 dark:text-green-400">{tc.expectedOut}</pre>
-										</div>
-									</div>
-									<div class="bg-card p-3">
-										<p class="mb-1 text-xs font-semibold text-muted-foreground">Actual Output:</p>
-										{#if result}
-											<pre class="h-full whitespace-pre-wrap font-mono text-sm {result.passed ? 'text-foreground' : 'text-red-500'}">{result.actualOut || '<No Output>'}</pre>
-										{:else}
-											<div class="flex h-full items-center justify-center text-sm text-muted-foreground">
-												Run code to see output
+
+								<!-- Active case input detail -->
+								{#each data.visibleTestcases as tc, i}
+									{#if activeTestcase === i}
+										<div class="case-detail">
+											<div class="io-block">
+												<div class="io-label">Input</div>
+												<pre class="io-pre">{tc.stdin || '(empty)'}</pre>
 											</div>
-										{/if}
-									</div>
+										</div>
+									{/if}
+								{/each}
+							{:else}
+								<p class="tc-empty">No visible test cases for this question.</p>
+							{/if}
+
+						<!-- ── TEST RESULT TAB ── -->
+						{:else}
+							{#if form?.runResults && form.runResults.length > 0}
+								{@const passed = form.runResults.filter(r => r.passed).length}
+								{@const total = form.runResults.length}
+
+								<!-- Summary row -->
+								<div class="tc-summary-row">
+									<span class="tc-summary-label">ผ่าน {passed}/{total} Testcase</span>
+									<span class="tc-summary-detail">
+										Visible Cases: {passed}/{data.visibleTestcases.length}
+									</span>
 								</div>
-							</div>
-						{/each}
+
+								<!-- Case selector tabs with pass/fail indicators -->
+								<div class="case-tabs">
+									{#each data.visibleTestcases as tc, i}
+										{@const result = form.runResults.find(r => r.testcaseNumber === tc.number)}
+										<button
+											type="button"
+											class="case-tab"
+											class:active={activeTestcase === i}
+											class:passed={result?.passed === true}
+											class:failed={result && !result.passed}
+											onclick={() => activeTestcase = i}>
+											{#if result?.passed}
+												<span class="case-dot green"></span>
+											{:else if result && !result.passed}
+												<span class="case-dot red"></span>
+											{/if}
+											Case {i + 1}
+										</button>
+									{/each}
+								</div>
+
+								<!-- Active case result detail -->
+								{#each data.visibleTestcases as tc, i}
+									{@const result = form.runResults.find(r => r.testcaseNumber === tc.number)}
+									{#if activeTestcase === i}
+										<div class="case-detail">
+											<div class="case-io-row">
+												<div class="io-block">
+													<div class="io-label">Input (stdin)</div>
+													<pre class="io-pre">{tc.stdin || '(empty)'}</pre>
+												</div>
+												<div class="io-block">
+													<div class="io-label">Expected Output</div>
+													<pre class="io-pre expected">{tc.expectedOut || '(empty)'}</pre>
+												</div>
+											</div>
+											<div class="io-block full">
+												<div class="io-label">Actual Output</div>
+												{#if result}
+													<pre class="io-pre"
+														class:failed-out={!result.passed}
+														class:passed-out={result.passed}>{result.actualOut || '(No Output)'}</pre>
+													{#if result.passed}
+														<span class="status-badge passed">Passed</span>
+													{:else}
+														<span class="status-badge failed">Failed ({result.status})</span>
+													{/if}
+												{/if}
+											</div>
+										</div>
+									{/if}
+								{/each}
+
+							{:else}
+								<!-- Never run state -->
+								<div class="tc-never-run">
+									<div class="tc-never-run-icon">
+										<Play size={32} strokeWidth={1.5} />
+									</div>
+									<p class="tc-never-run-text">ยังไม่มีข้อมูลการทดสอบ</p>
+									<p class="tc-never-run-sub">กรุณากดปุ่ม RUN เพื่อเริ่มตรวจสอบโค้ดของคุณ</p>
+								</div>
+							{/if}
+						{/if}
 					</div>
 				</div>
-			{:else}
-				<div class="w-full text-center text-lg font-semibold text-red-500">
-					Unknown question type
-				</div>
-			{/if}
-			{#if form?.form?.errors?.answer}
-				<span class="mx-2 mt-2 block text-lg text-red-500">
-					{#if form.form.errors.answer instanceof Array}
-						{form.form.errors.answer.join(', ')}
-					{:else if form.form.errors.answer instanceof Object}
-						{Object.entries(form.form.errors.answer).reduce(
-							(acc, [index, value]) => (acc += `${index}: ${value.join(', ')}`),
-							''
-						)}
+			</div>
+		{:else}
+			<!-- NON-CODE QUESTION: centered single-column -->
+			<div class="single-col-layout">
+				<div class="panel-box question-card">
+					<div class="prose prose-lg prose-neutral mb-4 w-full max-w-none overflow-auto px-4 py-3 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
+						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+						{@html data.question.html}
+					</div>
+
+					<div class="divider"></div>
+
+					{#if data.question.questionType === questionTypes.choices}
+						<div class="choices-grid">
+							{#each data.question.choices as choice (choice.number)}
+								<label
+									for={`choice-input-${choice.number}`}
+									class="choice-card prose prose-lg prose-neutral overflow-auto prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
+									<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+									{@html choice.html}
+									<input
+										id={`choice-input-${choice.number}`}
+										type="radio"
+										name="answer"
+										value={choice.number.toString()}
+										bind:group={answer}
+										class="sr-only" />
+								</label>
+							{/each}
+						</div>
+					{:else if data.question.questionType === questionTypes.checkboxes}
+						<div class="choices-grid">
+							{#each data.question.choices as choice (choice.number)}
+								<label
+									for={`choice-input-${choice.number}`}
+									class="choice-card prose prose-lg prose-neutral overflow-auto prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
+									<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+									{@html choice.html}
+									<input
+										id={`choice-input-${choice.number}`}
+										type="checkbox"
+										name="answer"
+										value={choice.number.toString()}
+										bind:group={answer}
+										class="sr-only" />
+								</label>
+							{/each}
+						</div>
+					{:else if data.question.questionType === questionTypes.text}
+						<div class="relative h-64 w-full">
+							<textarea
+								name="answer"
+								bind:value={answer}
+								class="text-answer-area">
+							</textarea>
+							<span
+								class="char-counter"
+								class:warn={data.question.textLengthLimit - (answer?.length ?? 0) < 25 && data.question.textLengthLimit - (answer?.length ?? 0) >= 0}
+								class:over={data.question.textLengthLimit - (answer?.length ?? 0) < 0}>
+								{answer?.length ?? 0} / {data.question.textLengthLimit}
+							</span>
+						</div>
+					{:else if data.question.questionType === questionTypes.file}
+						<div class="w-full">
+							{#if data.answerExists && typeof answer === 'string'}
+								<div class="file-existing">
+									<div class="file-drop-zone">
+										<div class="file-card">
+											<FileIcon size={80} strokeWidth={1} />
+											<a href={`${base}/api/files/${answer}`} target="_blank" class="file-link">
+												<Download size={16} />
+												{answer.replace(/^.*?\./, 'answer.')}
+											</a>
+											<label for="remove-file-button" class="file-remove-btn">
+												<CircleX size={18} />
+												<input
+													type="submit"
+													id="remove-file-button"
+													name="next"
+													value="remove-answer"
+													class="hidden-submit" />
+											</label>
+										</div>
+									</div>
+								</div>
+							{:else}
+								<div class="file-upload-area">
+									<label for="file-input" class="file-drop-zone">
+										<img src={fileIcon} alt="File upload icon" width="512" height="512" class="file-upload-icon" />
+										<span class="file-upload-title">Drag & drop a file or <span class="underline">Browse</span></span>
+										<span class="file-upload-meta">
+											{#if data.question.fileTypes === null}
+												Max: {formatNumber(data.question.fileSizeLimit * 1000)}B · Accept: any
+											{:else}
+												Max: {formatNumber(data.question.fileSizeLimit * 1000)}B · Accept: {data.acceptedFileTypes ?? 'any'}
+											{/if}
+										</span>
+									</label>
+									<input
+										id="file-input"
+										type="file"
+										name="answer"
+										accept={data.question.fileTypes ?? ''}
+										bind:this={fileInput}
+										oninput={() => { removeFileVisible = true; }}
+										class="file-input-hidden" />
+								</div>
+							{/if}
+						</div>
 					{:else}
-						Unknown error
+						<div class="w-full text-center text-lg font-semibold text-red-500">Unknown question type</div>
 					{/if}
-				</span>
-			{/if}
+
+					{#if form?.form?.errors?.answer}
+						<span class="error-msg">
+							{#if form.form.errors.answer instanceof Array}
+								{form.form.errors.answer.join(', ')}
+							{:else if form.form.errors.answer instanceof Object}
+								{Object.entries(form.form.errors.answer).reduce(
+									(acc, [index, value]) => (acc += `${index}: ${value.join(', ')}`),
+									''
+								)}
+							{:else}
+								Unknown error
+							{/if}
+						</span>
+					{/if}
+				</div>
+			</div>
+		{/if}
+	</div>
+
+	<!-- Bottom nav bar -->
+	<footer class="exam-footer">
+		<label for="bottom-back-btn" class="footer-btn outline-btn">
+			<ChevronLeft size={18} />
+			ข้อก่อนหน้า
+			<input
+				type="submit"
+				id="bottom-back-btn"
+				name="next"
+				value={data.question.number - 1 || 'exit'}
+				class="hidden-submit" />
+		</label>
+
+		<div class="footer-progress">
+			<div class="footer-progress-labels">
+				<span>ทำไปแล้ว</span>
+				<span>{percentCompletedString}%</span>
+			</div>
+			<div class="footer-progress-track">
+				<div class="footer-progress-fill" style="width: {percentCompleted}%"></div>
+			</div>
 		</div>
-		<div class="mx-2 flex items-center justify-between">
-			<label
-				for="backward-button-bottom"
-				class="relative flex items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg">
-				Back
-				<input
-					type="submit"
-					id="backward-button-bottom"
-					name="next"
-					value={data.question.number - 1 || 'exit'}
-					class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
-			</label>
+
+		<div class="footer-right">
 			{#if data.answerExists && data.question.questionType !== questionTypes.file}
-				<label
-					for="remove-answer-button"
-					class="relative flex items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg">
+				<label for="remove-answer-btn" class="footer-btn outline-btn">
 					Remove Answer
 					<input
 						type="submit"
-						id="remove-answer-button"
+						id="remove-answer-btn"
 						name="next"
 						value="remove-answer"
-						class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
+						class="hidden-submit" />
 				</label>
 			{:else if data.question.questionType === questionTypes.file && removeFileVisible}
 				<button
 					type="button"
-					onclick={(): void => {
-						if (fileInput) {
-							fileInput.value = '';
-						}
+					onclick={() => {
+						if (fileInput) fileInput.value = '';
 						removeFileVisible = false;
 					}}
-					class="relative flex items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg">
+					class="footer-btn outline-btn">
 					Remove File
 				</button>
 			{/if}
+
 			{#if data.question.number === data.questions.length}
 				<AlertDialog.Root>
-					<AlertDialog.Trigger
-						type="button"
-						class="button-gradient flex cursor-pointer items-center justify-center rounded-full px-5 py-1.5 text-lg font-semibold text-white drop-shadow-lg">
-						Submit
+					<AlertDialog.Trigger type="button" class="footer-btn primary-btn">
+						ส่งข้อสอบ
 					</AlertDialog.Trigger>
 					<AlertDialog.Content>
 						<AlertDialog.Header>
 							<AlertDialog.Title>Confirm Exam Submission</AlertDialog.Title>
 							<AlertDialog.Description class="text-lg text-gray-700">
-								Are you sure you want to submit your exam? Once submitted, you will not be able to
-								make any changes.
+								Are you sure you want to submit your exam? Once submitted, you will not be able to make any changes.
 							</AlertDialog.Description>
 						</AlertDialog.Header>
 						<AlertDialog.Footer>
-							<AlertDialog.Cancel
-								class="flex cursor-pointer items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg hover:bg-secondary">
-								Cancel
-							</AlertDialog.Cancel>
-							<AlertDialog.Action
-								class="button-gradient relative flex items-center justify-center rounded-full px-5 py-1.5 text-lg font-semibold text-white drop-shadow-lg">
-								<label for="submit-button-bottom">
+							<AlertDialog.Cancel class="footer-btn outline-btn">Cancel</AlertDialog.Cancel>
+							<AlertDialog.Action class="footer-btn primary-btn relative">
+								<label for="submit-bottom">
 									Submit
 									<input
 										form="form"
 										type="submit"
-										id="submit-button-bottom"
+										id="submit-bottom"
 										name="next"
 										value="submit"
-										class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
+										class="hidden-submit" />
 								</label>
 							</AlertDialog.Action>
 						</AlertDialog.Footer>
 					</AlertDialog.Content>
 				</AlertDialog.Root>
 			{:else}
-				<label
-					for="forward-button-bottom"
-					class="relative flex items-center justify-center rounded-full border-2 border-accent-foreground bg-white px-4 py-1 text-lg font-semibold text-accent-foreground drop-shadow-lg">
-					Next
+				<label for="bottom-next-btn" class="footer-btn primary-btn">
+					ข้อถัดไป
+					<ChevronRight size={18} />
 					<input
 						type="submit"
-						id="forward-button-bottom"
+						id="bottom-next-btn"
 						name="next"
 						value={data.question.number + 1}
 						disabled={data.question.number === data.questions.length}
-						class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer bg-transparent text-transparent" />
+						class="hidden-submit" />
 				</label>
 			{/if}
 		</div>
-	</form>
-</div>
+	</footer>
+</form>
 
 <style lang="postcss">
-	label:has(input[type='radio']:checked) {
-		@apply outline outline-4 outline-secondary-foreground;
+	/* ─── Variables ─────────────────────────────────────── */
+	:root {
+		--blue: #006FE8;
+		--blue-light: #D3E8FF;
+		--blue-bg: #F3F8FF;
+		--gray-border: #D0D5DD;
+		--gray-text: #344054;
+		--dark: #101828;
+		--muted: #667085;
+		--bg: #F5F9FD;
+		--white: #FFFFFF;
+		--radius: 8px;
 	}
 
-	label:has(input[type='checkbox']:checked) {
-		@apply outline outline-4 outline-secondary-foreground;
+	/* ─── Top Bar ───────────────────────────────────────── */
+	.exam-topbar {
+		background: var(--white);
+		border-bottom: 1px solid #EAECF0;
+		position: sticky;
+		top: 0;
+		z-index: 50;
 	}
 
-	input[type='file'].text-center {
-		text-align-last: center;
+	.exam-topbar-inner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 32px;
+		height: 72px;
+		max-width: 1440px;
+		margin: 0 auto;
+		gap: 16px;
 	}
 
-	.w-2-columns {
-		width: calc(50% - 0.5rem);
+	.exam-logo {
+		min-width: 120px;
 	}
 
-	@media (min-width: 80rem) {
-		.w-3-columns {
-			width: calc(33% - 0.5rem) !important;
+	.exam-logo-text {
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-weight: 700;
+		font-size: 20px;
+		color: var(--dark);
+		letter-spacing: -0.5px;
+	}
+
+	.logo-accent {
+		color: var(--blue);
+	}
+
+	.question-nav {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		flex: 1;
+		justify-content: center;
+	}
+
+	.nav-arrow-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		border: 1.5px solid var(--gray-border);
+		background: var(--white);
+		cursor: pointer;
+		color: var(--dark);
+		position: relative;
+		transition: border-color 0.15s, background 0.15s;
+	}
+
+	.nav-arrow-btn:not(.disabled):hover {
+		border-color: var(--blue);
+		background: var(--blue-bg);
+	}
+
+	.nav-arrow-btn.disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.question-bubbles {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+	}
+
+	.q-bubble {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		border: 1.5px solid var(--blue);
+		background: var(--white);
+		cursor: pointer;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 18px;
+		color: var(--dark);
+		position: relative;
+		transition: background 0.15s, color 0.15s;
+		user-select: none;
+	}
+
+	.q-bubble.answered {
+		background: var(--blue-light);
+		border-color: var(--blue);
+		color: var(--dark);
+	}
+
+	.q-bubble.current {
+		background: var(--blue);
+		border-color: var(--blue);
+		color: var(--white);
+		font-weight: 700;
+	}
+
+	.q-bubble:not(.current):hover {
+		background: var(--blue-bg);
+	}
+
+	.exam-topbar-right {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		min-width: 200px;
+		justify-content: flex-end;
+	}
+
+	.time-display {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 15px;
+		color: var(--dark);
+		white-space: nowrap;
+	}
+
+	.time-display.urgent {
+		color: #e53e3e;
+		font-weight: 700;
+	}
+
+	:global(.all-questions-btn) {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 15px;
+		font-weight: 500;
+		color: var(--dark);
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 6px 10px;
+		border-radius: 6px;
+		transition: background 0.15s;
+	}
+
+	:global(.all-questions-btn:hover) {
+		background: var(--blue-bg);
+		color: var(--blue);
+	}
+
+	/* Progress row under topbar */
+	.progress-row {
+		padding: 0 32px 10px;
+		max-width: 1440px;
+		margin: 0 auto;
+	}
+
+	.progress-labels {
+		display: flex;
+		justify-content: space-between;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 14px;
+		font-weight: 500;
+		color: var(--dark);
+		margin-bottom: 4px;
+	}
+
+	.progress-track {
+		width: 100%;
+		height: 14px;
+		background: var(--gray-border);
+		border-radius: 100px;
+		overflow: hidden;
+	}
+
+	.progress-fill {
+		height: 100%;
+		background: var(--blue);
+		border-radius: 100px;
+		transition: width 0.4s ease;
+	}
+
+	/* ─── Body ──────────────────────────────────────────── */
+	.exam-body {
+		flex: 1;
+		background: var(--bg);
+		padding: 20px 32px;
+		min-height: calc(100vh - 72px - 72px);
+	}
+
+	/* Code layout: side-by-side */
+	.code-layout {
+		display: grid;
+		grid-template-columns: 380px 1fr;
+		gap: 16px;
+		max-width: 1340px;
+		margin: 0 auto;
+	}
+
+	.question-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.panel-box {
+		background: var(--white);
+		border: 1px solid var(--gray-border);
+		border-radius: var(--radius);
+		overflow: hidden;
+	}
+
+	.editor-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	/* Editor box */
+	.editor-box {
+		background: var(--white);
+		border: 1px solid var(--gray-border);
+		border-radius: var(--radius);
+		overflow: hidden;
+	}
+
+	.editor-topbar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 16px;
+		height: 36px;
+		border-bottom: 1px solid var(--gray-border);
+		background: var(--white);
+	}
+
+	.editor-lang {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 14px;
+		color: var(--gray-text);
+		cursor: pointer;
+	}
+
+	.editor-actions {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+	}
+
+	.editor-reset-btn {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 10px;
+		border-radius: 4px;
+		border: none;
+		background: transparent;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 12px;
+		font-weight: 500;
+		color: var(--gray-text);
+		cursor: pointer;
+		transition: background 0.15s;
+	}
+
+	.editor-reset-btn:hover {
+		background: #f2f4f7;
+	}
+
+	.editor-run-btn {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 14px;
+		border-radius: 4px;
+		border: none;
+		background: var(--blue);
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 12px;
+		font-weight: 500;
+		color: var(--white);
+		cursor: pointer;
+		transition: opacity 0.15s;
+	}
+
+	.editor-run-btn:hover {
+		opacity: 0.9;
+	}
+
+	.editor-content {
+		display: flex;
+		min-height: 280px;
+	}
+
+	.line-numbers {
+		display: flex;
+		flex-direction: column;
+		padding: 12px 8px;
+		border-right: 1px solid #2d2d2d;
+		background: #1a1a1a;
+		user-select: none;
+		min-width: 36px;
+	}
+
+	.line-numbers span {
+		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		font-size: 12px;
+		line-height: 20px;
+		color: #666;
+		text-align: right;
+		padding-right: 4px;
+	}
+
+	.code-textarea {
+		flex: 1;
+		background: #1e1e1e;
+		color: #d4d4d4;
+		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		font-size: 13px;
+		line-height: 20px;
+		padding: 12px;
+		border: none;
+		resize: vertical;
+		outline: none;
+		tab-size: 4;
+	}
+
+	.code-textarea::placeholder {
+		color: #555;
+	}
+
+	/* Testcase box */
+	.testcase-box {
+		background: var(--white);
+		border: 1px solid var(--gray-border);
+		border-radius: var(--radius);
+		overflow: hidden;
+		min-height: 200px;
+	}
+
+	.testcase-topbar {
+		display: flex;
+		align-items: center;
+		padding: 0 16px;
+		height: 36px;
+		border-bottom: 1px solid #D9D9D9;
+	}
+
+	.testcase-tabs {
+		display: flex;
+		align-items: center;
+		gap: 0;
+	}
+
+	.tc-tab-btn {
+		background: none;
+		border: none;
+		cursor: pointer;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 15px;
+		font-weight: 400;
+		color: var(--muted);
+		padding: 0 12px 0 0;
+		line-height: 36px;
+		transition: color 0.15s, font-weight 0.1s;
+	}
+
+	.tc-tab-btn.tc-tab-active {
+		font-weight: 700;
+		color: var(--dark);
+	}
+
+	.tc-tab-btn:first-child {
+		padding-left: 0;
+	}
+
+	.tc-divider-line {
+		display: inline-block;
+		width: 1px;
+		height: 16px;
+		background: var(--gray-border);
+		margin: 0 12px 0 0;
+		vertical-align: middle;
+	}
+
+	.tc-summary-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 8px 16px;
+		border-bottom: 1px solid #f2f4f7;
+	}
+
+	.tc-summary-label {
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 14px;
+		font-weight: 700;
+		color: var(--dark);
+	}
+
+	.tc-summary-detail {
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 12px;
+		color: var(--gray-text);
+	}
+
+	.case-tabs {
+		display: flex;
+		gap: 8px;
+		padding: 10px 16px 0;
+	}
+
+	.case-tab {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		padding: 4px 12px;
+		border-radius: 4px;
+		border: 1.5px solid var(--gray-border);
+		background: var(--white);
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 13px;
+		font-weight: 500;
+		color: var(--gray-text);
+		cursor: pointer;
+		transition: all 0.15s;
+	}
+
+	.case-tab.active {
+		background: var(--blue);
+		border-color: var(--blue);
+		color: var(--white);
+	}
+
+	.case-tab.passed:not(.active) {
+		border-color: #22c55e;
+		color: #15803d;
+	}
+
+	.case-tab.failed:not(.active) {
+		border-color: #ef4444;
+		color: #dc2626;
+	}
+
+	.case-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+	}
+
+	.case-dot.green { background: #22c55e; }
+	.case-dot.red { background: #ef4444; }
+
+	.case-detail {
+		padding: 12px 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.case-io-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 10px;
+	}
+
+	.io-block {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.io-block.full {
+		width: 100%;
+	}
+
+	.io-label {
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 11px;
+		font-weight: 700;
+		color: var(--muted);
+		text-transform: uppercase;
+		letter-spacing: 0.4px;
+	}
+
+	.io-pre {
+		background: #F6F6F6;
+		border-radius: 4px;
+		padding: 8px 10px;
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 12px;
+		white-space: pre-wrap;
+		word-break: break-all;
+		margin: 0;
+		min-height: 36px;
+	}
+
+	.io-pre.expected { color: #15803d; }
+	.io-pre.passed-out { color: var(--dark); }
+	.io-pre.failed-out { color: #dc2626; }
+
+	.io-empty {
+		background: #F6F6F6;
+		border-radius: 4px;
+		padding: 8px 10px;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 13px;
+		color: var(--muted);
+		text-align: center;
+		min-height: 36px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.status-badge {
+		display: inline-flex;
+		align-items: center;
+		padding: 2px 10px;
+		border-radius: 4px;
+		font-size: 11px;
+		font-weight: 700;
+		font-family: 'Noto Sans Thai', sans-serif;
+	}
+
+	.status-badge.passed { background: #dcfce7; color: #15803d; }
+	.status-badge.failed { background: #fee2e2; color: #dc2626; }
+
+	.tc-empty {
+		padding: 16px;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 13px;
+		color: var(--muted);
+	}
+
+	.tc-never-run {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 40px 24px;
+		gap: 8px;
+		text-align: center;
+	}
+
+	.tc-never-run-icon {
+		color: var(--muted);
+		opacity: 0.5;
+		margin-bottom: 4px;
+	}
+
+	.tc-never-run-text {
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 15px;
+		font-weight: 700;
+		color: var(--dark);
+		margin: 0;
+	}
+
+	.tc-never-run-sub {
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 13px;
+		color: var(--muted);
+		margin: 0;
+	}
+
+	/* ─── Single col layout (choices / text / file) ─────── */
+	.single-col-layout {
+		max-width: 860px;
+		margin: 0 auto;
+	}
+
+	.question-card {
+		padding: 0;
+	}
+
+	.divider {
+		border-bottom: 2px solid var(--gray-border);
+		margin: 4px 0 16px;
+	}
+
+	/* Choices */
+	.choices-grid {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+		padding: 0 16px 16px;
+	}
+
+	.choice-card {
+		width: calc(50% - 6px);
+		max-height: 200px;
+		overflow: auto;
+		padding: 12px 16px;
+		background: var(--white);
+		border: 1.5px solid var(--gray-border);
+		border-radius: var(--radius);
+		cursor: pointer;
+		transition: border-color 0.15s, box-shadow 0.15s;
+	}
+
+	.choice-card:hover {
+		border-color: var(--blue);
+	}
+
+	:global(.choice-card:has(input[type='radio']:checked)),
+	:global(.choice-card:has(input[type='checkbox']:checked)) {
+		border-color: var(--blue);
+		box-shadow: 0 0 0 3px var(--blue-light);
+		background: var(--blue-bg);
+	}
+
+	/* Text answer */
+	.text-answer-area {
+		width: 100%;
+		height: 100%;
+		resize: none;
+		border: 1.5px solid var(--gray-border);
+		border-radius: var(--radius);
+		padding: 10px 14px;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 15px;
+		background: var(--white);
+		color: var(--dark);
+		outline: none;
+		transition: border-color 0.15s;
+	}
+
+	.text-answer-area:focus {
+		border-color: var(--blue);
+	}
+
+	.char-counter {
+		position: absolute;
+		bottom: 6px;
+		right: 8px;
+		background: rgba(255,255,255,0.85);
+		padding: 2px 8px;
+		border-radius: 6px;
+		font-size: 12px;
+		color: var(--muted);
+	}
+
+	.char-counter.warn { color: var(--dark); }
+	.char-counter.over { color: #dc2626; }
+
+	/* File upload */
+	.file-upload-area {
+		padding: 0 16px 16px;
+		position: relative;
+	}
+
+	.file-drop-zone {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		border: 2px dashed var(--gray-border);
+		border-radius: var(--radius);
+		padding: 24px;
+		cursor: pointer;
+		transition: border-color 0.15s;
+	}
+
+	.file-drop-zone:hover {
+		border-color: var(--blue);
+	}
+
+	.file-upload-icon {
+		width: 80px;
+		height: 80px;
+		object-fit: contain;
+	}
+
+	.file-upload-title {
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 16px;
+		font-weight: 600;
+		color: var(--dark);
+		margin-top: 4px;
+	}
+
+	.file-upload-meta {
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 14px;
+		color: var(--muted);
+		margin-top: 4px;
+	}
+
+	.file-input-hidden {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		cursor: pointer;
+	}
+
+	.file-existing {
+		padding: 0 16px 16px;
+	}
+
+	.file-card {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		padding: 16px;
+		background: #f9fafb;
+		border-radius: var(--radius);
+		width: fit-content;
+		margin: 0 auto;
+	}
+
+	.file-link {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 14px;
+		color: var(--blue);
+		text-decoration: underline;
+	}
+
+	.file-remove-btn {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+		color: var(--muted);
+		cursor: pointer;
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.error-msg {
+		display: block;
+		margin: 8px 16px 0;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 14px;
+		color: #dc2626;
+	}
+
+	/* ─── Footer ────────────────────────────────────────── */
+	.exam-footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 32px;
+		height: 72px;
+		background: var(--white);
+		border-top: 1px solid #EAECF0;
+		gap: 16px;
+		position: sticky;
+		bottom: 0;
+		z-index: 40;
+	}
+
+	.footer-progress {
+		flex: 1;
+		max-width: 600px;
+	}
+
+	.footer-progress-labels {
+		display: flex;
+		justify-content: space-between;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 13px;
+		font-weight: 500;
+		color: var(--dark);
+		margin-bottom: 4px;
+	}
+
+	.footer-progress-track {
+		width: 100%;
+		height: 14px;
+		background: var(--gray-border);
+		border-radius: 100px;
+		overflow: hidden;
+	}
+
+	.footer-progress-fill {
+		height: 100%;
+		background: var(--blue);
+		border-radius: 100px;
+		transition: width 0.4s;
+	}
+
+	.footer-right {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+	}
+
+	/* Button styles */
+	.footer-btn {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 8px 18px;
+		border-radius: 100px;
+		font-family: 'Noto Sans Thai', sans-serif;
+		font-size: 15px;
+		font-weight: 500;
+		cursor: pointer;
+		position: relative;
+		transition: background 0.15s, border-color 0.15s;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+
+	.outline-btn {
+		background: var(--white);
+		border: 1.5px solid var(--gray-border);
+		color: var(--gray-text);
+	}
+
+	.outline-btn:hover {
+		background: #f9fafb;
+		border-color: var(--blue);
+		color: var(--blue);
+	}
+
+	:global(.primary-btn) {
+		background: var(--blue) !important;
+		border: 1.5px solid var(--blue) !important;
+		color: var(--white) !important;
+		display: flex !important;
+		align-items: center !important;
+		gap: 6px !important;
+		padding: 8px 18px !important;
+		border-radius: 100px !important;
+		font-family: 'Noto Sans Thai', sans-serif !important;
+		font-size: 15px !important;
+		font-weight: 500 !important;
+		cursor: pointer !important;
+		transition: opacity 0.15s !important;
+	}
+
+	:global(.primary-btn:hover) {
+		opacity: 0.9 !important;
+	}
+
+	/* ─── Utility ───────────────────────────────────────── */
+	.hidden-submit {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		cursor: pointer;
+		width: 100%;
+		height: 100%;
+	}
+
+	@media (max-width: 900px) {
+		.code-layout {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.choice-card {
+			width: 100%;
+		}
+		.exam-topbar-inner {
+			padding: 0 12px;
+		}
+		.exam-footer {
+			padding: 0 12px;
 		}
 	}
 </style>
