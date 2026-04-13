@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { python } from '@codemirror/lang-python';
+	import { oneDark } from '@codemirror/theme-one-dark';
 	import {
 		ChevronLeft,
 		ChevronRight,
@@ -7,10 +9,11 @@
 		Download,
 		File as FileIcon,
 		Menu,
-		RotateCcw,
-		Play
+		Play,
+		RotateCcw
 	} from '@lucide/svelte';
 	import { onMount } from 'svelte';
+	import CodeMirror from 'svelte-codemirror-editor';
 	import { toast } from 'svelte-sonner';
 	import { MediaQuery } from 'svelte/reactivity';
 
@@ -21,7 +24,6 @@
 
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { Progress } from '$lib/components/ui/progress';
 	import { configConstants } from '$lib/config-constants';
 	import { formatDurationClock } from '$lib/datetime';
 	import { questionTypes, roles } from '$lib/enums';
@@ -84,12 +86,17 @@
 		return data.questions.slice(start - 1, end);
 	});
 
-	let answer = $state(data.answer);
+	let answer = $state(data.answer ?? '');
+	let initialAnswer = $state(data.answer ?? '');
 	let activeTestcase = $state(0);
 	let activeTab = $state<'testcase' | 'testresult'>('testcase');
 
 	$effect(() => {
-		answer = data.answer;
+		const _ = data.question.number;
+		answer = data.answer ?? '';
+		initialAnswer = data.answer ?? '';
+		activeTestcase = 0;
+		activeTab = 'testcase';
 	});
 
 	const fetchJson = new FetchJson(fetch, base);
@@ -111,9 +118,6 @@
 
 	let fileInput: HTMLInputElement | undefined = $state();
 	let removeFileVisible = $state(false);
-
-	// Code reset support
-	let initialAnswer = $state(data.answer);
 
 	async function syncNow(): Promise<void> {
 		if (syncing) return;
@@ -150,7 +154,6 @@
 			}
 
 			offset = response.now + procDelay + latency / 2 - performance.now();
-
 			performance.clearResourceTimings();
 
 			if (latency > configConstants.exams.timeSyncLatencyLimit) {
@@ -173,15 +176,13 @@
 	}
 
 	onMount(() => {
-		const updateNowInterval = setInterval((): void => {
+		const updateNowInterval = setInterval(() => {
 			now = performance.now() + offset;
 		}, 200);
-
 		const syncNowInterval = setInterval(syncNow, configConstants.exams.timeSyncInterval);
-
 		syncNow();
 
-		return (): void => {
+		return () => {
 			clearInterval(updateNowInterval);
 			clearInterval(syncNowInterval);
 		};
@@ -203,9 +204,8 @@
 		removeFileVisible = false;
 	});
 
-	// Auto-switch to Test Result tab when run completes
 	$effect(() => {
-		if (form?.runResults && form.runResults.length > 0) {
+		if (form?.runResults && (form.runResults as unknown[]).length > 0) {
 			activeTab = 'testresult';
 		}
 	});
@@ -231,17 +231,15 @@
 <!-- Top Navigation Bar -->
 <header class="exam-topbar">
 	<div class="exam-topbar-inner">
-		<!-- Logo placeholder -->
 		<div class="exam-logo">
-			<span class="exam-logo-text">CE<span class="logo-accent">Next</span></span>
+			<span class="exam-logo-text">
+				CE
+				<span class="logo-accent">Next</span>
+			</span>
 		</div>
 
-		<!-- Question navigation -->
 		<nav class="question-nav">
-			<label
-				for="nav-back-btn"
-				class="nav-arrow-btn"
-				class:disabled={data.question.number === 1}>
+			<label for="nav-back-btn" class="nav-arrow-btn" class:disabled={data.question.number === 1}>
 				<ChevronLeft size={20} />
 				<input
 					form="form"
@@ -286,7 +284,6 @@
 			</label>
 		</nav>
 
-		<!-- Right side: time + all questions -->
 		<div class="exam-topbar-right">
 			<div class="time-display" class:urgent={timeLeft <= 60_000}>
 				<Clock size={16} />
@@ -309,7 +306,8 @@
 						{#each data.questions as question (question.number)}
 							<label
 								class="q-bubble"
-								class:answered={question.answers.length > 0 && question.number !== data.question.number}
+								class:answered={question.answers.length > 0 &&
+									question.number !== data.question.number}
 								class:current={question.number === data.question.number}>
 								{question.number}
 								<input
@@ -326,7 +324,6 @@
 		</div>
 	</div>
 
-	<!-- Progress bar row -->
 	<div class="progress-row">
 		<div class="progress-labels">
 			<span>ทำไปแล้ว</span>
@@ -347,7 +344,8 @@
 		? 'multipart/form-data'
 		: 'application/x-www-form-urlencoded'}
 	use:enhance={({ formData, cancel }) => {
-		for (const [key, value] of Array.from(formData.entries())) {
+		const entries = Array.from(formData.entries()) as Array<[string, FormDataEntryValue]>;
+		for (const [key, value] of entries) {
 			if (key !== 'answer') continue;
 
 			if (
@@ -376,7 +374,9 @@
 					return;
 				}
 				if (value.size > data.question.fileSizeLimit * 1000) {
-					toast.error(`File size must be at most ${formatNumber(data.question.fileSizeLimit * 1000)}B`);
+					toast.error(
+						`File size must be at most ${formatNumber(data.question.fileSizeLimit * 1000)}B`
+					);
 					cancel();
 					return;
 				}
@@ -405,7 +405,6 @@
 			update();
 		};
 	}}>
-
 	<div class="exam-body">
 		{#if data.question.questionType === questionTypes.code}
 			<!-- CODE QUESTION: two-panel layout -->
@@ -413,7 +412,8 @@
 				<!-- Left panel: question -->
 				<aside class="question-panel">
 					<div class="panel-box">
-						<div class="prose prose-sm prose-neutral w-full max-w-none overflow-auto px-4 py-3 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
+						<div
+							class="prose prose-sm prose-neutral w-full max-w-none overflow-auto px-4 py-3 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							{@html data.question.html}
 						</div>
@@ -433,46 +433,42 @@
 								<button
 									type="button"
 									class="editor-reset-btn"
-									onclick={() => { answer = initialAnswer; }}>
+									onclick={() => {
+										answer = initialAnswer;
+									}}>
 									<RotateCcw size={14} />
 									<span>Reset</span>
 								</button>
-								<button
-									type="submit"
-									formaction="?/runCode"
-									class="editor-run-btn">
+								<button type="submit" formaction="?/runCode" class="editor-run-btn">
 									<Play size={14} />
 									<span>RUN</span>
 								</button>
 							</div>
 						</div>
-						<div class="editor-content">
-							<div class="line-numbers" aria-hidden="true">
-								{#each Array.from({ length: Math.max(15, (typeof answer === 'string' ? answer.split('\n').length : 1) + 2) }, (_, i) => i + 1) as n}
-									<span>{n}</span>
-								{/each}
-							</div>
-							<textarea
-								name="answer"
-								bind:value={answer}
-								placeholder="Write your Python code here..."
-								class="code-textarea"
-								spellcheck="false"
-								rows={Math.max(15, (typeof answer === 'string' ? answer.split('\n').length : 1) + 2)}
-							></textarea>
-						</div>
+						<!-- CodeMirror component -->
+						<CodeMirror
+							bind:value={answer as string}
+							lang={python()}
+							theme={oneDark}
+							tabSize={4}
+							useTab={true}
+							styles={{
+								'&': { minHeight: '300px' },
+								'.cm-scroller': { fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }
+							}} />
+						<!-- Hidden textarea keeps answer in sync for form submission -->
+						<textarea name="answer" style="display:none">{typeof answer === 'string' ? answer : ''}</textarea>
 					</div>
 
 					<!-- Testcase / Test Result toggle box -->
 					<div class="testcase-box">
-						<!-- Tab header -->
 						<div class="testcase-topbar">
 							<div class="testcase-tabs">
 								<button
 									type="button"
 									class="tc-tab-btn"
 									class:tc-tab-active={activeTab === 'testcase'}
-									onclick={() => activeTab = 'testcase'}>
+									onclick={() => (activeTab = 'testcase')}>
 									Testcase
 								</button>
 								<span class="tc-divider-line"></span>
@@ -480,7 +476,7 @@
 									type="button"
 									class="tc-tab-btn"
 									class:tc-tab-active={activeTab === 'testresult'}
-									onclick={() => activeTab = 'testresult'}>
+									onclick={() => (activeTab = 'testresult')}>
 									Test Result
 								</button>
 							</div>
@@ -489,20 +485,18 @@
 						<!-- ── TESTCASE TAB ── -->
 						{#if activeTab === 'testcase'}
 							{#if data.visibleTestcases.length > 0}
-								<!-- Case selector tabs -->
 								<div class="case-tabs">
-									{#each data.visibleTestcases as tc, i}
+									{#each data.visibleTestcases as _tc, i}
 										<button
 											type="button"
 											class="case-tab"
 											class:active={activeTestcase === i}
-											onclick={() => activeTestcase = i}>
+											onclick={() => (activeTestcase = i)}>
 											Case {i + 1}
 										</button>
 									{/each}
 								</div>
 
-								<!-- Active case input detail -->
 								{#each data.visibleTestcases as tc, i}
 									{#if activeTestcase === i}
 										<div class="case-detail">
@@ -517,83 +511,84 @@
 								<p class="tc-empty">No visible test cases for this question.</p>
 							{/if}
 
-						<!-- ── TEST RESULT TAB ── -->
-						{:else}
-							{#if form?.runResults && form.runResults.length > 0}
-								{@const passed = form.runResults.filter(r => r.passed).length}
-								{@const total = form.runResults.length}
+							<!-- ── TEST RESULT TAB ── -->
+						{:else if form?.runResults && (form.runResults as unknown[]).length > 0}
+							{@const results = form.runResults as Array<{
+								testcaseNumber: number;
+								passed: boolean;
+								actualOut: string;
+								status: string;
+							}>}
+							{@const passed = results.filter((r) => r.passed).length}
+							{@const total = results.length}
 
-								<!-- Summary row -->
-								<div class="tc-summary-row">
-									<span class="tc-summary-label">ผ่าน {passed}/{total} Testcase</span>
-									<span class="tc-summary-detail">
-										Visible Cases: {passed}/{data.visibleTestcases.length}
-									</span>
-								</div>
+							<div class="tc-summary-row">
+								<span class="tc-summary-label">ผ่าน {passed}/{total} Testcase</span>
+								<span class="tc-summary-detail">
+									Visible Cases: {passed}/{data.visibleTestcases.length}
+								</span>
+							</div>
 
-								<!-- Case selector tabs with pass/fail indicators -->
-								<div class="case-tabs">
-									{#each data.visibleTestcases as tc, i}
-										{@const result = form.runResults.find(r => r.testcaseNumber === tc.number)}
-										<button
-											type="button"
-											class="case-tab"
-											class:active={activeTestcase === i}
-											class:passed={result?.passed === true}
-											class:failed={result && !result.passed}
-											onclick={() => activeTestcase = i}>
-											{#if result?.passed}
-												<span class="case-dot green"></span>
-											{:else if result && !result.passed}
-												<span class="case-dot red"></span>
-											{/if}
-											Case {i + 1}
-										</button>
-									{/each}
-								</div>
-
-								<!-- Active case result detail -->
+							<div class="case-tabs">
 								{#each data.visibleTestcases as tc, i}
-									{@const result = form.runResults.find(r => r.testcaseNumber === tc.number)}
-									{#if activeTestcase === i}
-										<div class="case-detail">
-											<div class="case-io-row">
-												<div class="io-block">
-													<div class="io-label">Input (stdin)</div>
-													<pre class="io-pre">{tc.stdin || '(empty)'}</pre>
-												</div>
-												<div class="io-block">
-													<div class="io-label">Expected Output</div>
-													<pre class="io-pre expected">{tc.expectedOut || '(empty)'}</pre>
-												</div>
+									{@const result = results.find((r) => r.testcaseNumber === tc.number)}
+									<button
+										type="button"
+										class="case-tab"
+										class:active={activeTestcase === i}
+										class:passed={result?.passed === true}
+										class:failed={result !== undefined && !result.passed}
+										onclick={() => (activeTestcase = i)}>
+										{#if result?.passed}
+											<span class="case-dot green"></span>
+										{:else if result !== undefined && !result.passed}
+											<span class="case-dot red"></span>
+										{/if}
+										Case {i + 1}
+									</button>
+								{/each}
+							</div>
+
+							{#each data.visibleTestcases as tc, i}
+								{@const result = results.find((r) => r.testcaseNumber === tc.number)}
+								{#if activeTestcase === i}
+									<div class="case-detail">
+										<div class="case-io-row">
+											<div class="io-block">
+												<div class="io-label">Input (stdin)</div>
+												<pre class="io-pre">{tc.stdin || '(empty)'}</pre>
 											</div>
-											<div class="io-block full">
-												<div class="io-label">Actual Output</div>
-												{#if result}
-													<pre class="io-pre"
-														class:failed-out={!result.passed}
-														class:passed-out={result.passed}>{result.actualOut || '(No Output)'}</pre>
-													{#if result.passed}
-														<span class="status-badge passed">Passed</span>
-													{:else}
-														<span class="status-badge failed">Failed ({result.status})</span>
-													{/if}
-												{/if}
+											<div class="io-block">
+												<div class="io-label">Expected Output</div>
+												<pre class="io-pre expected">{tc.expectedOut || '(empty)'}</pre>
 											</div>
 										</div>
-									{/if}
-								{/each}
-
-							{:else}
-								<!-- Never run state -->
-								<div class="tc-never-run">
-									<div class="tc-never-run-icon">
-										<Play size={32} strokeWidth={1.5} />
+										<div class="io-block full">
+											<div class="io-label">Actual Output</div>
+											{#if result}
+												<pre
+													class="io-pre"
+													class:failed-out={!result.passed}
+													class:passed-out={result.passed}>{result.actualOut || '(No Output)'}</pre>
+												{#if result.passed}
+													<span class="status-badge passed">Passed</span>
+												{:else}
+													<span class="status-badge failed">Failed ({result.status})</span>
+												{/if}
+											{/if}
+										</div>
 									</div>
-									<p class="tc-never-run-text">ยังไม่มีข้อมูลการทดสอบ</p>
-									<p class="tc-never-run-sub">กรุณากดปุ่ม RUN เพื่อเริ่มตรวจสอบโค้ดของคุณ</p>
+								{/if}
+							{/each}
+						{:else}
+							<!-- Never run state -->
+							<div class="tc-never-run">
+								<div class="tc-never-run-icon">
+									<Play size={32} strokeWidth={1.5} />
 								</div>
-							{/if}
+								<p class="tc-never-run-text">ยังไม่มีข้อมูลการทดสอบ</p>
+								<p class="tc-never-run-sub">กรุณากดปุ่ม RUN เพื่อเริ่มตรวจสอบโค้ดของคุณ</p>
+							</div>
 						{/if}
 					</div>
 				</div>
@@ -602,7 +597,8 @@
 			<!-- NON-CODE QUESTION: centered single-column -->
 			<div class="single-col-layout">
 				<div class="panel-box question-card">
-					<div class="prose prose-lg prose-neutral mb-4 w-full max-w-none overflow-auto px-4 py-3 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
+					<div
+						class="prose prose-lg prose-neutral mb-4 w-full max-w-none overflow-auto px-4 py-3 prose-img:mx-auto prose-img:h-fit prose-img:max-w-full">
 						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 						{@html data.question.html}
 					</div>
@@ -646,15 +642,12 @@
 							{/each}
 						</div>
 					{:else if data.question.questionType === questionTypes.text}
-						<div class="relative h-64 w-full">
-							<textarea
-								name="answer"
-								bind:value={answer}
-								class="text-answer-area">
-							</textarea>
+						<div class="relative h-64 w-full px-4 pb-4">
+							<textarea name="answer" bind:value={answer} class="text-answer-area"></textarea>
 							<span
 								class="char-counter"
-								class:warn={data.question.textLengthLimit - (answer?.length ?? 0) < 25 && data.question.textLengthLimit - (answer?.length ?? 0) >= 0}
+								class:warn={data.question.textLengthLimit - (answer?.length ?? 0) < 25 &&
+									data.question.textLengthLimit - (answer?.length ?? 0) >= 0}
 								class:over={data.question.textLengthLimit - (answer?.length ?? 0) < 0}>
 								{answer?.length ?? 0} / {data.question.textLengthLimit}
 							</span>
@@ -685,13 +678,21 @@
 							{:else}
 								<div class="file-upload-area">
 									<label for="file-input" class="file-drop-zone">
-										<img src={fileIcon} alt="File upload icon" width="512" height="512" class="file-upload-icon" />
-										<span class="file-upload-title">Drag & drop a file or <span class="underline">Browse</span></span>
+										<img
+											src={fileIcon}
+											alt="File upload icon"
+											width="512"
+											height="512"
+											class="file-upload-icon" />
+										<span class="file-upload-title">
+											Drag & drop a file or <span class="underline">Browse</span>
+										</span>
 										<span class="file-upload-meta">
 											{#if data.question.fileTypes === null}
 												Max: {formatNumber(data.question.fileSizeLimit * 1000)}B · Accept: any
 											{:else}
-												Max: {formatNumber(data.question.fileSizeLimit * 1000)}B · Accept: {data.acceptedFileTypes ?? 'any'}
+												Max: {formatNumber(data.question.fileSizeLimit * 1000)}B · Accept: {data.acceptedFileTypes ??
+													'any'}
 											{/if}
 										</span>
 									</label>
@@ -701,13 +702,17 @@
 										name="answer"
 										accept={data.question.fileTypes ?? ''}
 										bind:this={fileInput}
-										oninput={() => { removeFileVisible = true; }}
+										oninput={() => {
+											removeFileVisible = true;
+										}}
 										class="file-input-hidden" />
 								</div>
 							{/if}
 						</div>
 					{:else}
-						<div class="w-full text-center text-lg font-semibold text-red-500">Unknown question type</div>
+						<div class="w-full text-center text-lg font-semibold text-red-500">
+							Unknown question type
+						</div>
 					{/if}
 
 					{#if form?.form?.errors?.answer}
@@ -784,7 +789,8 @@
 						<AlertDialog.Header>
 							<AlertDialog.Title>Confirm Exam Submission</AlertDialog.Title>
 							<AlertDialog.Description class="text-lg text-gray-700">
-								Are you sure you want to submit your exam? Once submitted, you will not be able to make any changes.
+								Are you sure you want to submit your exam? Once submitted, you will not be able to
+								make any changes.
 							</AlertDialog.Description>
 						</AlertDialog.Header>
 						<AlertDialog.Footer>
@@ -824,22 +830,22 @@
 <style lang="postcss">
 	/* ─── Variables ─────────────────────────────────────── */
 	:root {
-		--blue: #006FE8;
-		--blue-light: #D3E8FF;
-		--blue-bg: #F3F8FF;
-		--gray-border: #D0D5DD;
+		--blue: #006fe8;
+		--blue-light: #d3e8ff;
+		--blue-bg: #f3f8ff;
+		--gray-border: #d0d5dd;
 		--gray-text: #344054;
 		--dark: #101828;
 		--muted: #667085;
-		--bg: #F5F9FD;
-		--white: #FFFFFF;
+		--bg: #f5f9fd;
+		--white: #ffffff;
 		--radius: 8px;
 	}
 
 	/* ─── Top Bar ───────────────────────────────────────── */
 	.exam-topbar {
 		background: var(--white);
-		border-bottom: 1px solid #EAECF0;
+		border-bottom: 1px solid #eaecf0;
 		position: sticky;
 		top: 0;
 		z-index: 50;
@@ -892,7 +898,9 @@
 		cursor: pointer;
 		color: var(--dark);
 		position: relative;
-		transition: border-color 0.15s, background 0.15s;
+		transition:
+			border-color 0.15s,
+			background 0.15s;
 	}
 
 	.nav-arrow-btn:not(.disabled):hover {
@@ -925,7 +933,9 @@
 		font-size: 18px;
 		color: var(--dark);
 		position: relative;
-		transition: background 0.15s, color 0.15s;
+		transition:
+			background 0.15s,
+			color 0.15s;
 		user-select: none;
 	}
 
@@ -990,7 +1000,6 @@
 		color: var(--blue);
 	}
 
-	/* Progress row under topbar */
 	.progress-row {
 		padding: 0 32px 10px;
 		max-width: 1440px;
@@ -1027,10 +1036,9 @@
 		flex: 1;
 		background: var(--bg);
 		padding: 20px 32px;
-		min-height: calc(100vh - 72px - 72px);
+		min-height: calc(100vh - 144px);
 	}
 
-	/* Code layout: side-by-side */
 	.code-layout {
 		display: grid;
 		grid-template-columns: 380px 1fr;
@@ -1058,7 +1066,7 @@
 		gap: 16px;
 	}
 
-	/* Editor box */
+	/* ─── Editor ────────────────────────────────────────── */
 	.editor-box {
 		background: var(--white);
 		border: 1px solid var(--gray-border);
@@ -1083,7 +1091,6 @@
 		font-family: 'Noto Sans Thai', sans-serif;
 		font-size: 14px;
 		color: var(--gray-text);
-		cursor: pointer;
 	}
 
 	.editor-actions {
@@ -1132,49 +1139,26 @@
 		opacity: 0.9;
 	}
 
-	.editor-content {
-		display: flex;
-		min-height: 280px;
+	/* CodeMirror */
+	.cm-container {
+		min-height: 300px;
 	}
 
-	.line-numbers {
-		display: flex;
-		flex-direction: column;
-		padding: 12px 8px;
-		border-right: 1px solid #2d2d2d;
-		background: #1a1a1a;
-		user-select: none;
-		min-width: 36px;
-	}
-
-	.line-numbers span {
-		font-family: 'JetBrains Mono', 'Fira Code', monospace;
-		font-size: 12px;
-		line-height: 20px;
-		color: #666;
-		text-align: right;
-		padding-right: 4px;
-	}
-
-	.code-textarea {
-		flex: 1;
-		background: #1e1e1e;
-		color: #d4d4d4;
-		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+	:global(.cm-editor) {
+		min-height: 300px;
 		font-size: 13px;
-		line-height: 20px;
-		padding: 12px;
-		border: none;
-		resize: vertical;
-		outline: none;
-		tab-size: 4;
 	}
 
-	.code-textarea::placeholder {
-		color: #555;
+	:global(.cm-scroller) {
+		font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace !important;
+		min-height: 300px;
 	}
 
-	/* Testcase box */
+	:global(.cm-content) {
+		font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace !important;
+	}
+
+	/* ─── Testcase box ──────────────────────────────────── */
 	.testcase-box {
 		background: var(--white);
 		border: 1px solid var(--gray-border);
@@ -1188,13 +1172,12 @@
 		align-items: center;
 		padding: 0 16px;
 		height: 36px;
-		border-bottom: 1px solid #D9D9D9;
+		border-bottom: 1px solid #d9d9d9;
 	}
 
 	.testcase-tabs {
 		display: flex;
 		align-items: center;
-		gap: 0;
 	}
 
 	.tc-tab-btn {
@@ -1207,16 +1190,14 @@
 		color: var(--muted);
 		padding: 0 12px 0 0;
 		line-height: 36px;
-		transition: color 0.15s, font-weight 0.1s;
+		transition:
+			color 0.15s,
+			font-weight 0.1s;
 	}
 
 	.tc-tab-btn.tc-tab-active {
 		font-weight: 700;
 		color: var(--dark);
-	}
-
-	.tc-tab-btn:first-child {
-		padding-left: 0;
 	}
 
 	.tc-divider-line {
@@ -1293,8 +1274,12 @@
 		border-radius: 50%;
 	}
 
-	.case-dot.green { background: #22c55e; }
-	.case-dot.red { background: #ef4444; }
+	.case-dot.green {
+		background: #22c55e;
+	}
+	.case-dot.red {
+		background: #ef4444;
+	}
 
 	.case-detail {
 		padding: 12px 16px;
@@ -1329,7 +1314,7 @@
 	}
 
 	.io-pre {
-		background: #F6F6F6;
+		background: #f6f6f6;
 		border-radius: 4px;
 		padding: 8px 10px;
 		font-family: 'JetBrains Mono', monospace;
@@ -1340,27 +1325,20 @@
 		min-height: 36px;
 	}
 
-	.io-pre.expected { color: #15803d; }
-	.io-pre.passed-out { color: var(--dark); }
-	.io-pre.failed-out { color: #dc2626; }
-
-	.io-empty {
-		background: #F6F6F6;
-		border-radius: 4px;
-		padding: 8px 10px;
-		font-family: 'Noto Sans Thai', sans-serif;
-		font-size: 13px;
-		color: var(--muted);
-		text-align: center;
-		min-height: 36px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
+	.io-pre.expected {
+		color: #15803d;
+	}
+	.io-pre.passed-out {
+		color: var(--dark);
+	}
+	.io-pre.failed-out {
+		color: #dc2626;
 	}
 
 	.status-badge {
 		display: inline-flex;
 		align-items: center;
+		margin-top: 4px;
 		padding: 2px 10px;
 		border-radius: 4px;
 		font-size: 11px;
@@ -1368,8 +1346,14 @@
 		font-family: 'Noto Sans Thai', sans-serif;
 	}
 
-	.status-badge.passed { background: #dcfce7; color: #15803d; }
-	.status-badge.failed { background: #fee2e2; color: #dc2626; }
+	.status-badge.passed {
+		background: #dcfce7;
+		color: #15803d;
+	}
+	.status-badge.failed {
+		background: #fee2e2;
+		color: #dc2626;
+	}
 
 	.tc-empty {
 		padding: 16px;
@@ -1409,7 +1393,7 @@
 		margin: 0;
 	}
 
-	/* ─── Single col layout (choices / text / file) ─────── */
+	/* ─── Single col layout ─────────────────────────────── */
 	.single-col-layout {
 		max-width: 860px;
 		margin: 0 auto;
@@ -1424,7 +1408,6 @@
 		margin: 4px 0 16px;
 	}
 
-	/* Choices */
 	.choices-grid {
 		display: flex;
 		flex-wrap: wrap;
@@ -1441,7 +1424,9 @@
 		border: 1.5px solid var(--gray-border);
 		border-radius: var(--radius);
 		cursor: pointer;
-		transition: border-color 0.15s, box-shadow 0.15s;
+		transition:
+			border-color 0.15s,
+			box-shadow 0.15s;
 	}
 
 	.choice-card:hover {
@@ -1455,7 +1440,6 @@
 		background: var(--blue-bg);
 	}
 
-	/* Text answer */
 	.text-answer-area {
 		width: 100%;
 		height: 100%;
@@ -1479,17 +1463,20 @@
 		position: absolute;
 		bottom: 6px;
 		right: 8px;
-		background: rgba(255,255,255,0.85);
+		background: rgba(255, 255, 255, 0.85);
 		padding: 2px 8px;
 		border-radius: 6px;
 		font-size: 12px;
 		color: var(--muted);
 	}
 
-	.char-counter.warn { color: var(--dark); }
-	.char-counter.over { color: #dc2626; }
+	.char-counter.warn {
+		color: var(--dark);
+	}
+	.char-counter.over {
+		color: #dc2626;
+	}
 
-	/* File upload */
 	.file-upload-area {
 		padding: 0 16px 16px;
 		position: relative;
@@ -1567,12 +1554,8 @@
 	}
 
 	.file-remove-btn {
-		position: absolute;
-		top: 6px;
-		right: 6px;
 		color: var(--muted);
 		cursor: pointer;
-		position: relative;
 		display: flex;
 		align-items: center;
 	}
@@ -1593,7 +1576,7 @@
 		padding: 0 32px;
 		height: 72px;
 		background: var(--white);
-		border-top: 1px solid #EAECF0;
+		border-top: 1px solid #eaecf0;
 		gap: 16px;
 		position: sticky;
 		bottom: 0;
@@ -1636,7 +1619,6 @@
 		align-items: center;
 	}
 
-	/* Button styles */
 	.footer-btn {
 		display: flex;
 		align-items: center;
@@ -1648,7 +1630,9 @@
 		font-weight: 500;
 		cursor: pointer;
 		position: relative;
-		transition: background 0.15s, border-color 0.15s;
+		transition:
+			background 0.15s,
+			border-color 0.15s;
 		text-decoration: none;
 		white-space: nowrap;
 	}
@@ -1686,13 +1670,17 @@
 	}
 
 	/* ─── Utility ───────────────────────────────────────── */
-	.hidden-submit {
+	label .hidden-submit {
 		position: absolute;
 		inset: 0;
 		opacity: 0;
 		cursor: pointer;
 		width: 100%;
 		height: 100%;
+	}
+
+	.hidden-submit:not(label *) {
+		display: none;
 	}
 
 	@media (max-width: 900px) {
@@ -1705,9 +1693,7 @@
 		.choice-card {
 			width: 100%;
 		}
-		.exam-topbar-inner {
-			padding: 0 12px;
-		}
+		.exam-topbar-inner,
 		.exam-footer {
 			padding: 0 12px;
 		}
