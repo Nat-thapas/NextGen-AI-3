@@ -53,8 +53,8 @@ export const updateProfileFormSchema = z.object({
 			`School name must be at most ${configConstants.users.maxSchoolNameLength} characters long`
 		)
 		.regex(
-			/^[ a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C]*$/,
-			'School name must only contain English or Thai characters'
+			/^[ 0-9\(\)a-zA-Z\u0E01-\u0E2E\u0E30-\u0E39\u0E40-\u0E4C\u0E50-\u0E59]*$/,
+			'School name must only contain English or Thai characters, numbers or parentheses'
 		)
 		.refine((val) => !/^ /.test(val) && !/ $/.test(val), {
 			message: 'School name must not contain space at beginning or end'

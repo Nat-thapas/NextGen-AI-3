@@ -148,7 +148,7 @@ export async function updateUserProfileWithTranscript(data: {
 	nickname: string;
 	phoneNumber: string;
 	schoolName: string;
-	grade: number;
+	grade: string;
 	transcriptId: string;
 	addressProvince: string;
 	addressDistrict: string;

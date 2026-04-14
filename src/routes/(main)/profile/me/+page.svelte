@@ -287,13 +287,15 @@
 							<Form.Control>
 								{#snippet children({ props })}
 									<div class="flex items-center justify-between gap-4">
-										<Form.Label class="text-lg text-secondary-foreground">Transcript</Form.Label>
+										<Form.Label class="text-lg text-secondary-foreground">
+											Transcript (ปพ. 7)
+										</Form.Label>
 										{#if data.transcript}
 											<a
 												href={`${base}/api/files/${data.transcript.id}/transcript${data.transcript.extension}`}
 												target="_blank"
 												class="flex items-center gap-2 text-secondary-foreground hover:text-primary-foreground">
-												<span>View uploaded file</span>
+												<span>View file</span>
 												<Download class="transition-colors" />
 											</a>
 										{/if}

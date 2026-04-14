@@ -285,7 +285,9 @@
 							<Form.Control>
 								{#snippet children({ props })}
 									<div class="flex items-center gap-2">
-										<Form.Label class="text-lg text-secondary-foreground">Transcript</Form.Label>
+										<Form.Label class="text-lg text-secondary-foreground">
+											Transcript (ปพ. 7)
+										</Form.Label>
 									</div>
 									<input
 										{...props}

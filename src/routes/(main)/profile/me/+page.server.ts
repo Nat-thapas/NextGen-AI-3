@@ -89,7 +89,7 @@ export const actions: Actions = {
 				nickname: form.data.nickname,
 				phoneNumber: form.data.phoneNumber,
 				schoolName: form.data.schoolName,
-				grade: Number(form.data.grade),
+				grade: form.data.grade,
 				transcriptId: transcript.id,
 				addressProvince: form.data.addressProvince,
 				addressDistrict: form.data.addressDistrict,
