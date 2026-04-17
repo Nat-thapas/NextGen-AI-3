@@ -394,20 +394,27 @@
 
 		return async ({ result, update }): Promise<void> => {
 			running = false;
+
 			if (result.type === 'failure') {
-				try {
-					const errors = result.data.form.errors.answer;
-					if (errors instanceof Array) {
-						toast.error(errors.join(', '));
-					} else if (errors instanceof Object) {
-						const errs: string[] = [];
-						for (const [index, value] of Object.entries(errors)) {
-							errs.push(`${index}: ${value.join(', ')}`);
+				if (result.data?.globalError) {
+					toast.error('An error occurred while running your code. Please try again.');
+				} else if (result.data?.error) {
+					toast.error(result.data.error as string);
+				} else {
+					try {
+						const errors = result.data?.form?.errors?.answer;
+						if (errors instanceof Array) {
+							toast.error(errors.join(', '));
+						} else if (errors instanceof Object) {
+							const errs: string[] = [];
+							for (const [index, value] of Object.entries(errors)) {
+								errs.push(`${index}: ${(value as string[]).join(', ')}`);
+							}
+							toast.error(errs.join(', '));
 						}
-						toast.error(errs.join(', '));
+					} catch {
+						toast.error('Unknown error');
 					}
-				} catch {
-					toast.error('Unknown error');
 				}
 			}
 			update({ reset: false });
@@ -452,7 +459,7 @@
 									formaction="?/runCode"
 									class="editor-run-btn"
 									disabled={running}
-									class:running={running}>
+									class:running>
 									{#if running}
 										<span>Loading...</span>
 									{:else}
