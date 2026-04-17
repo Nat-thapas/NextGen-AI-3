@@ -470,7 +470,7 @@
 							tabSize={4}
 							useTab={true}
 							styles={{
-								'&': { minHeight: '300px' },
+								'&': { minHeight: '300px', maxHeight: '900px' },
 								'.cm-scroller': { fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }
 							}} />
 						<input type="hidden" name="answer" value={answer} />
@@ -1159,11 +1159,6 @@
 
 	.editor-run-btn:hover {
 		opacity: 0.9;
-	}
-
-	/* CodeMirror */
-	.cm-container {
-		min-height: 300px;
 	}
 
 	:global(.cm-editor) {
