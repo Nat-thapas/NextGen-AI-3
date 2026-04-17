@@ -512,6 +512,17 @@ export async function exportExamScore(examId: string): Promise<Buffer> {
 							}
 						});
 					}
+				} else if (question.questionType === questionTypes.code) {
+					row.push({
+						v: answer.answer,
+						t: 's',
+						s: {
+							alignment: alignmentWrap,
+							fill,
+							border: borderThickLeft
+						}
+					});
+					rowHeight = Math.max(rowHeight, 16 * Math.ceil(answer.answer.length / 32));
 				} else {
 					row.push({
 						v: 'Unknown question type',
