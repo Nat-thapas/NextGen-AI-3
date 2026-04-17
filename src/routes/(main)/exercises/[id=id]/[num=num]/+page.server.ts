@@ -144,7 +144,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		form = await superValidate(zod(codeSchema));
 	} else {
 		// text, file fallback
-		form = await superValidate(zod(choicesSchema)); 
+		form = await superValidate(zod(choicesSchema));
 	}
 
 	return {
@@ -451,73 +451,58 @@ export const actions: Actions = {
 		const examId = event.params.id;
 		const questionNumber = Number(event.params.num);
 
-		// 1. Basic Auth and Access Checks
-		if (!user) {
-			error(401, { message: 'You have to be logged in to access this page' });
-		}
-		if (!isRoleAtLeast(user.role, roles.student)) {
-			error(403, { message: 'You do not have access to this page' });
-		}
+		// 1. Basic Auth and Access Checks...
+		if (!user) error(401, { message: 'You have to be logged in' });
 
 		const exam = await getExamSubmission(examId, user.id);
-		
-		if (!exam || !exam.submission) {
-			error(404, { message: 'Not Found or not started' });
-		}
-
-		if (!isRoleAtLeast(user.role, roles.teacher)) {
-			if (exam.openAt > utcNow() || exam.closeAt <= utcNow() || getSecondsSince(exam.submission.createdAt) > exam.timeLimit || exam.submission.submitted) {
-				error(403, { message: 'Exam is not active, closed, time ran out, or already submitted' });
-			}
-		}
+		if (!exam || !exam.submission) error(404, { message: 'Not Found' });
 
 		// 2. Validate code schema
 		const form = await superValidate(event.request, zod(codeSchema));
 		if (!form.valid) return fail(400, { form });
 
-		// 3. Save the answer to the database
+		// 3. Save the answer
 		const codeAnswer = form.data.answer || "";
 		await upsertAnswer(exam.id, questionNumber, user.id, codeAnswer);
 
-		// 4. Fetch the visible testcases
+		// 4. Fetch testcases
 		const allTestcases = await getTestcases(examId, questionNumber);
 		const visibleTestcases = allTestcases.filter(tc => !tc.isHidden);
 
 		if (visibleTestcases.length === 0 || !codeAnswer.trim()) {
-			return { form, runResults: [] };
+			return { form, runResults: [], rawExecutorResponse: null };
 		}
 
-		// 5. Prepare payload for Python executor
+		// 5. Prepare payload
 		const executionPayload = {
-			version: "3.12",
+			version: `${env.PYTHON_VERSION}`,
 			submission: codeAnswer,
 			colored_diagnostics: false,
-			stdio_sets: [
-				{
-					isolation_level: "high",
-					cases: visibleTestcases.map(tc => ({ input: tc.stdin || "" }))
-				}
-			]
+			stdio_sets: [{
+				isolation_level: "high",
+				cases: visibleTestcases.map(tc => ({ input: tc.stdin || "" }))
+			}]
 		};
 
 		try {
-			// 6. Call the Executor
 			const response = await fetch(`${env.EXECUTOR_BASE_URL}/python/execute`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(executionPayload)
 			});
 
-			if (!response.ok) throw new Error("Execution failed");
+			if (!response.ok) {
+				throw new Error("Execution failed");
+			}
 
 			const result = await response.json();
 			const runOutputs = result.outputs?.[0] || [];
 
-			// 7. Compare outputs and format results for the frontend
+			// 7. Compare outputs
 			const runResults = visibleTestcases.map((tc, index) => {
 				const runOut = runOutputs[index];
 				const expected = (tc.expectedOut || "").trim().replace(/\r\n/g, '\n');
-				
+
 				let actual = "";
 				let passed = false;
 				let status = "Unknown";
@@ -541,11 +526,11 @@ export const actions: Actions = {
 				};
 			});
 
-			return { form, runResults };
+			return { form, runResults, rawExecutorResponse: result };
 
 		} catch (err) {
-			console.error("Code execution error:", err);
-			return fail(500, { form, error: "Failed to connect to execution engine" });
+			console.error("Executor Error:", err);
+			return fail(500, { form, globalError: true });
 		}
 	}
 };
