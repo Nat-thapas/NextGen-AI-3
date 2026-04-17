@@ -118,12 +118,12 @@ export async function calculateExamScore(examId: string): Promise<void> {
 						}));
 
 						const executionPayload = {
-							version: "3.12",
-							submission: answer.answer, // The student's code
+							version: `${env.PYTHON_VERSION}`,
+							submission: answer.answer,
 							colored_diagnostics: false,
 							stdio_sets: [
 								{
-									isolation_level: "high", // Or medium based on your needs
+									isolation_level: "high",
 									cases: casesPayload
 								}
 							]
