@@ -7,7 +7,7 @@ import { updateSubmissionScore } from '$lib/server/db/services/submissions';
 import { getTestcases } from '$lib/server/db/services/testcases';
 import { getUser } from '$lib/server/db/services/users';
 
-import { EXECUTOR_BASE_URL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 export function getScore(
 	question: { minScore: number; maxScore: number },
@@ -149,7 +149,7 @@ export async function calculateExamScore(examId: string): Promise<void> {
 
 						try {
 							// 3. Post to execution engine
-							const response = await fetch(`${EXECUTOR_BASE_URL}/python/execute`, {
+							const response = await fetch(`${env.EXECUTOR_BASE_URL}/python/execute`, {
 								method: "POST",
 								headers: { "Content-Type": "application/json" },
 								body: JSON.stringify(executionPayload)
