@@ -114,7 +114,15 @@ export async function calculateExamScore(examId: string): Promise<void> {
 					if (testcases && testcases.length > 0) {
 						// 2. Prepare cases payload for execution API
 						const casesPayload = testcases.map((tc) => ({
-							input: tc.stdin || ""
+							input: tc.stdin || "",
+							limit: {
+								time: {
+									real: tc.codeTimeLimitS,
+									wall: tc.codeTimeLimitS * 2.5
+								},
+								memory: tc.codeMemoryLimitB,
+								output_size: 10240
+							}
 						}));
 
 						const executionPayload = {

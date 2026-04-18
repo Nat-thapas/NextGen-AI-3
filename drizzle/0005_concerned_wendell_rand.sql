@@ -6,8 +6,8 @@ CREATE TABLE "testcases" (
 	"stdin" text,
 	"expected_out" text,
 	"is_hidden" boolean DEFAULT true NOT NULL,
-	"code_time_limit_ms" integer DEFAULT 1000 NOT NULL,
-	"code_memory_limit_kb" integer DEFAULT 4096 NOT NULL,
+	"code_time_limit_s" integer DEFAULT 1 NOT NULL,
+	"code_memory_limit_b" integer DEFAULT 33554432 NOT NULL,
 	"created_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp (6) with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "testcases_exam_id_question_number_number_pk" PRIMARY KEY("exam_id","question_number","number")
