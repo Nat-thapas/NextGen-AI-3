@@ -324,14 +324,14 @@ export async function importExam(
 						? (String(row[3]).toLowerCase() === 'true' || ((typeof row[3] === 'number') && row[3] !== 0))
 						: true; 
 
-					// code_time_limit_ms (Defaults to 1000)
-					const timeLimit = Number(row[4] ?? 1000);
+					// code_time_limit_s (Defaults to 1 seconds)
+					const timeLimit = Number(row[4] ?? 1);
 					if (isNaN(timeLimit)) {
 						throw Error(`Sheet '${name}' Cell E${rowNumber + 1} (Time limit) is invalid`);
 					}
 
-					// code_memory_limit_kb (Defaults to 4096)
-					const memoryLimit = Number(row[5] ?? 4096);
+					// code_memory_limit_b (Defaults to 33554432 32MB)
+					const memoryLimit = Number(row[5] ?? 33554432);
 					if (isNaN(memoryLimit)) {
 						throw Error(`Sheet '${name}' Cell F${rowNumber + 1} (Memory limit) is invalid`);
 					}
@@ -345,8 +345,8 @@ export async function importExam(
 						stdin,
 						expectedOut,
 						isHidden,
-						codeTimeLimitMs: timeLimit,
-						codeMemoryLimitKb: memoryLimit
+						codeTimeLimitS: timeLimit,
+						codeMemoryLimitB: memoryLimit
 					});
 
 				} else {

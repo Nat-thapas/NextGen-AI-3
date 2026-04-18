@@ -480,7 +480,17 @@ export const actions: Actions = {
 			colored_diagnostics: false,
 			stdio_sets: [{
 				isolation_level: "high",
-				cases: visibleTestcases.map(tc => ({ input: tc.stdin || "" }))
+				cases: visibleTestcases.map(tc => ({
+					input: tc.stdin || "",
+					limit: {
+						time: {
+							real: tc.codeTimeLimitS,
+							wall: tc.codeTimeLimitS * 2.5
+						},
+						memory: tc.codeMemoryLimitB,
+						output_size: 10240
+					}
+				}))
 			}]
 		};
 

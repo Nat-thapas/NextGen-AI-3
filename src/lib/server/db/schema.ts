@@ -211,8 +211,8 @@ export const testcases = pgTable(
 		stdin: text(),
 		expectedOut: text(),
 		isHidden: boolean().default(true).notNull(),
-		codeTimeLimitMs: integer().default(1000).notNull(),
-		codeMemoryLimitKb: integer().default(4096).notNull(),
+		codeTimeLimitS: integer().default(1).notNull(), // 1 seconds
+		codeMemoryLimitB: integer().default(33554432).notNull(), // 8MB
 		...timeStamps
 	},
 	(table) => [

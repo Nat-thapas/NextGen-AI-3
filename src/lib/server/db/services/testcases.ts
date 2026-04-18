@@ -15,8 +15,8 @@ const createTestcaseQuery = db
 		stdin: sql.placeholder('stdin'),
 		expectedOut: sql.placeholder('expectedOut'),
 		isHidden: sql.placeholder('isHidden'),
-		codeTimeLimitMs: sql.placeholder('codeTimeLimitMs'),
-		codeMemoryLimitKb: sql.placeholder('codeMemoryLimitKb')
+		codeTimeLimitS: sql.placeholder('codeTimeLimitS'),
+		codeMemoryLimitB: sql.placeholder('codeMemoryLimitB')
 	})
 	.prepare('create_testcase');
 
@@ -27,8 +27,8 @@ export async function createTestcase(data: {
 	stdin: string | null;
 	expectedOut: string | null;
 	isHidden: boolean;
-	codeTimeLimitMs: number;
-	codeMemoryLimitKb: number;
+	codeTimeLimitS: number;
+	codeMemoryLimitB: number;
 }) {
 	return createTestcaseQuery.execute(data);
 }
