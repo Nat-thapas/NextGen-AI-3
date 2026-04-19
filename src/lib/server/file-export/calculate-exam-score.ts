@@ -99,6 +99,24 @@ export async function calculateExamScore(examId: string): Promise<void> {
 								throw Error(`Question #${question.number} contains invalid regex`);
 							}
 							answer.correctness = regex.test(ans) ? 1 : 0;
+						} else if (question.scoringType === scoringTypes.range) {
+							const matches = question.textCorrect.matchAll(
+								/^([+-]?(?:[0-9]*[.])?[0-9]+)-([+-]?(?:[0-9]*[.])?[0-9]+)$/g
+							);
+							const [match] = matches;
+							if (
+								match === null ||
+								match === undefined ||
+								!isFinite(parseFloat(match[1])) ||
+								!isFinite(parseFloat(match[2]))
+							) {
+								throw Error(`Question #${question.number} contains invalid range`);
+							}
+							const start = parseFloat(match[1]);
+							const end = parseFloat(match[2]);
+							const ansNumber = parseFloat(ans);
+							answer.correctness =
+								isFinite(ansNumber) && start <= ansNumber && ansNumber <= end ? 1 : 0;
 						} else {
 							throw Error(`Question #${question.number} contains invalid scoring type`);
 						}

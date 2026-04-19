@@ -41,7 +41,7 @@ const getQuestionChoicesAnswerQuery = db.query.questions
 					number: true,
 					html: true
 				},
-				orderBy: [asc(choices.number)]
+				orderBy: [asc(sql`RANDOM()`)]
 			},
 			answers: {
 				columns: {
@@ -131,7 +131,7 @@ export async function createQuestion(data: {
 	defaultScore: number;
 	minScore: number;
 	maxScore: number;
-	scoringType: 'exact' | 'regex' | 'and' | 'or' | 'scale' | null;
+	scoringType: 'exact' | 'regex' | 'and' | 'or' | 'scale' | 'range' | null;
 	textLengthLimit: number;
 	textCorrect: string | null;
 	fileTypes: string | null;

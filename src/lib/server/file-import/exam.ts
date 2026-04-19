@@ -175,10 +175,10 @@ export async function importExam(
 						questionType === questionTypes.checkboxes || questionType === questionTypes.text
 							? String(row[6]).toLowerCase()
 							: null
-					) as 'exact' | 'regex' | 'and' | 'or' | 'scale' | null;
+					) as 'exact' | 'regex' | 'and' | 'or' | 'scale' | 'range' | null;
 					if (
 						scoringType !== null &&
-						!['exact', 'regex', 'and', 'or', 'scale'].includes(scoringType)
+						!['exact', 'regex', 'and', 'or', 'scale', 'range'].includes(scoringType)
 					) {
 						throw Error(`Sheet '${name}' Cell G${rowNumber + 1} (Scoring type) is invalid`);
 					}
@@ -207,6 +207,27 @@ export async function importExam(
 						} catch {
 							throw Error(
 								`Sheet '${name}' Cell I${rowNumber + 1} (Text correct) contains invalid regex`
+							);
+						}
+					}
+
+					if (
+						textCorrect !== null &&
+						questionType === questionTypes.text &&
+						scoringType === scoringTypes.range
+					) {
+						const matches = textCorrect.matchAll(
+							/^([+-]?(?:[0-9]*[.])?[0-9]+)-([+-]?(?:[0-9]*[.])?[0-9]+)$/g
+						);
+						const [match] = matches;
+						if (
+							match === null ||
+							match === undefined ||
+							!isFinite(parseFloat(match[1])) ||
+							!isFinite(parseFloat(match[2]))
+						) {
+							throw Error(
+								`Sheet '${name}' Cell I${rowNumber + 1} (Text correct) contains invalid range`
 							);
 						}
 					}

@@ -45,7 +45,15 @@ export const questionTypes = pgEnum('question_types', ['choices', 'checkboxes', 
 //   - exact: must match the correct answer exactly
 //   - regex: must match the correct answer provided in regex form
 //   - scale: perform sequence matching to estimate how correct the answer is (warning: this is not very accurate) and give score based on that
-export const scoringTypes = pgEnum('scoring_types', ['exact', 'regex', 'and', 'or', 'scale']);
+//   - range: parse the answer as number, then check if the number falls within the specified range (inclusive)
+export const scoringTypes = pgEnum('scoring_types', [
+	'exact',
+	'regex',
+	'and',
+	'or',
+	'scale',
+	'range'
+]);
 
 export const users = pgTable('users', {
 	id: suid()

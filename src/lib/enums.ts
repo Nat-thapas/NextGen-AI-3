@@ -19,7 +19,8 @@ export const scoringTypes = {
 	regex: 'regex',
 	and: 'and',
 	or: 'or',
-	scale: 'scale'
+	scale: 'scale',
+	range: 'range'
 } as const;
 
 export enum HttpMethod {
