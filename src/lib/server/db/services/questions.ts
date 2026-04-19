@@ -127,7 +127,7 @@ export async function createQuestion(data: {
 	number: number;
 	markdown: string;
 	html: string;
-	questionType: 'choices' | 'checkboxes' | 'text' | 'file';
+	questionType: 'choices' | 'checkboxes' | 'text' | 'file' | 'code';
 	defaultScore: number;
 	minScore: number;
 	maxScore: number;

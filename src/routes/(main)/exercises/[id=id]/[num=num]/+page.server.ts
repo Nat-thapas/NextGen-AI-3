@@ -30,7 +30,8 @@ import { updateSubmissionSubmitted } from '$lib/server/db/services/submissions';
 import { setToastParams } from '$lib/toast';
 
 import type { Actions, PageServerLoad } from './$types';
-import { checkboxesSchema, choicesSchema } from './schema';
+import { checkboxesSchema, choicesSchema, codeSchema } from './schema';
+import { getTestcases } from '$lib/server/db/services/testcases';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	const user = locals.user;
@@ -126,6 +127,25 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	} else {
 		answer = question.answers[0]?.answer;
 	}
+	let visibleTestcases: any[] = [];
+	if (question.questionType === questionTypes.code) {
+		const allTestcases = await getTestcases(exam.id, question.number);
+		// Only send the non-hidden testcases to the client
+		visibleTestcases = allTestcases.filter(tc => !tc.isHidden);
+	}
+
+	// Ensure superValidate knows about the code schema
+	let form;
+	if (question.questionType === questionTypes.choices) {
+		form = await superValidate(zod(choicesSchema));
+	} else if (question.questionType === questionTypes.checkboxes) {
+		form = await superValidate(zod(checkboxesSchema));
+	} else if (question.questionType === questionTypes.code) {
+		form = await superValidate(zod(codeSchema));
+	} else {
+		// text, file fallback
+		form = await superValidate(zod(choicesSchema));
+	}
 
 	return {
 		now: Date.now(),
@@ -149,12 +169,14 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		},
 		answer,
 		answerExists: question.answers.length > 0,
-		acceptedFileTypes
+		acceptedFileTypes,
+		form,
+		visibleTestcases
 	};
 };
 
 export const actions: Actions = {
-	default: async (event) => {
+	saveAnswer: async (event) => {
 		const user = event.locals.user;
 		const examId = event.params.id;
 		const questionNumber = Number(event.params.num);
@@ -358,6 +380,19 @@ export const actions: Actions = {
 
 				break;
 			}
+			case questionTypes.code: {
+				const form = await superValidate(event.request, zod(codeSchema));
+				if (!form.valid) return fail(400, { form });
+
+				if (form.data.answer !== undefined) {
+					await upsertAnswer(exam.id, question.number, user.id, form.data.answer);
+				} else {
+					await updateAnswer(exam.id, question.number, user.id, '');
+				}
+
+				next = form.data.next;
+				break;
+			}
 		}
 
 		if (/^[0-9]{1,15}$/.test(next)) {
@@ -409,5 +444,103 @@ export const actions: Actions = {
 				'error'
 			)
 		);
+	},
+
+	runCode: async (event) => {
+		const user = event.locals.user;
+		const examId = event.params.id;
+		const questionNumber = Number(event.params.num);
+
+		// 1. Basic Auth and Access Checks...
+		if (!user) error(401, { message: 'You have to be logged in' });
+
+		const exam = await getExamSubmission(examId, user.id);
+		if (!exam || !exam.submission) error(404, { message: 'Not Found' });
+
+		// 2. Validate code schema
+		const form = await superValidate(event.request, zod(codeSchema));
+		if (!form.valid) return fail(400, { form });
+
+		// 3. Save the answer
+		const codeAnswer = form.data.answer || "";
+		await upsertAnswer(exam.id, questionNumber, user.id, codeAnswer);
+
+		// 4. Fetch testcases
+		const allTestcases = await getTestcases(examId, questionNumber);
+		const visibleTestcases = allTestcases.filter(tc => !tc.isHidden);
+
+		if (visibleTestcases.length === 0 || !codeAnswer.trim()) {
+			return { form, runResults: [], rawExecutorResponse: null };
+		}
+
+		// 5. Prepare payload
+		const executionPayload = {
+			version: `${env.PYTHON_VERSION}`,
+			submission: codeAnswer,
+			colored_diagnostics: false,
+			stdio_sets: [{
+				isolation_level: "high",
+				cases: visibleTestcases.map(tc => ({
+					input: tc.stdin || "",
+					limit: {
+						time: {
+							real: tc.codeTimeLimitS,
+							wall: tc.codeTimeLimitS * 2.5
+						},
+						memory: tc.codeMemoryLimitB,
+						output_size: 10240
+					}
+				}))
+			}]
+		};
+
+		try {
+			const response = await fetch(`${env.EXECUTOR_BASE_URL}/python/execute`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(executionPayload)
+			});
+
+			if (!response.ok) {
+				throw new Error("Execution failed");
+			}
+
+			const result = await response.json();
+			const runOutputs = result.outputs?.[0] || [];
+
+			// 7. Compare outputs
+			const runResults = visibleTestcases.map((tc, index) => {
+				const runOut = runOutputs[index];
+				const expected = (tc.expectedOut || "").trim().replace(/\r\n/g, '\n');
+
+				let actual = "";
+				let passed = false;
+				let status = "Unknown";
+
+				if (runOut) {
+					actual = (runOut.output || "").trim().replace(/\r\n/g, '\n');
+					status = runOut.status;
+					if (runOut.status === "OK" && actual === expected) {
+						passed = true;
+					}
+				}
+
+				return {
+					testcaseNumber: tc.number,
+					stdin: tc.stdin,
+					expectedOut: expected,
+					actualOut: actual,
+					passed: passed,
+					status: status,
+					time: runOut?.time || 0
+				};
+			});
+
+			return { form, runResults, rawExecutorResponse: result };
+
+		} catch (err) {
+			console.error("Executor Error:", err);
+			return fail(500, { form, globalError: true });
+		}
 	}
 };

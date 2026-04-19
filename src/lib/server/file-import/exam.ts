@@ -20,6 +20,7 @@ import {
 	deleteFilesByReferenceReturning
 } from '$lib/server/db/services/files';
 import { createQuestion } from '$lib/server/db/services/questions';
+import { createTestcase } from '$lib/server/db/services/testcases';
 import { updateAssets } from '$lib/server/file-import/update-assets';
 
 import { parseRegexString } from '../file-export/calculate-exam-score';
@@ -66,7 +67,7 @@ export async function importExam(
 		| {
 				name: string;
 				data: (string | number | boolean | undefined)[][];
-		  }[]
+		}[]
 		| undefined = undefined;
 
 	try {
@@ -107,14 +108,14 @@ export async function importExam(
 					} catch {} // eslint-disable-line no-empty
 				}
 
-				const file = await createFileReturning({
+				const newFile = await createFileReturning({
 					size,
 					mimeType,
 					extension,
 					referenceId: exam.id
 				});
-				await fs.writeFile(join(env.FILE_STORAGE_PATH, file.id + file.extension), buffer);
-				assets[compressed.path] = `${base}/api/files/${file.id + file.extension}`;
+				await fs.writeFile(join(env.FILE_STORAGE_PATH, newFile.id + newFile.extension), buffer);
+				assets[compressed.path] = `${base}/api/files/${newFile.id + newFile.extension}`;
 			}
 		}
 
@@ -124,6 +125,9 @@ export async function importExam(
 
 		let questionNumber = 0;
 		let choiceNumber = 0;
+		let testcaseNumber = 0;
+		let currentQuestionType = '';
+
 		for (const sheet of sheets) {
 			const name = sheet.name;
 			const data = sheet.data;
@@ -143,12 +147,14 @@ export async function importExam(
 					if (row[2] === undefined) {
 						throw Error(`Sheet '${name}' Cell C${rowNumber + 1} (Question type) is empty`);
 					}
+
 					const questionType = String(row[2]).toLowerCase() as
 						| 'choices'
 						| 'checkboxes'
 						| 'text'
-						| 'file';
-					if (!['choices', 'checkboxes', 'text', 'file'].includes(questionType)) {
+						| 'file'
+						| 'code';
+					if (!['choices', 'checkboxes', 'text', 'file', 'code'].includes(questionType)) {
 						throw Error(`Sheet '${name}' Cell C${rowNumber + 1} (Question type) is invalid`);
 					}
 
@@ -250,6 +256,8 @@ export async function importExam(
 
 					questionNumber++;
 					choiceNumber = 0;
+					testcaseNumber = 0; // ---> ADDED: Reset testcases for new question
+					currentQuestionType = questionType; // ---> ADDED: Track type
 
 					await createQuestion({
 						examId: exam.id,
@@ -266,6 +274,7 @@ export async function importExam(
 						fileTypes,
 						fileSizeLimit
 					});
+
 				} else if (row[0].toLowerCase().startsWith('$c')) {
 					if (questionNumber === 0) {
 						throw Error(
@@ -293,15 +302,62 @@ export async function importExam(
 						html: renderMarkdown(markdown),
 						isCorrect
 					});
+
+				} else if (row[0].toLowerCase().startsWith('$t')) {
+					if (questionNumber === 0) {
+						throw Error(
+							`Sheet '${name}' Cell A${rowNumber + 1} Testcase is defined before a question`
+						);
+					}
+
+					if (currentQuestionType !== 'code') {
+						throw Error(
+							`Sheet '${name}' Cell A${rowNumber + 1} Testcase defined for non-code question`
+						);
+					}
+
+					const stdin = row[1] !== undefined ? String(row[1]) : null;
+					const expectedOut = row[2] !== undefined ? String(row[2]) : null;
+
+					// is_hidden (Defaults to true if left blank)
+					const isHidden = row[3] !== undefined 
+						? (String(row[3]).toLowerCase() === 'true' || ((typeof row[3] === 'number') && row[3] !== 0))
+						: true; 
+
+					// code_time_limit_s (Defaults to 1 seconds)
+					const timeLimit = Number(row[4] ?? 1);
+					if (isNaN(timeLimit)) {
+						throw Error(`Sheet '${name}' Cell E${rowNumber + 1} (Time limit) is invalid`);
+					}
+
+					// code_memory_limit_b (Defaults to 33554432 32MB)
+					const memoryLimit = Number(row[5] ?? 33554432);
+					if (isNaN(memoryLimit)) {
+						throw Error(`Sheet '${name}' Cell F${rowNumber + 1} (Memory limit) is invalid`);
+					}
+
+					testcaseNumber++;
+
+					await createTestcase({
+						examId: exam.id,
+						questionNumber: questionNumber,
+						number: testcaseNumber,
+						stdin,
+						expectedOut,
+						isHidden,
+						codeTimeLimitS: timeLimit,
+						codeMemoryLimitB: memoryLimit
+					});
+
 				} else {
 					throw Error(`Sheet '${name}' Cell A${rowNumber + 1} contains invalid $ directive`);
 				}
 			}
 		}
 	} catch (err) {
-		const assets = await deleteFilesByReferenceReturning(exam.id);
+		const deletedAssets = await deleteFilesByReferenceReturning(exam.id);
 		await Promise.allSettled(
-			assets.map((file) => fs.unlink(join(env.FILE_STORAGE_PATH, file.id + file.extension)))
+			deletedAssets.map((f) => fs.unlink(join(env.FILE_STORAGE_PATH, f.id + f.extension)))
 		);
 		try {
 			await deleteExam(exam.id);

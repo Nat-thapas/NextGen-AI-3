@@ -1,38 +1,11 @@
-# sv
+## Install (npm, pnpm, bun anything work fine)
+1. $`sudo apt install libpq-dev`
+2. `npm install -g node-gyp` (compiler for some lib) (it require global don't know why)
+3. create `.env` refer from .env.example
+4. $`pnpm install`
+5. run postgres database with same config as .env
+6. $`pnpm run dev` is fail (but you may work)
+7. create folder `files` at root
+8. also open server for executor `https://github.com/Nat-thapas/NextGen-AI-3-Executor`
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- `bunx drizzle-kit studio` for open database

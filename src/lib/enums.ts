@@ -11,7 +11,8 @@ export const questionTypes = {
 	choices: 'choices',
 	checkboxes: 'checkboxes',
 	text: 'text',
-	file: 'file'
+	file: 'file',
+	code: 'code'
 } as const;
 
 export const scoringTypes = {
