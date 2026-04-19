@@ -1,1 +1,0 @@
-ALTER TYPE "public"."scoring_types" ADD VALUE 'range';
