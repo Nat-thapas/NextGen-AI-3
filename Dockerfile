@@ -28,6 +28,8 @@ COPY patches ./patches
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY . ./
+COPY drizzle.config.ts ./
+COPY drizzle ./drizzle
 RUN pnpm run build
 
 
