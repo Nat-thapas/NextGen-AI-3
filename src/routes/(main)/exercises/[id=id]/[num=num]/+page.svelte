@@ -101,6 +101,8 @@
 			initialAnswer = data.answer ?? '';
 			activeTestcase = 0;
 			activeTab = 'testcase';
+		} else if (data.question.questionType === questionTypes.file) {
+			answer = data.answer ?? '';
 		}
 	});
 
@@ -236,12 +238,14 @@
 <!-- Top Navigation Bar -->
 <header class="exam-topbar">
 	<div class="exam-topbar-inner">
+	<a href={`${base}/`}>
 		<div class="exam-logo">
 			<span class="exam-logo-text">
 				CE
 				<span class="logo-accent">Next</span>
 			</span>
 		</div>
+	</a>
 
 		<nav class="question-nav">
 			<label for="nav-back-btn" class="nav-arrow-btn" class:disabled={data.question.number === 1}>
@@ -720,6 +724,12 @@
 										</span>
 									</label>
 									<input
+										type="submit"
+										id="auto-save-file-button"
+										name="next"
+										value={String(data.question.number)}
+										style="display:none" />
+									<input
 										id="file-input"
 										type="file"
 										name="answer"
@@ -727,6 +737,7 @@
 										bind:this={fileInput}
 										oninput={() => {
 											removeFileVisible = true;
+											document.getElementById('auto-save-file-button')?.click();
 										}}
 										class="file-input-hidden" />
 								</div>
@@ -770,7 +781,7 @@
 				class="hidden-submit" />
 		</label>
 
-		<div class="footer-progress">
+		<!--<div class="footer-progress">
 			<div class="footer-progress-labels">
 				<span>ทำไปแล้ว</span>
 				<span>{percentCompletedString}%</span>
@@ -778,10 +789,10 @@
 			<div class="footer-progress-track">
 				<div class="footer-progress-fill" style="width: {percentCompleted}%"></div>
 			</div>
-		</div>
+		</div>-->
 
 		<div class="footer-right">
-			{#if data.answerExists && data.question.questionType !== questionTypes.file}
+			<!--{#if data.answerExists && data.question.questionType !== questionTypes.file}
 				<label for="remove-answer-btn" class="footer-btn outline-btn">
 					Remove Answer
 					<input
@@ -801,7 +812,7 @@
 					class="footer-btn outline-btn">
 					Remove File
 				</button>
-			{/if}
+			{/if}-->
 
 			{#if data.question.number === data.questions.length}
 				<AlertDialog.Root>
@@ -1607,7 +1618,7 @@
 		z-index: 40;
 	}
 
-	.footer-progress {
+	/*.footer-progress {
 		flex: 1;
 		max-width: 600px;
 	}
@@ -1635,7 +1646,7 @@
 		background: var(--blue);
 		border-radius: 100px;
 		transition: width 0.4s;
-	}
+	}*/
 
 	.footer-right {
 		display: flex;
