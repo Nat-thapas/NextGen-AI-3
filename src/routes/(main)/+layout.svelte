@@ -5,6 +5,7 @@
 	import { enhance } from '$app/forms';
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
+	import { env } from '$env/dynamic/public';
 
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { roles } from '$lib/enums';
@@ -82,11 +83,13 @@
 				class="font-semibold text-secondary-foreground transition-colors hover:text-primary-foreground">
 				Login
 			</a>
-			<a
-				href="{base}/auth/oauth/google?next={page.url.searchParams.get('next') ?? `${base}/`}"
-				class="button-gradient rounded-full px-4 py-2 font-semibold text-white drop-shadow-md transition-colors">
-				สมัครเข้าร่วมค่าย
-			</a>
+			{#if new Date() <= new Date(env.PUBLIC_DISABLE_SIGNUP_AT)}
+				<a
+					href="{base}/auth/oauth/google?next={page.url.searchParams.get('next') ?? `${base}/`}"
+					class="button-gradient rounded-full px-4 py-2 font-semibold text-white drop-shadow-md transition-colors">
+					สมัครเข้าร่วมค่าย
+				</a>
+			{/if}
 		</div>
 	{/if}
 	<DropdownMenu.Root>
@@ -167,7 +170,8 @@
 							href="{base}/auth/oauth/google?next={page.url.searchParams.get('next') ?? `${base}/`}"
 							class="flex w-full items-center gap-2 p-2 text-base font-semibold text-primary-foreground transition-colors">
 							<LogIn />
-							Register / Login
+							{#if new Date() <= new Date(env.PUBLIC_DISABLE_SIGNUP_AT)}Register /
+							{/if}Login
 						</a>
 					</DropdownMenu.Item>
 				</DropdownMenu.Group>

@@ -6,6 +6,7 @@
 
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
+	import { env } from '$env/dynamic/public';
 
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Form from '$lib/components/ui/form';
@@ -149,7 +150,7 @@
 			คอยให้คำปรึกษาและดูแลตลอดกระบวนการเรียนรู้
 			วัตถุประสงค์เพื่อส่งเสริมทักษะทางเทคโนโลยีและเตรียมความพร้อมสำหรับการศึกษาต่อในระดับอุดมศึกษา
 		</p>
-		{#if data.user === undefined}
+		{#if data.user === undefined && new Date() <= new Date(env.PUBLIC_DISABLE_SIGNUP_AT)}
 			<a
 				href="{base}/auth/oauth/google?next={page.url.searchParams.get('next') ?? `${base}/`}"
 				class="button-gradient mx-8 rounded-full px-6 py-2 text-xl font-semibold text-white drop-shadow-md transition-colors md:mx-0">

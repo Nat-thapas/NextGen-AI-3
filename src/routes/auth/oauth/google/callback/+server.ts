@@ -127,19 +127,24 @@ async function authenticate(event: RequestEvent): Promise<{ user: User; next: st
 	let user: User | undefined = await getUserByEmail(tokenData.email);
 
 	if (!user) {
-		if (
-			!tokenData.email.endsWith('@' + env.STAFF_EMAIL_SERVER) &&
-			(await getStudentcount()) >= parseInt(env.STUDENT_LIMIT)
-		) {
-			redirect(
-				303,
-				setToastParams(
-					`${base}/`,
-					'ขออภัย ขณะนี้มีผู้สมัครครบตามจำนวนที่กำหนดแล้ว',
-					undefined,
-					'error'
-				)
-			);
+		if (!tokenData.email.endsWith('@' + env.STAFF_EMAIL_SERVER)) {
+			if (new Date() > new Date(publicEnv.PUBLIC_DISABLE_SIGNUP_AT)) {
+				redirect(
+					303,
+					setToastParams(`${base}/`, 'ขออภัย ขณะนี้เลยเวลารับสมัครแล้ว', undefined, 'error')
+				);
+			}
+			if ((await getStudentcount()) >= parseInt(env.STUDENT_LIMIT)) {
+				redirect(
+					303,
+					setToastParams(
+						`${base}/`,
+						'ขออภัย ขณะนี้มีผู้สมัครครบตามจำนวนที่กำหนดแล้ว',
+						undefined,
+						'error'
+					)
+				);
+			}
 		}
 
 		if (tokenData.email.endsWith('@' + env.STAFF_EMAIL_SERVER)) {
